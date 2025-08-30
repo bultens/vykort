@@ -20,7 +20,7 @@
         .card {
             background-color: #ffffff;
             border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1-px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             padding: 2rem;
             margin-bottom: 1.5rem;
         }
@@ -127,7 +127,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.27</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.28</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -367,10 +367,11 @@
             
             postcardsList.innerHTML = '';
             
-            // Hämta en lista över ID för alla befintliga grupper
-            const existingGroupIds = groupsData.map(g => g.id);
-
-            // Hantera grupperade vykort först
+            // Skapa en uppsättning av alla befintliga grupp-ID:n för snabb uppslagning
+            const existingGroupIds = new Set(groupsData.map(g => g.id));
+            const renderedPostcardIds = new Set();
+            
+            // 1. Rendera vykort som tillhör en befintlig grupp
             for (const group of groupsData) {
                 if (groupFilterValue !== 'all' && group.id !== groupFilterValue) {
                     continue;
@@ -384,7 +385,10 @@
                     const groupPostcardsList = document.createElement('div');
                     groupPostcardsList.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start';
                     
-                    const postcardPromises = postcardsInGroup.map(p => createPostcardHtml(p));
+                    const postcardPromises = postcardsInGroup.map(p => {
+                        renderedPostcardIds.add(p.id);
+                        return createPostcardHtml(p);
+                    });
                     const postcardHtmls = await Promise.all(postcardPromises);
                     postcardHtmls.forEach(html => groupPostcardsList.innerHTML += html);
 
@@ -393,9 +397,9 @@
                 }
             }
 
-            // Hantera vykort som inte tillhör någon grupp eller har en icke-existerande grupp-ID
+            // 2. Rendera vykort som inte tillhör någon befintlig grupp
             if (groupFilterValue === 'all') {
-                const ungroupedPostcards = postcardsData.filter(p => !p.group || !existingGroupIds.includes(p.group));
+                const ungroupedPostcards = postcardsData.filter(p => !existingGroupIds.has(p.group));
                 if (ungroupedPostcards.length > 0) {
                     const groupSection = document.createElement('div');
                     groupSection.innerHTML = `<h2 class="text-3xl font-bold mt-8 mb-4">Övrigt</h2>`;
