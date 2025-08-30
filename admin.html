@@ -87,192 +87,195 @@
             justify-content: space-between;
             align-items: center;
         }
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 0.75rem;
+            width: 80%;
+            max-width: 500px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <header class="bg-gray-800 text-white shadow-lg">
-        <div class="container py-4 flex justify-between items-center">
-            <span class="text-3xl font-bold tracking-tight">Adminpanel</span>
-            <div class="flex space-x-4 items-center">
-                <a href="index.html" class="hover:text-gray-300 transition duration-300">Butik</a>
+        <div class="container py-4 flex flex-col sm:flex-row justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <div class="flex flex-col items-start">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-3xl font-bold tracking-tight">Adminpanel</span>
+                        <span id="admin-indicator" class="hidden bg-green-500 text-white text-xs font-bold rounded-full px-2 py-1">ADMIN</span>
+                    </div>
+                </div>
             </div>
+            <nav>
+                <ul class="flex space-x-4 font-medium">
+                    <li><a href="index.html" class="hover:text-gray-300 transition duration-300">Till Butik</a></li>
+                </ul>
+            </nav>
         </div>
     </header>
-    <div class="container py-4">
-        <p class="text-center text-gray-500 text-sm">Version 1.14</p>
-    </div>
+    
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.15</div>
+
     <main class="container">
-        <section class="card" id="add-postcard-section">
-            <h2 class="text-2xl font-bold mb-4">Lägg till nytt vykort</h2>
-            <form id="add-postcard-form">
-                <div class="form-group">
-                    <label for="postcard-title">Titel</label>
-                    <input type="text" id="postcard-title" required>
-                </div>
-                <div class="form-group">
-                    <label for="postcard-image-url">Bild URL</label>
-                    <input type="url" id="postcard-image-url" required>
-                </div>
-                <div class="form-group">
-                    <label for="postcard-price-group">Prisgrupp</label>
-                    <select id="postcard-price-group" required></select>
-                </div>
-                <div class="form-group">
-                    <label for="postcard-group">Grupp</label>
-                    <select id="postcard-group" required></select>
-                </div>
-                <button type="submit" class="btn-primary">Lägg till vykort</button>
-            </form>
+        <section id="admin-login-panel" class="card max-w-md mx-auto">
+            <h1 class="text-2xl font-bold mb-4">Admininloggning</h1>
+            <input type="text" id="admin-username" placeholder="Användarnamn" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
+            <input type="password" id="admin-password" placeholder="Lösenord" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
+            <button id="login-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300">Logga in</button>
         </section>
 
-        <section class="card" id="sales-section">
-            <h2 class="text-2xl font-bold mb-4">Hantera Reor</h2>
-            <form id="add-sale-form">
-                <h3 class="text-xl font-semibold mb-2">Lägg till ny rea</h3>
-                <div class="form-group">
-                    <label for="sale-name">Namn på rea</label>
-                    <input type="text" id="sale-name" placeholder="T.ex. Sommarrea 2024" required>
-                </div>
-                <div class="form-group">
-                    <label for="sale-type">Typ</label>
-                    <select id="sale-type" required>
-                        <option value="percent">Procent (%)</option>
-                        <option value="summa">Summa (kr)</option>
+        <section id="admin-panel" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-4xl font-bold">Administrationspanel</h1>
+                <button id="logout-btn" class="px-4 py-2 bg-gray-500 text-white font-bold rounded-lg hover:bg-gray-600 transition duration-300">Logga ut</button>
+            </div>
+            <div id="admin-user-info" class="mb-4 text-sm text-gray-500"></div>
+
+            <div class="card">
+                <h2 class="text-2xl font-bold mb-4">Prisgrupper</h2>
+                <div id="price-groups-list" class="space-y-4 mb-4"></div>
+                <form id="add-price-group-form" class="space-y-4">
+                    <input type="text" id="new-price-group-name" placeholder="Namn på prisgrupp" required class="w-full p-2 border rounded-md">
+                    <div class="flex gap-4">
+                        <input type="number" id="price-liten" placeholder="Pris Liten" required class="w-1/3 p-2 border rounded-md">
+                        <input type="number" id="price-mellan" placeholder="Pris Mellan" required class="w-1/3 p-2 border rounded-md">
+                        <input type="number" id="price-stor" placeholder="Pris Stor" required class="w-1/3 p-2 border rounded-md">
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700">Lägg till prisgrupp</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2 class="text-2xl font-bold mb-4">Vykortsgrupper</h2>
+                <div id="groups-list" class="space-y-4 mb-4"></div>
+                <form id="add-group-form" class="space-y-4">
+                    <input type="text" id="new-group-name" placeholder="Namn på grupp" required class="w-full p-2 border rounded-md">
+                    <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700">Lägg till grupp</button>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h2 class="text-2xl font-bold mb-4">Vykort</h2>
+                <form id="add-postcard-form" class="space-y-4">
+                    <input type="text" id="postcard-title" placeholder="Titel på vykort" required class="w-full p-2 border rounded-md">
+                    <input type="url" id="postcard-image-url" placeholder="URL till bild" required class="w-full p-2 border rounded-md">
+                    <select id="postcard-group" required class="w-full p-2 border rounded-md"></select>
+                    <select id="postcard-price-group" required class="w-full p-2 border rounded-md"></select>
+                    <button type="submit" id="add-postcard-btn" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">Lägg till vykort</button>
+                </form>
+                <div id="postcards-list" class="mt-8 space-y-4"></div>
+            </div>
+            
+            <div class="card">
+                <h2 class="text-2xl font-bold mb-4">Rea</h2>
+                <div id="sales-list" class="space-y-4 mb-4"></div>
+                <form id="add-sale-form" class="space-y-4">
+                    <div class="flex gap-4">
+                        <input type="text" id="sale-name" placeholder="Namn på rea" required class="w-1/2 p-2 border rounded-md">
+                        <input type="number" id="sale-value" placeholder="Värde" required class="w-1/2 p-2 border rounded-md">
+                    </div>
+                    <div class="flex items-center space-x-2 mb-2">
+                        <input type="checkbox" id="no-time-limit" checked>
+                        <label for="no-time-limit" class="text-sm">Ingen tidsbegränsning</label>
+                    </div>
+                    <div id="sale-date-fields" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <input type="datetime-local" id="sale-start-date" class="w-full p-2 border rounded-md">
+                        <input type="datetime-local" id="sale-end-date" class="w-full p-2 border rounded-md">
+                    </div>
+                    <select id="sale-timezone" class="w-full p-2 border rounded-md">
+                        <option value="UTC">UTC</option>
+                        <option value="Europe/Stockholm" selected>Europe/Stockholm</option>
+                        <option value="America/New_York">America/New_York</option>
+                        <option value="Asia/Tokyo">Asia/Tokyo</option>
                     </select>
-                </div>
-                <div class="form-group">
-                    <label for="sale-value">Värde</label>
-                    <input type="number" id="sale-value" step="0.01" required>
-                </div>
-                <div class="form-group">
-                    <label for="sale-target-type">Mål</label>
-                    <select id="sale-target-type" required>
-                        <option value="all">Hela butiken</option>
+                    <select id="sale-type" class="w-full p-2 border rounded-md">
+                        <option value="percent">%</option>
+                        <option value="summa">Summa</option>
+                    </select>
+                    <select id="sale-target-type" class="w-full p-2 border rounded-md">
+                        <option value="all">Hela varukorgen</option>
                         <option value="group">Specifik grupp</option>
                         <option value="product">Specifik produkt</option>
                     </select>
-                </div>
-                <div class="form-group hidden" id="sale-target-id-container">
-                    <label for="sale-target-id">Mål-ID (Grupp/Produkt)</label>
-                    <input type="text" id="sale-target-id" placeholder="ID från databasen">
-                </div>
-                <div class="form-group flex items-center space-x-2">
-                    <input type="checkbox" id="no-time-limit" checked>
-                    <label for="no-time-limit">Alltid aktiv</label>
-                </div>
-                <div id="sale-date-fields" class="hidden">
-                    <div class="form-group">
-                        <label for="sale-start-date">Startdatum och tid</label>
-                        <input type="datetime-local" id="sale-start-date">
+                    <div id="sale-target-select-container" class="hidden">
+                        <select id="sale-target-id" class="w-full p-2 border rounded-md"></select>
                     </div>
-                    <div class="form-group">
-                        <label for="sale-end-date">Slutdatum och tid</label>
-                        <input type="datetime-local" id="sale-end-date">
+                    <button type="submit" class="w-full bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700">Lägg till rea</button>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h2 class="text-2xl font-bold mb-4">Nyheter</h2>
+                <div id="news-list" class="space-y-4 mb-4"></div>
+                <form id="add-news-form" class="space-y-4">
+                    <input type="text" id="news-title" placeholder="Titel på nyhet" required class="w-full p-2 border rounded-md">
+                    <textarea id="news-text" placeholder="Nyhetstext" required class="w-full p-2 border rounded-md"></textarea>
+                    <input type="number" id="news-order" placeholder="Ordning (0 för senast)" value="0" class="w-full p-2 border rounded-md">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <input type="checkbox" id="news-no-time-limit" checked>
+                        <label for="news-no-time-limit" class="text-sm">Ingen tidsbegränsning</label>
                     </div>
-                    <div class="form-group">
-                        <label for="sale-timezone">Tidszon (UTC-offset)</label>
-                        <input type="text" id="sale-timezone" value="+02:00" placeholder="+02:00">
+                    <div id="news-date-fields" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <input type="datetime-local" id="news-start-date" class="w-full p-2 border rounded-md">
+                        <input type="datetime-local" id="news-end-date" class="w-full p-2 border rounded-md">
                     </div>
-                </div>
-                <button type="submit" class="btn-primary">Lägg till rea</button>
-            </form>
-            <div id="sales-list" class="mt-4">
-                <h3 class="text-xl font-semibold mb-2">Aktiva reor</h3>
-                </div>
-        </section>
-
-        <section class="card" id="news-section">
-            <h2 class="text-2xl font-bold mb-4">Hantera Nyheter</h2>
-            <form id="add-news-form">
-                <h3 class="text-xl font-semibold mb-2">Lägg till ny nyhet</h3>
-                <div class="form-group">
-                    <label for="news-title">Titel</label>
-                    <input type="text" id="news-title" required>
-                </div>
-                <div class="form-group">
-                    <label for="news-text">Nyhetstext</label>
-                    <textarea id="news-text" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="news-order">Ordning</label>
-                    <input type="number" id="news-order" value="0">
-                </div>
-                <div class="form-group flex items-center space-x-2">
-                    <input type="checkbox" id="news-no-time-limit" checked>
-                    <label for="news-no-time-limit">Alltid aktiv</label>
-                </div>
-                <div id="news-date-fields" class="hidden">
-                    <div class="form-group">
-                        <label for="news-start-date">Startdatum och tid</label>
-                        <input type="datetime-local" id="news-start-date">
-                    </div>
-                    <div class="form-group">
-                        <label for="news-end-date">Slutdatum och tid</label>
-                        <input type="datetime-local" id="news-end-date">
-                    </div>
-                    <div class="form-group">
-                        <label for="news-timezone">Tidszon (UTC-offset)</label>
-                        <input type="text" id="news-timezone" value="+02:00" placeholder="+02:00">
-                    </div>
-                </div>
-                <button type="submit" class="btn-primary">Lägg till nyhet</button>
-            </form>
-            <div id="news-list" class="mt-4">
-                <h3 class="text-xl font-semibold mb-2">Aktiva nyheter</h3>
-                </div>
-        </section>
-
-
-        <section class="card" id="price-groups-section">
-            <h2 class="text-2xl font-bold mb-4">Hantera prisgrupper</h2>
-            <form id="add-price-group-form">
-                <h3 class="text-xl font-semibold mb-2">Lägg till ny prisgrupp</h3>
-                <div class="form-group">
-                    <label for="price-group-id">ID</label>
-                    <input type="text" id="price-group-id" required>
-                </div>
-                <div class="form-group">
-                    <label for="price-group-name">Namn</label>
-                    <input type="text" id="price-group-name" required>
-                </div>
-                <div class="form-group">
-                    <label for="price-group-price-small">Pris liten</label>
-                    <input type="number" id="price-group-price-small" step="0.01" required>
-                </div>
-                <div class="form-group">
-                    <label for="price-group-price-medium">Pris mellan</label>
-                    <input type="number" id="price-group-price-medium" step="0.01" required>
-                </div>
-                <div class="form-group">
-                    <label for="price-group-price-large">Pris stor</label>
-                    <input type="number" id="price-group-price-large" step="0.01" required>
-                </div>
-                <button type="submit" class="btn-primary">Lägg till prisgrupp</button>
-            </form>
-            <div id="price-groups-list" class="mt-4">
-                <h3 class="text-xl font-semibold mb-2">Existerande prisgrupper</h3>
-                </div>
-        </section>
-
-        <section class="card" id="groups-section">
-            <h2 class="text-2xl font-bold mb-4">Hantera grupper</h2>
-            <form id="add-group-form">
-                <h3 class="text-xl font-semibold mb-2">Lägg till ny grupp</h3>
-                <div class="form-group">
-                    <label for="group-id">ID</label>
-                    <input type="text" id="group-id" required>
-                </div>
-                <div class="form-group">
-                    <label for="group-name">Namn</label>
-                    <input type="text" id="group-name" required>
-                </div>
-                <button type="submit" class="btn-primary">Lägg till grupp</button>
-            </form>
-            <div id="groups-list" class="mt-4">
-                <h3 class="text-xl font-semibold mb-2">Existerande grupper</h3>
-                </div>
+                    <button type="submit" class="w-full bg-orange-600 text-white py-2 rounded-md hover:bg-orange-700">Lägg till nyhet</button>
+                </form>
+            </div>
         </section>
         
+        <div class="card mt-6 hidden" id="admin-management-section">
+            <h2 class="text-2xl font-bold mb-4">Adminhantering</h2>
+            <form id="add-admin-form">
+                <input type="text" id="new-admin-username" placeholder="Nytt Admin-användarnamn" required class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
+                <input type="password" id="new-admin-password" placeholder="Nytt Admin-lösenord" required class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
+                <button type="submit" id="add-admin-btn" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300">Lägg till Admin</button>
+            </form>
+            <div class="mt-8">
+                <h3 class="text-xl font-bold mb-2">Befintliga administratörer</h3>
+                <div id="admin-list" class="space-y-2">
+                    </div>
+            </div>
+        </div>
+
+        <div id="messageModal" class="modal">
+            <div class="modal-content">
+                <p id="modal-message"></p>
+                <button onclick="document.getElementById('messageModal').classList.remove('active')" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md">OK</button>
+            </div>
+        </div>
+        <div id="confirmationModal" class="modal">
+            <div class="modal-content">
+                <p id="confirm-message"></p>
+                <div class="flex justify-center space-x-4 mt-4">
+                    <button id="confirm-yes-btn" class="px-4 py-2 bg-green-600 text-white rounded-md">Ja</button>
+                    <button id="confirm-no-btn" class="px-4 py-2 bg-gray-600 text-white rounded-md">Nej</button>
+                </div>
+            </div>
+        </div>
     </main>
 
     <footer class="bg-gray-800 text-white text-center py-4 mt-8">
@@ -283,8 +286,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, onSnapshot, collection, addDoc, deleteDoc, doc, updateDoc, query, where, getDocs, writeBatch, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Firebase-konfiguration från din 'kumlaskytte'-fil
         const firebaseConfig = {
@@ -302,63 +305,603 @@
 
         let db;
         let auth;
+        let isAdminLoggedIn = false;
+        let defaultPriceGroupId = 'default';
+        let defaultGroupId = 'default';
+        let currentEditingPostcardId = null;
+        let priceGroupsData = [];
+        let groupsData = [];
+        let postcardsData = [];
+        let adminsData = [];
+        let salesData = [];
+        let newsData = [];
+        let unsubscribePriceGroups = null;
+        let unsubscribeGroups = null;
+        let unsubscribePostcards = null;
+        let unsubscribeAdmins = null;
+        let unsubscribeSales = null;
+        let unsubscribeNews = null;
 
-        document.addEventListener('DOMContentLoaded', () => {
+        // Modala funktioner
+        function showMessage(message) {
+            document.getElementById('modal-message').textContent = message;
+            document.getElementById('messageModal').classList.add('active');
+        }
+
+        function showConfirmation(message, onConfirm) {
+            document.getElementById('confirm-message').textContent = message;
+            document.getElementById('confirmationModal').classList.add('active');
+            
+            const confirmBtn = document.getElementById('confirm-yes-btn');
+            const cancelBtn = document.getElementById('confirm-no-btn');
+
+            confirmBtn.onclick = () => {
+                onConfirm();
+                document.getElementById('confirmationModal').classList.remove('active');
+            };
+            cancelBtn.onclick = () => {
+                document.getElementById('confirmationModal').classList.remove('active');
+            };
+        }
+
+        // Funktion för att rendera grupper och prisgrupper
+        function renderGroupsAndPrices() {
+            const priceGroupSelect = document.getElementById('postcard-price-group');
+            const groupSelect = document.getElementById('postcard-group');
+            const saleTargetSelect = document.getElementById('sale-target-id');
+
+            priceGroupSelect.innerHTML = '';
+            priceGroupsData.forEach(pg => {
+                const option = document.createElement('option');
+                option.value = pg.id;
+                option.textContent = pg.name;
+                priceGroupSelect.appendChild(option);
+                if (pg.isDefault) {
+                    defaultPriceGroupId = pg.id;
+                    option.selected = true;
+                }
+            });
+
+            groupSelect.innerHTML = '';
+            saleTargetSelect.innerHTML = '<option value="">Välj...</option>';
+            groupsData.forEach(g => {
+                const option = document.createElement('option');
+                option.value = g.id;
+                option.textContent = `Grupp: ${g.name}`;
+                groupSelect.appendChild(option);
+                saleTargetSelect.appendChild(option.cloneNode(true));
+            });
+            postcardsData.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p.id;
+                option.textContent = `Produkt: ${p.title}`;
+                saleTargetSelect.appendChild(option);
+            });
+        }
+        
+        // Funktion för att rendera listor i adminpanelen
+        function renderAdminLists() {
+            if (!isAdminLoggedIn) return;
+
+            const priceGroupsList = document.getElementById('price-groups-list');
+            const groupsList = document.getElementById('groups-list');
+            const postcardsList = document.getElementById('postcards-list');
+            const adminsList = document.getElementById('admin-list');
+            const salesList = document.getElementById('sales-list');
+            const newsList = document.getElementById('news-list');
+
+            priceGroupsList.innerHTML = '';
+            priceGroupsData.forEach(pg => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center p-2 bg-gray-100 rounded-md";
+                let pricesText = `(Liten: ${pg.prices.liten}, Mellan: ${pg.prices.mellan}, Stor: ${pg.prices.stor})`;
+                div.innerHTML = `
+                    <span>${pg.name} ${pg.isDefault ? ' (Standard)' : ''} ${pricesText}</span>
+                    <div class="space-x-2">
+                        <button onclick="editPriceGroup('${pg.id}')" class="text-blue-500 hover:text-blue-700">Ändra</button>
+                        ${priceGroupsData.length > 1 ? `<button onclick="deletePriceGroup('${pg.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>` : ''}
+                    </div>
+                `;
+                priceGroupsList.appendChild(div);
+            });
+
+            groupsList.innerHTML = '';
+            groupsData.forEach(g => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center p-2 bg-gray-100 rounded-md";
+                div.innerHTML = `
+                    <span>${g.name} ${g.isDefault ? ' (Standard)' : ''}</span>
+                    <div class="space-x-2">
+                        <button onclick="editGroup('${g.id}')" class="text-blue-500 hover:text-blue-700">Ändra</button>
+                        ${groupsData.length > 1 ? `<button onclick="deleteGroup('${g.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>` : ''}
+                    </div>
+                `;
+                groupsList.appendChild(div);
+            });
+
+            postcardsList.innerHTML = '';
+            postcardsData.forEach(p => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center p-4 bg-gray-100 rounded-md";
+                const priceGroupName = priceGroupsData.find(pg => pg.id === p.priceGroup)?.name || 'Okänd';
+                const groupName = groupsData.find(g => g.id === p.group)?.name || 'Okänd';
+                div.innerHTML = `
+                    <div class="flex-1 space-y-1">
+                        <h3 class="font-bold">${p.title}</h3>
+                        <p class="text-sm text-gray-600">Grupp: ${groupName}</p>
+                        <p class="text-sm text-gray-600">Prisgrupp: ${priceGroupName}</p>
+                    </div>
+                    <div class="space-x-2 flex-shrink-0">
+                        <button onclick="editPostcard('${p.id}')" class="text-blue-500 hover:text-blue-700">Ändra</button>
+                        <button onclick="deletePostcard('${p.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>
+                    </div>
+                `;
+                postcardsList.appendChild(div);
+            });
+            
+            adminsList.innerHTML = '';
+            adminsData.forEach(a => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center p-2 bg-gray-100 rounded-md";
+                div.innerHTML = `
+                    <span>${a.username}</span>
+                    <div class="space-x-2">
+                        ${adminsData.length > 1 ? `<button onclick="deleteAdmin('${a.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>` : ''}
+                    </div>
+                `;
+                adminsList.appendChild(div);
+            });
+
+            salesList.innerHTML = '';
+            salesData.forEach(s => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center p-2 bg-gray-100 rounded-md";
+                const targetText = s.targetType === 'all' ? 'Hela varukorgen' :
+                                   s.targetType === 'group' ? `Grupp: ${groupsData.find(g => g.id === s.targetId)?.name || 'Okänd'}` :
+                                   `Produkt: ${postcardsData.find(p => p.id === s.targetId)?.title || 'Okänd'}`;
+                const valueText = s.type === 'percent' ? `${s.value}%` : `${s.value} kr`;
+                div.innerHTML = `
+                    <span>${s.name} (${valueText} rabatt på ${targetText})</span>
+                    <button onclick="deleteSale('${s.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>
+                `;
+                salesList.appendChild(div);
+            });
+
+            newsList.innerHTML = '';
+            newsData.forEach(n => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center p-2 bg-gray-100 rounded-md";
+                div.innerHTML = `
+                    <span>${n.title} (Ordning: ${n.order})</span>
+                    <div class="space-x-2">
+                        <button onclick="editNews('${n.id}')" class="text-blue-500 hover:text-blue-700">Ändra</button>
+                        <button onclick="deleteNews('${n.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>
+                    </div>
+                `;
+                newsList.appendChild(div);
+            });
+        }
+        
+        // CRUD-funktioner för prisgrupper
+        async function addPriceGroup(name, prices) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const priceGroupsCollection = collection(db, `artifacts/${appId}/public/data/priceGroups`);
+            await addDoc(priceGroupsCollection, { name, prices, isDefault: false });
+        }
+
+        async function editPriceGroup(id) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const priceGroupsCollection = collection(db, `artifacts/${appId}/public/data/priceGroups`);
+            const pg = priceGroupsData.find(p => p.id === id);
+            if (pg) {
+                const name = prompt("Ändra namn på prisgrupp:", pg.name);
+                const liten = prompt("Ändra pris Liten:", pg.prices.liten);
+                const mellan = prompt("Ändra pris Mellan:", pg.prices.mellan);
+                const stor = prompt("Ändra pris Stor:", pg.prices.stor);
+                if (name && liten && mellan && stor) {
+                    await updateDoc(doc(db, `artifacts/${appId}/public/data/priceGroups`, id), {
+                        name,
+                        prices: { liten: Number(liten), mellan: Number(mellan), stor: Number(stor) }
+                    });
+                }
+            }
+        }
+
+        async function deletePriceGroup(id) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            if (priceGroupsData.length <= 1) {
+                showMessage('Kan inte ta bort den sista prisgruppen.');
+                return;
+            }
+            if (priceGroupsData.find(pg => pg.id === id)?.isDefault) {
+                showMessage('Kan inte ta bort standardprisgruppen.');
+                return;
+            }
+            const priceGroupsCollection = collection(db, `artifacts/${appId}/public/data/priceGroups`);
+            const postcardsCollection = collection(db, `artifacts/${appId}/public/data/postcards`);
+            
+            showConfirmation("Är du säker på att du vill ta bort denna prisgrupp? Vykort som använder denna prisgrupp kommer att tilldelas standardprisgruppen.", async () => {
+                const batch = writeBatch(db);
+                // Uppdatera vykort som använder denna prisgrupp
+                const q = query(postcardsCollection, where('priceGroup', '==', id));
+                const snapshot = await getDocs(q);
+                snapshot.forEach(doc => {
+                    batch.update(doc.ref, { priceGroup: defaultPriceGroupId });
+                });
+                // Ta bort prisgruppen
+                batch.delete(doc(priceGroupsCollection, id));
+                await batch.commit();
+                showMessage('Prisgrupp borttagen och vykort uppdaterade.');
+            });
+        }
+
+        // CRUD-funktioner för grupper
+        async function addGroup(name) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const groupsCollection = collection(db, `artifacts/${appId}/public/data/groups`);
+            await addDoc(groupsCollection, { name, isDefault: false });
+        }
+
+        async function editGroup(id) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const groupsCollection = collection(db, `artifacts/${appId}/public/data/groups`);
+            const g = groupsData.find(g => g.id === id);
+            if (g) {
+                const name = prompt("Ändra namn på grupp:", g.name);
+                if (name) {
+                    await updateDoc(doc(db, `artifacts/${appId}/public/data/groups`, id), { name });
+                }
+            }
+        }
+
+        async function deleteGroup(id) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            if (groupsData.length <= 1) {
+                showMessage('Kan inte ta bort den sista gruppen.');
+                return;
+            }
+            if (groupsData.find(g => g.id === id)?.isDefault) {
+                showMessage('Kan inte ta bort standardgruppen.');
+                return;
+            }
+            const groupsCollection = collection(db, `artifacts/${appId}/public/data/groups`);
+            const postcardsCollection = collection(db, `artifacts/${appId}/public/data/postcards`);
+
+            showConfirmation("Är du säker på att du vill ta bort denna grupp? Vykort som använder denna grupp kommer att tilldelas standardgruppen.", async () => {
+                const batch = writeBatch(db);
+                const q = query(postcardsCollection, where('group', '==', id));
+                const snapshot = await getDocs(q);
+                snapshot.forEach(doc => {
+                    batch.update(doc.ref, { group: defaultGroupId });
+                });
+                batch.delete(doc(groupsCollection, id));
+                await batch.commit();
+                showMessage('Grupp borttagen och vykort uppdaterade.');
+            });
+        }
+        
+        // CRUD-funktioner för vykort
+        async function addOrUpdatePostcard() {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const form = document.getElementById('add-postcard-form');
+            const title = document.getElementById('postcard-title').value;
+            const imageURL = document.getElementById('postcard-image-url').value;
+            const group = document.getElementById('postcard-group').value;
+            const priceGroup = document.getElementById('postcard-price-group').value;
+
+            const postcardData = { title, imageURL, group, priceGroup };
+
+            try {
+                if (currentEditingPostcardId) {
+                    await updateDoc(doc(db, `artifacts/${appId}/public/data/postcards`, currentEditingPostcardId), postcardData);
+                    showMessage('Vykort uppdaterat!');
+                } else {
+                    await addDoc(collection(db, `artifacts/${appId}/public/data/postcards`), postcardData);
+                    showMessage('Vykort tillagt!');
+                }
+                form.reset();
+                currentEditingPostcardId = null;
+                document.getElementById('add-postcard-btn').textContent = 'Lägg till vykort';
+            } catch (e) {
+                console.error("Fel vid hantering av vykort:", e);
+                showMessage('Fel: Kunde inte spara vykort. Kontrollera behörigheter.');
+            }
+        }
+
+        async function editPostcard(id) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const postcard = postcardsData.find(p => p.id === id);
+            if (postcard) {
+                document.getElementById('postcard-title').value = postcard.title;
+                document.getElementById('postcard-image-url').value = postcard.imageURL;
+                document.getElementById('postcard-group').value = postcard.group;
+                document.getElementById('postcard-price-group').value = postcard.priceGroup;
+                currentEditingPostcardId = id;
+                document.getElementById('add-postcard-btn').textContent = 'Spara ändringar';
+            }
+        }
+
+        async function deletePostcard(id) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            showConfirmation("Är du säker på att du vill ta bort detta vykort?", async () => {
+                await deleteDoc(doc(db, `artifacts/${appId}/public/data/postcards`, id));
+                showMessage('Vykort borttaget.');
+            });
+        }
+
+        async function addAdmin(username, password) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const adminsCollection = collection(db, `artifacts/${appId}/public/data/admins`);
+            await addDoc(adminsCollection, { username, password });
+            showMessage('Admin tillagd!');
+        }
+        
+        async function deleteAdmin(id) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            if (adminsData.length <= 1) {
+                showMessage('Kan inte ta bort den sista administratören.');
+                return;
+            }
+            showConfirmation("Är du säker på att du vill ta bort denna admin?", async () => {
+                await deleteDoc(doc(db, `artifacts/${appId}/public/data/admins`, id));
+                showMessage('Admin borttagen.');
+            });
+        }
+        
+        async function addSale(name, value, type, targetType, targetId, noTimeLimit, startDate, endDate, timezone) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const salesCollection = collection(db, `artifacts/${appId}/public/data/sales`);
+            
+            const saleData = { name, value: Number(value), type, targetType, targetId, noTimeLimit };
+            if (!noTimeLimit) {
+                saleData.startDate = startDate;
+                saleData.endDate = endDate;
+                saleData.timezone = timezone;
+            }
+            
+            await addDoc(salesCollection, saleData);
+            showMessage('Rea tillagd!');
+        }
+
+        async function deleteSale(id) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            showConfirmation("Är du säker på att du vill ta bort denna rea?", async () => {
+                await deleteDoc(doc(db, `artifacts/${appId}/public/data/sales`, id));
+                showMessage('Rea borttagen.');
+            });
+        }
+        
+        async function addNews(title, text, order, noTimeLimit, startDate, endDate) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const newsCollection = collection(db, `artifacts/${appId}/public/data/news`);
+            const newsData = { title, text, order: Number(order), noTimeLimit };
+            if (!noTimeLimit) {
+                newsData.startDate = startDate;
+                newsData.endDate = endDate;
+            }
+            await addDoc(newsCollection, newsData);
+            showMessage('Nyhet tillagd!');
+        }
+
+        async function editNews(id) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            // Implementera redigeringslogik här
+            alert('Redigeringsfunktion för nyheter är under utveckling.');
+        }
+
+        async function deleteNews(id) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            showConfirmation("Är du säker på att du vill ta bort denna nyhet?", async () => {
+                await deleteDoc(doc(db, `artifacts/${appId}/public/data/news`, id));
+                showMessage('Nyhet borttagen.');
+            });
+        }
+
+
+        function startAdminListeners() {
+            if (!db) return; // Säkerställ att db är initierad
+            
+            const priceGroupsRef = collection(db, `artifacts/${appId}/public/data/priceGroups`);
+            unsubscribePriceGroups = onSnapshot(priceGroupsRef, (snapshot) => {
+                priceGroupsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderGroupsAndPrices();
+                renderAdminLists();
+            });
+
+            const groupsRef = collection(db, `artifacts/${appId}/public/data/groups`);
+            unsubscribeGroups = onSnapshot(groupsRef, (snapshot) => {
+                groupsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderGroupsAndPrices();
+                renderAdminLists();
+            });
+
+            const postcardsRef = collection(db, `artifacts/${appId}/public/data/postcards`);
+            unsubscribePostcards = onSnapshot(postcardsRef, (snapshot) => {
+                postcardsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderAdminLists();
+                renderGroupsAndPrices(); // Uppdatera filter-listorna när vykort läggs till/tas bort
+            });
+            
+            const adminsRef = collection(db, `artifacts/${appId}/public/data/admins`);
+            unsubscribeAdmins = onSnapshot(adminsRef, (snapshot) => {
+                adminsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderAdminLists();
+            });
+            
+            const salesRef = collection(db, `artifacts/${appId}/public/data/sales`);
+            unsubscribeSales = onSnapshot(salesRef, (snapshot) => {
+                salesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderAdminLists();
+            });
+
+            const newsRef = query(collection(db, `artifacts/${appId}/public/data/news`), orderBy('order'));
+            unsubscribeNews = onSnapshot(newsRef, (snapshot) => {
+                newsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderAdminLists();
+            });
+        }
+
+        function stopAdminListeners() {
+            if (unsubscribePriceGroups) unsubscribePriceGroups();
+            if (unsubscribeGroups) unsubscribeGroups();
+            if (unsubscribePostcards) unsubscribePostcards();
+            if (unsubscribeAdmins) unsubscribeAdmins();
+            if (unsubscribeSales) unsubscribeSales();
+            if (unsubscribeNews) unsubscribeNews();
+        }
+
+        // Globala funktioner för att anropa från HTML
+        window.editPriceGroup = editPriceGroup;
+        window.deletePriceGroup = deletePriceGroup;
+        window.editGroup = editGroup;
+        window.deleteGroup = deleteGroup;
+        window.editPostcard = editPostcard;
+        window.deletePostcard = deletePostcard;
+        window.addAdmin = addAdmin;
+        window.deleteAdmin = deleteAdmin;
+        window.deleteSale = deleteSale;
+        window.editNews = editNews;
+        window.deleteNews = deleteNews;
+        
+        // Logik för inloggning
+        async function handleLogin() {
+            const username = document.getElementById('admin-username').value;
+            const password = document.getElementById('admin-password').value;
+
+            if (!db) {
+                showMessage("Databasen är inte ansluten.");
+                return;
+            }
+
+            try {
+                // Sök i databasen efter administratörer
+                const adminsRef = collection(db, `artifacts/${appId}/public/data/admins`);
+                const q = query(adminsRef, where('username', '==', username));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    showMessage('Fel: Ogiltiga inloggningsuppgifter.');
+                    return;
+                }
+
+                const adminData = querySnapshot.docs[0].data();
+                
+                // Jämför lösenordet i koden
+                if (adminData.password === password) {
+                    isAdminLoggedIn = true;
+                    document.getElementById('admin-login-panel').classList.add('hidden');
+                    document.getElementById('admin-panel').classList.remove('hidden');
+                    document.getElementById('admin-management-section').classList.remove('hidden');
+                    document.getElementById('admin-indicator').classList.remove('hidden');
+                    document.getElementById('admin-user-info').textContent = `Du är inloggad som ${username}.`;
+                    startAdminListeners();
+                } else {
+                    showMessage('Fel: Ogiltiga inloggningsuppgifter.');
+                }
+                
+            } catch (e) {
+                console.error("Inloggningsfel:", e);
+                showMessage('Ett fel uppstod vid inloggning.');
+            }
+        }
+
+        function handleLogout() {
+            isAdminLoggedIn = false;
+            document.getElementById('admin-login-panel').classList.remove('hidden');
+            document.getElementById('admin-panel').classList.add('hidden');
+            document.getElementById('admin-management-section').classList.add('hidden');
+            document.getElementById('admin-indicator').classList.add('hidden');
+            document.getElementById('admin-username').value = '';
+            document.getElementById('admin-password').value = '';
+            currentEditingPostcardId = null;
+            document.getElementById('add-postcard-btn').textContent = 'Lägg till vykort';
+            document.getElementById('add-postcard-form').reset();
+            stopAdminListeners();
+        }
+
+        window.onload = function () {
             if (firebaseConfig.projectId) {
                 try {
                     const app = initializeApp(firebaseConfig);
                     db = getFirestore(app);
                     auth = getAuth(app);
-                    signInAnonymously(auth).then(() => {
-                        console.log("Anonym inloggning lyckades");
-                        startListeners();
-                    }).catch((error) => {
-                        console.error("Anonym inloggning misslyckades:", error);
+                    
+                    onAuthStateChanged(auth, async (user) => {
+                        if (!user) {
+                            try {
+                                await signInAnonymously(auth);
+                            } catch (e) {
+                                console.error("Anonym inloggning misslyckades:", e);
+                            }
+                        }
                     });
+
                 } catch (e) {
                     console.error("Firebase initieringsfel:", e);
+                    showMessage("Databasen kunde inte anslutas. Kontakta webbplatsadministratören.");
                 }
             } else {
-                console.error("Firebase-konfiguration saknas.");
+                showMessage("Firebase-konfiguration saknas.");
             }
 
-            // Postcard form
-            document.getElementById('add-postcard-form').addEventListener('submit', (e) => {
+            // Eventlyssnare för formulär och knappar
+            document.getElementById('login-btn').addEventListener('click', handleLogin);
+            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+            document.getElementById('add-price-group-form').addEventListener('submit', (e) => {
                 e.preventDefault();
-                addPostcard(
-                    document.getElementById('postcard-title').value,
-                    document.getElementById('postcard-image-url').value,
-                    document.getElementById('postcard-price-group').value,
-                    document.getElementById('postcard-group').value
-                );
+                const name = document.getElementById('new-price-group-name').value;
+                const prices = {
+                    liten: Number(document.getElementById('price-liten').value),
+                    mellan: Number(document.getElementById('price-mellan').value),
+                    stor: Number(document.getElementById('price-stor').value)
+                };
+                addPriceGroup(name, prices);
                 e.target.reset();
             });
-
-            // Sales form
-            const noTimeLimitCheckbox = document.getElementById('no-time-limit');
-            const saleDateFields = document.getElementById('sale-date-fields');
-            const saleTargetIdContainer = document.getElementById('sale-target-id-container');
-            const saleTargetTypeSelect = document.getElementById('sale-target-type');
-            
-            noTimeLimitCheckbox.addEventListener('change', () => {
-                saleDateFields.classList.toggle('hidden', noTimeLimitCheckbox.checked);
+            document.getElementById('add-group-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('new-group-name').value;
+                addGroup(name);
+                e.target.reset();
+            });
+            document.getElementById('add-postcard-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                addOrUpdatePostcard();
+            });
+            document.getElementById('add-admin-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const username = document.getElementById('new-admin-username').value;
+                const password = document.getElementById('new-admin-password').value;
+                addAdmin(username, password);
+                e.target.reset();
             });
             
-            saleTargetTypeSelect.addEventListener('change', () => {
-                const targetIdInput = document.getElementById('sale-target-id');
-                if (saleTargetTypeSelect.value === 'all') {
-                    saleTargetIdContainer.classList.add('hidden');
-                    targetIdInput.removeAttribute('required');
+            const saleTargetTypeSelect = document.getElementById('sale-target-type');
+            const saleTargetSelectContainer = document.getElementById('sale-target-select-container');
+            const saleDateFields = document.getElementById('sale-date-fields');
+            const noTimeLimitCheckbox = document.getElementById('no-time-limit');
+
+            noTimeLimitCheckbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    saleDateFields.classList.add('hidden');
                 } else {
-                    saleTargetIdContainer.classList.remove('hidden');
-                    targetIdInput.setAttribute('required', 'required');
+                    saleDateFields.classList.remove('hidden');
+                }
+            });
+
+            saleTargetTypeSelect.addEventListener('change', (e) => {
+                if (e.target.value === 'group' || e.target.value === 'product') {
+                    saleTargetSelectContainer.classList.remove('hidden');
+                    renderGroupsAndPrices(); // Uppdatera dropdownlistan
+                } else {
+                    saleTargetSelectContainer.classList.add('hidden');
                 }
             });
 
             document.getElementById('add-sale-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const name = document.getElementById('sale-name').value;
-                const value = parseFloat(document.getElementById('sale-value').value);
+                const value = document.getElementById('sale-value').value;
                 const type = document.getElementById('sale-type').value;
                 const targetType = document.getElementById('sale-target-type').value;
                 const noTimeLimit = document.getElementById('no-time-limit').checked;
@@ -367,8 +910,8 @@
                 let timezone = null;
 
                 if (!noTimeLimit) {
-                    startDate = new Date(document.getElementById('sale-start-date').value);
-                    endDate = new Date(document.getElementById('sale-end-date').value);
+                    startDate = document.getElementById('sale-start-date').value;
+                    endDate = document.getElementById('sale-end-date').value;
                     timezone = document.getElementById('sale-timezone').value;
                 }
 
@@ -379,262 +922,39 @@
                 
                 addSale(name, value, type, targetType, targetId, noTimeLimit, startDate, endDate, timezone);
                 e.target.reset();
-                noTimeLimitCheckbox.checked = true;
-                saleDateFields.classList.add('hidden');
-                saleTargetIdContainer.classList.add('hidden');
+                noTimeLimitCheckbox.checked = true; // Återställ
+                saleDateFields.classList.add('hidden'); // Dölj datumfälten igen
             });
-
-            // News form
-            const newsNoTimeLimitCheckbox = document.getElementById('news-no-time-limit');
+            
             const newsDateFields = document.getElementById('news-date-fields');
-            
-            newsNoTimeLimitCheckbox.addEventListener('change', () => {
-                newsDateFields.classList.toggle('hidden', newsNoTimeLimitCheckbox.checked);
+            const newsNoTimeLimitCheckbox = document.getElementById('news-no-time-limit');
+            newsNoTimeLimitCheckbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    newsDateFields.classList.add('hidden');
+                } else {
+                    newsDateFields.classList.remove('hidden');
+                }
             });
-            
             document.getElementById('add-news-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const title = document.getElementById('news-title').value;
                 const text = document.getElementById('news-text').value;
-                const order = parseInt(document.getElementById('news-order').value);
+                const order = document.getElementById('news-order').value;
                 const noTimeLimit = document.getElementById('news-no-time-limit').checked;
                 let startDate = null;
                 let endDate = null;
-                let timezone = null;
 
                 if (!noTimeLimit) {
                     startDate = new Date(document.getElementById('news-start-date').value);
                     endDate = new Date(document.getElementById('news-end-date').value);
-                    timezone = document.getElementById('news-timezone').value;
                 }
                 
-                addNews(title, text, order, noTimeLimit, startDate, endDate, timezone);
+                addNews(title, text, order, noTimeLimit, startDate, endDate);
                 e.target.reset();
                 newsNoTimeLimitCheckbox.checked = true;
                 newsDateFields.classList.add('hidden');
             });
-            
-            // Price group form
-            document.getElementById('add-price-group-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                addPriceGroup(
-                    document.getElementById('price-group-id').value,
-                    document.getElementById('price-group-name').value,
-                    parseFloat(document.getElementById('price-group-price-small').value),
-                    parseFloat(document.getElementById('price-group-price-medium').value),
-                    parseFloat(document.getElementById('price-group-price-large').value)
-                );
-                e.target.reset();
-            });
-
-            // Group form
-            document.getElementById('add-group-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                addGroup(
-                    document.getElementById('group-id').value,
-                    document.getElementById('group-name').value
-                );
-                e.target.reset();
-            });
-        });
-
-        function startListeners() {
-            onSnapshot(collection(db, `artifacts/${appId}/public/data/postcards`), (snapshot) => {
-                renderSelectOptions(snapshot.docs.map(doc => doc.data()), 'postcard-group', 'Grupp');
-                renderSelectOptions(snapshot.docs.map(doc => doc.data()), 'postcard-price-group', 'Prisgrupp');
-            });
-            onSnapshot(collection(db, `artifacts/${appId}/public/data/sales`), (snapshot) => {
-                renderSales(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-            });
-            onSnapshot(collection(db, `artifacts/${appId}/public/data/news`), (snapshot) => {
-                renderNews(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-            });
-            onSnapshot(collection(db, `artifacts/${appId}/public/data/priceGroups`), (snapshot) => {
-                renderPriceGroups(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-            });
-            onSnapshot(collection(db, `artifacts/${appId}/public/data/groups`), (snapshot) => {
-                renderGroups(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-            });
-        }
-        
-        function renderSelectOptions(data, selectId, placeholderText) {
-            const select = document.getElementById(selectId);
-            select.innerHTML = `<option value="">Välj ${placeholderText}</option>`;
-            data.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.id;
-                option.textContent = item.name || item.title;
-                select.appendChild(option);
-            });
-        }
-
-        async function addPostcard(title, imageURL, priceGroup, group) {
-            try {
-                await addDoc(collection(db, `artifacts/${appId}/public/data/postcards`), {
-                    title, imageURL, priceGroup, group, createdAt: serverTimestamp()
-                });
-                console.log("Vykort tillagt!");
-            } catch (e) {
-                console.error("Fel vid tillägg av vykort:", e);
-            }
-        }
-        
-        async function addSale(name, value, type, targetType, targetId, noTimeLimit, startDate, endDate, timezone) {
-            try {
-                await addDoc(collection(db, `artifacts/${appId}/public/data/sales`), {
-                    name, value, type, targetType, targetId, noTimeLimit, startDate, endDate, timezone, createdAt: serverTimestamp()
-                });
-                console.log("Rea tillagd!");
-            } catch (e) {
-                console.error("Fel vid tillägg av rea:", e);
-            }
-        }
-
-        async function addNews(title, text, order, noTimeLimit, startDate, endDate, timezone) {
-            try {
-                await addDoc(collection(db, `artifacts/${appId}/public/data/news`), {
-                    title, text, order, noTimeLimit, startDate, endDate, timezone, createdAt: serverTimestamp()
-                });
-                console.log("Nyhet tillagd!");
-            } catch (e) {
-                console.error("Fel vid tillägg av nyhet:", e);
-            }
-        }
-        
-        async function addPriceGroup(id, name, liten, mellan, stor) {
-            try {
-                await addDoc(collection(db, `artifacts/${appId}/public/data/priceGroups`), {
-                    id, name, prices: { liten, mellan, stor }, createdAt: serverTimestamp()
-                });
-                console.log("Prisgrupp tillagd!");
-            } catch (e) {
-                console.error("Fel vid tillägg av prisgrupp:", e);
-            }
-        }
-
-        async function addGroup(id, name) {
-            try {
-                await addDoc(collection(db, `artifacts/${appId}/public/data/groups`), {
-                    id, name, createdAt: serverTimestamp()
-                });
-                console.log("Grupp tillagd!");
-            } catch (e) {
-                console.error("Fel vid tillägg av grupp:", e);
-            }
-        }
-
-        function renderSales(sales) {
-            const list = document.getElementById('sales-list');
-            list.innerHTML = '<h3>Aktiva reor</h3>';
-            sales.forEach(sale => {
-                const item = document.createElement('div');
-                item.className = 'list-item';
-                item.innerHTML = `
-                    <div class="flex-1">
-                        <h4 class="font-semibold">${sale.name}</h4>
-                        <p class="text-sm text-gray-600">
-                            Värde: ${sale.value}${sale.type === 'percent' ? '%' : ' kr'} |
-                            Mål: ${sale.targetType}${sale.targetId ? ` (${sale.targetId})` : ''}
-                        </p>
-                        ${!sale.noTimeLimit ? `<p class="text-xs text-gray-500">
-                            Start: ${new Date(sale.startDate.seconds * 1000).toLocaleString()} | 
-                            Slut: ${new Date(sale.endDate.seconds * 1000).toLocaleString()}
-                        </p>` : ''}
-                    </div>
-                    <div>
-                        <button onclick="editItem('${sale.id}', 'sales')" class="btn-secondary mr-2">Redigera</button>
-                        <button onclick="deleteItem('${sale.id}', 'sales')" class="btn-danger">Ta bort</button>
-                    </div>
-                `;
-                list.appendChild(item);
-            });
-        }
-        
-        function renderNews(news) {
-            const list = document.getElementById('news-list');
-            list.innerHTML = '<h3>Aktiva nyheter</h3>';
-            news.sort((a, b) => a.order - b.order).forEach(item => {
-                const newsItem = document.createElement('div');
-                newsItem.className = 'list-item flex-col items-start';
-                newsItem.innerHTML = `
-                    <div class="w-full flex justify-between items-center mb-2">
-                        <h4 class="font-semibold">${item.title} (Ordning: ${item.order})</h4>
-                        <div>
-                            <button onclick="editItem('${item.id}', 'news')" class="btn-secondary mr-2">Redigera</button>
-                            <button onclick="deleteItem('${item.id}', 'news')" class="btn-danger">Ta bort</button>
-                        </div>
-                    </div>
-                    <p class="text-sm text-gray-600 mb-2">${item.text}</p>
-                    ${!item.noTimeLimit ? `<p class="text-xs text-gray-500">
-                        Start: ${new Date(item.startDate.seconds * 1000).toLocaleString()} | 
-                        Slut: ${new Date(item.endDate.seconds * 1000).toLocaleString()}
-                    </p>` : ''}
-                `;
-                list.appendChild(newsItem);
-            });
-        }
-
-        function renderPriceGroups(priceGroups) {
-            const list = document.getElementById('price-groups-list');
-            list.innerHTML = '<h3>Existerande prisgrupper</h3>';
-            priceGroups.forEach(pg => {
-                const item = document.createElement('div');
-                item.className = 'list-item';
-                item.innerHTML = `
-                    <div class="flex-1">
-                        <h4 class="font-semibold">${pg.name} (${pg.id})</h4>
-                        <p class="text-sm text-gray-600">
-                            Liten: ${pg.prices.liten} kr, 
-                            Mellan: ${pg.prices.mellan} kr, 
-                            Stor: ${pg.prices.stor} kr
-                        </p>
-                    </div>
-                    <div>
-                        <button onclick="editItem('${pg.id}', 'priceGroups')" class="btn-secondary mr-2">Redigera</button>
-                        <button onclick="deleteItem('${pg.id}', 'priceGroups')" class="btn-danger">Ta bort</button>
-                    </div>
-                `;
-                list.appendChild(item);
-            });
-        }
-
-        function renderGroups(groups) {
-            const list = document.getElementById('groups-list');
-            list.innerHTML = '<h3>Existerande grupper</h3>';
-            groups.forEach(g => {
-                const item = document.createElement('div');
-                item.className = 'list-item';
-                item.innerHTML = `
-                    <div class="flex-1">
-                        <h4 class="font-semibold">${g.name} (${g.id})</h4>
-                    </div>
-                    <div>
-                        <button onclick="editItem('${g.id}', 'groups')" class="btn-secondary mr-2">Redigera</button>
-                        <button onclick="deleteItem('${g.id}', 'groups')" class="btn-danger">Ta bort</button>
-                    </div>
-                `;
-                list.appendChild(item);
-            });
-        }
-
-        async function deleteItem(id, collectionName) {
-            if (confirm(`Är du säker på att du vill ta bort detta föremål från ${collectionName}?`)) {
-                try {
-                    await deleteDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, id));
-                    console.log("Föremål borttaget!");
-                } catch (e) {
-                    console.error("Fel vid borttagning av föremål:", e);
-                }
-            }
-        }
-
-        async function editItem(id, collectionName) {
-            // Placeholder för redigeringsfunktion.
-            alert(`Funktion för att redigera ${collectionName} med ID: ${id} är under utveckling.`);
-        }
-        
-        window.deleteItem = deleteItem;
-        window.editItem = editItem;
+        };
     </script>
 </body>
 </html>
