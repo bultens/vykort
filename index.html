@@ -89,6 +89,26 @@
             border-radius: 0.5rem;
             margin-bottom: 1rem;
         }
+        .postcard-image-wrapper {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+        .postcard-image-wrapper.portrait {
+            padding-top: 141.42%; /* A4 portrait ratio: 1/sqrt(2) */
+        }
+        .postcard-image-wrapper.landscape {
+            padding-top: 70.71%; /* A4 landscape ratio: sqrt(2)/1 */
+        }
+        .postcard-image-wrapper img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
     </style>
 </head>
 <body>
@@ -107,7 +127,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.21</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.22</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -370,10 +390,10 @@
                  if (ungroupedPostcards.length > 0) {
                     const groupSection = document.createElement('div');
                     groupSection.innerHTML = `<h2 class="text-3xl font-bold mt-8 mb-4">Övrigt</h2>
-                                              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>`;
+                                              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start"></div>`;
                     const groupPostcardsList = groupSection.querySelector('.grid');
                     ungroupedPostcards.forEach(p => {
-                        groupPostcardsList.innerHTML += createPostcardHtml(p);
+                        createPostcardHtml(p).then(html => groupPostcardsList.innerHTML += html);
                     });
                     postcardsList.appendChild(groupSection);
                 }
@@ -381,17 +401,17 @@
                 groupedPostcards.forEach(group => {
                     const groupSection = document.createElement('div');
                     groupSection.innerHTML = `<h2 class="text-3xl font-bold mt-8 mb-4">${group.name}</h2>
-                                              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>`;
+                                              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start"></div>`;
                     const groupPostcardsList = groupSection.querySelector('.grid');
                     group.postcards.forEach(p => {
-                        groupPostcardsList.innerHTML += createPostcardHtml(p);
+                        createPostcardHtml(p).then(html => groupPostcardsList.innerHTML += html);
                     });
                     postcardsList.appendChild(groupSection);
                 });
             }
         }
         
-        function createPostcardHtml(p) {
+        async function createPostcardHtml(p) {
             const priceGroup = priceGroupsData.find(pg => pg.id === p.priceGroup);
             
             let priceHtml = '';
@@ -439,9 +459,17 @@
             
             const saleBadge = hasSale ? '<span class="ml-2 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full">REA!</span>' : '';
 
+            // Ladda bilden för att få dess dimensioner
+            const image = new Image();
+            image.src = p.imageURL;
+            await new Promise(resolve => image.onload = resolve);
+            const orientation = image.naturalWidth > image.naturalHeight ? 'landscape' : 'portrait';
+
             return `
                 <div class="card flex flex-col items-center text-center">
-                    <img src="${p.imageURL}" alt="${p.title}" class="w-full h-auto rounded-lg mb-4">
+                    <div class="postcard-image-wrapper ${orientation} rounded-lg mb-4">
+                        <img src="${p.imageURL}" alt="${p.title}">
+                    </div>
                     <h2 class="text-xl font-bold mb-2">${p.title}${saleBadge}</h2>
                     ${priceHtml}
                 </div>
