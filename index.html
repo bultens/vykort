@@ -127,7 +127,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.28</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.29</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -367,11 +367,7 @@
             
             postcardsList.innerHTML = '';
             
-            // Skapa en uppsättning av alla befintliga grupp-ID:n för snabb uppslagning
-            const existingGroupIds = new Set(groupsData.map(g => g.id));
-            const renderedPostcardIds = new Set();
-            
-            // 1. Rendera vykort som tillhör en befintlig grupp
+            // Rendera varje grupp med sina vykort
             for (const group of groupsData) {
                 if (groupFilterValue !== 'all' && group.id !== groupFilterValue) {
                     continue;
@@ -385,31 +381,10 @@
                     const groupPostcardsList = document.createElement('div');
                     groupPostcardsList.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start';
                     
-                    const postcardPromises = postcardsInGroup.map(p => {
-                        renderedPostcardIds.add(p.id);
-                        return createPostcardHtml(p);
-                    });
+                    const postcardPromises = postcardsInGroup.map(p => createPostcardHtml(p));
                     const postcardHtmls = await Promise.all(postcardPromises);
                     postcardHtmls.forEach(html => groupPostcardsList.innerHTML += html);
 
-                    groupSection.appendChild(groupPostcardsList);
-                    postcardsList.appendChild(groupSection);
-                }
-            }
-
-            // 2. Rendera vykort som inte tillhör någon befintlig grupp
-            if (groupFilterValue === 'all') {
-                const ungroupedPostcards = postcardsData.filter(p => !existingGroupIds.has(p.group));
-                if (ungroupedPostcards.length > 0) {
-                    const groupSection = document.createElement('div');
-                    groupSection.innerHTML = `<h2 class="text-3xl font-bold mt-8 mb-4">Övrigt</h2>`;
-                    const groupPostcardsList = document.createElement('div');
-                    groupPostcardsList.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start';
-                    
-                    const postcardPromises = ungroupedPostcards.map(p => createPostcardHtml(p));
-                    const postcardHtmls = await Promise.all(postcardPromises);
-                    postcardHtmls.forEach(html => groupPostcardsList.innerHTML += html);
-                    
                     groupSection.appendChild(groupPostcardsList);
                     postcardsList.appendChild(groupSection);
                 }
