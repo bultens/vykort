@@ -1,4 +1,4 @@
-<!-- Fil: admin.html - Adminpanel - Ver. 1.6 -->
+<!-- Fil: admin.html - Adminpanel - Ver. 1.7 -->
 <!DOCTYPE html>
 <html lang="sv">
 <head>
@@ -75,6 +75,8 @@
             </nav>
         </div>
     </header>
+    
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.7</div>
 
     <main class="container">
         <!-- Admininloggning -->
@@ -543,7 +545,7 @@
             }
 
             try {
-                // **Korrigering:** Hårdkodad inloggning för "admin"
+                // Hårdkodad inloggning för "admin"
                 if (username === 'admin' && password === 'admin') {
                     isAdminLoggedIn = true;
                     document.getElementById('admin-login-panel').classList.add('hidden');
