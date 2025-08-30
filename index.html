@@ -127,7 +127,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.31</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.32</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -371,8 +371,16 @@
                 ? groupsData
                 : groupsData.filter(g => g.id === groupFilterValue);
             
+            const postcardsMap = new Map();
+            postcardsData.forEach(p => {
+                if (!postcardsMap.has(p.group)) {
+                    postcardsMap.set(p.group, []);
+                }
+                postcardsMap.get(p.group).push(p);
+            });
+
             for (const group of groupsToRender) {
-                const postcardsInGroup = postcardsData.filter(p => p.group === group.id);
+                const postcardsInGroup = postcardsMap.get(group.id) || [];
                 
                 if (postcardsInGroup.length > 0) {
                     const groupSection = document.createElement('div');
