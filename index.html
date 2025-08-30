@@ -127,7 +127,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.29</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.30</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -367,7 +367,7 @@
             
             postcardsList.innerHTML = '';
             
-            // Rendera varje grupp med sina vykort
+            // Rendera varje grupp med sina vykort, och filtrera baserat på select-rutan.
             for (const group of groupsData) {
                 if (groupFilterValue !== 'all' && group.id !== groupFilterValue) {
                     continue;
