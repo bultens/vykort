@@ -82,6 +82,13 @@
         .confirmation-message.active {
             opacity: 1;
         }
+        .news-item {
+            border-left: 4px solid #3b82f6;
+            background-color: #eff6ff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -100,20 +107,28 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.15</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.16</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
         <br>
-        <p class="font-bold">Priserna varierar beroende på storlek:</p>
+        <p class="font-bold">Storlekar:</p>
         <ul class="list-disc list-inside mx-auto max-w-lg text-left">
-            <li>Liten (A6, 105 × 148 mm, 4.1 × 5.8 tum) – €12</li>
-            <li>Mellan (A5, 148 × 210 mm, 5.8 × 8.3 tum) – €15</li>
-            <li>Stor (A4, 210 × 297 mm, 8.3 × 11.7 tum) – €18</li>
+            <li>Liten (A6, 105 × 148 mm, 4.1 × 5.8 tum)</li>
+            <li>Mellan (A5, 148 × 210 mm, 5.8 × 8.3 tum)</li>
+            <li>Stor (A4, 210 × 297 mm, 8.3 × 11.7 tum)</li>
         </ul>
         <br>
         <p class="font-bold">Leveranstid:</p>
         <p>Leverans tar 3 till 15 dagar, beroende på destination. Vänligen kontakta mig för en mer exakt uppskattning.</p>
+    </div>
+
+    <div id="news-section" class="container py-4">
+        <hr class="my-6">
+        <h2 class="text-3xl font-bold mb-4 text-center">Nyheter</h2>
+        <div id="news-list">
+            </div>
+        <hr class="my-6">
     </div>
 
     <main class="container">
@@ -170,7 +185,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, onSnapshot, collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Firebase-konfiguration från din 'kumlaskytte'-fil
         const firebaseConfig = {
@@ -252,7 +267,39 @@
                 renderPostcards();
                 renderCart();
             });
+            onSnapshot(query(collection(db, `artifacts/${appId}/public/data/news`), orderBy('order')), (snapshot) => {
+                const newsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderNews(newsData);
+            });
         }
+        
+        function renderNews(news) {
+            const newsList = document.getElementById('news-list');
+            newsList.innerHTML = '';
+            
+            const now = new Date();
+            const activeNews = news.filter(item => 
+                item.noTimeLimit || (now >= item.startDate.toDate() && now <= item.endDate.toDate())
+            );
+
+            if (activeNews.length === 0) {
+                document.getElementById('news-section').classList.add('hidden');
+                return;
+            } else {
+                document.getElementById('news-section').classList.remove('hidden');
+            }
+
+            activeNews.forEach(item => {
+                const newsItem = document.createElement('div');
+                newsItem.className = 'news-item';
+                newsItem.innerHTML = `
+                    <h3 class="font-bold text-lg mb-1">${item.title}</h3>
+                    <p class="text-sm">${item.text}</p>
+                `;
+                newsList.appendChild(newsItem);
+            });
+        }
+
 
         function populateFilters() {
             const groupFilter = document.getElementById('group-filter');
@@ -334,7 +381,7 @@
                 
                 const applicableSales = salesData.filter(s => {
                     const now = new Date();
-                    const isTimeValid = s.noTimeLimit || (now >= new Date(s.startDate) && now <= new Date(s.endDate));
+                    const isTimeValid = s.noTimeLimit || (now >= s.startDate.toDate() && now <= s.endDate.toDate());
                     
                     const isTargetValid = (s.targetType === 'group' && s.targetId === p.group) || 
                                           (s.targetType === 'product' && s.targetId === p.id);
@@ -436,7 +483,7 @@
             
             const applicableSales = salesData.filter(s => {
                 const now = new Date();
-                const isTimeValid = s.noTimeLimit || (now >= new Date(s.startDate) && now <= new Date(s.endDate));
+                const isTimeValid = s.noTimeLimit || (now >= s.startDate.toDate() && now <= s.endDate.toDate());
                 const isTargetValid = s.targetType === 'all';
                 return isTimeValid && isTargetValid;
             });
