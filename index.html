@@ -1,3 +1,4 @@
+<!-- Fil: index.html - Vykortsbutik -->
 <!DOCTYPE html>
 <html lang="sv">
 <head>
@@ -51,7 +52,8 @@
             </div>
         </div>
         <div id="postcards-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            </div>
+            <!-- Vykorten kommer att renderas här av JavaScript -->
+        </div>
     </main>
 
     <footer class="bg-gray-800 text-white text-center py-4 mt-8">
@@ -60,6 +62,7 @@
         </div>
     </footer>
 
+    <!-- Firebase SDK-skript -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
