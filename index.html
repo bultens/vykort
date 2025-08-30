@@ -127,7 +127,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.25</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.26</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -397,7 +397,7 @@
 
             // Hantera vykort som inte tillhör någon grupp
             if (groupFilterValue === 'all') {
-                const ungroupedPostcards = postcardsData.filter(p => !p.group || !renderedPostcardIds.has(p.id));
+                const ungroupedPostcards = postcardsData.filter(p => !p.group || !groupsData.some(g => g.id === p.group));
                 if (ungroupedPostcards.length > 0) {
                     const groupSection = document.createElement('div');
                     groupSection.innerHTML = `<h2 class="text-3xl font-bold mt-8 mb-4">Övrigt</h2>`;
