@@ -1,4 +1,3 @@
-<!-- Fil: index.html - Vykortsbutik - Ver. 1.13 -->
 <!DOCTYPE html>
 <html lang="sv">
 <head>
@@ -101,7 +100,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.13</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.14</div>
 
     <main class="container">
         <h1 class="text-4xl font-bold mb-6 text-center">Vykort</h1>
@@ -116,11 +115,9 @@
             </div>
         </div>
         <div id="postcards-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Vykorten kommer att renderas här av JavaScript -->
-        </div>
+            </div>
     </main>
     
-    <!-- Varukorgs-modal -->
     <div id="cartModal" class="modal">
         <div class="modal-content">
             <span id="close-cart-modal" class="modal-close-btn">&times;</span>
@@ -145,7 +142,6 @@
         </div>
     </div>
     
-    <!-- Bekräftelsemeddelande -->
     <div id="confirmation-toast" class="confirmation-message hidden">
         Vara tillagd i varukorgen!
     </div>
@@ -157,7 +153,6 @@
         </div>
     </footer>
 
-    <!-- Firebase SDK-skript -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -220,6 +215,7 @@
             });
             
             document.getElementById('clear-cart-btn').addEventListener('click', clearCart);
+            updateCartCount();
         });
 
         function startListeners() {
