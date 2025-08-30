@@ -1,4 +1,4 @@
-<!-- Fil: admin.html - Adminpanel - Ver. 1.7 -->
+<!-- Fil: admin.html - Adminpanel - Ver. 1.8 -->
 <!DOCTYPE html>
 <html lang="sv">
 <head>
@@ -76,7 +76,7 @@
         </div>
     </header>
     
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.7</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.8</div>
 
     <main class="container">
         <!-- Admininloggning -->
@@ -119,7 +119,7 @@
                     <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700">Lägg till grupp</button>
                 </form>
             </div>
-
+            
             <!-- Vykortshantering -->
             <div class="card">
                 <h2 class="text-2xl font-bold mb-4">Vykort</h2>
@@ -131,6 +131,31 @@
                     <button type="submit" id="add-postcard-btn" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">Lägg till vykort</button>
                 </form>
                 <div id="postcards-list" class="mt-8 space-y-4"></div>
+            </div>
+            
+            <!-- Reahantering -->
+            <div class="card">
+                <h2 class="text-2xl font-bold mb-4">Rea</h2>
+                <div id="sales-list" class="space-y-4 mb-4"></div>
+                <form id="add-sale-form" class="space-y-4">
+                    <div class="flex gap-4">
+                        <input type="text" id="sale-name" placeholder="Namn på rea" required class="w-1/2 p-2 border rounded-md">
+                        <input type="number" id="sale-value" placeholder="Värde" required class="w-1/2 p-2 border rounded-md">
+                    </div>
+                    <select id="sale-type" class="w-full p-2 border rounded-md">
+                        <option value="percent">%</option>
+                        <option value="summa">Summa</option>
+                    </select>
+                    <select id="sale-target-type" class="w-full p-2 border rounded-md">
+                        <option value="all">Hela varukorgen</option>
+                        <option value="group">Specifik grupp</option>
+                        <option value="product">Specifik produkt</option>
+                    </select>
+                    <div id="sale-target-select-container" class="hidden">
+                        <select id="sale-target-id" class="w-full p-2 border rounded-md"></select>
+                    </div>
+                    <button type="submit" class="w-full bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700">Lägg till rea</button>
+                </form>
             </div>
         </section>
         
@@ -204,10 +229,12 @@
         let groupsData = [];
         let postcardsData = [];
         let adminsData = [];
+        let salesData = [];
         let unsubscribePriceGroups = null;
         let unsubscribeGroups = null;
         let unsubscribePostcards = null;
         let unsubscribeAdmins = null;
+        let unsubscribeSales = null;
 
         // Modala funktioner
         function showMessage(message) {
@@ -235,6 +262,7 @@
         function renderGroupsAndPrices() {
             const priceGroupSelect = document.getElementById('postcard-price-group');
             const groupSelect = document.getElementById('postcard-group');
+            const saleTargetSelect = document.getElementById('sale-target-id');
 
             priceGroupSelect.innerHTML = '';
             priceGroupsData.forEach(pg => {
@@ -249,15 +277,19 @@
             });
 
             groupSelect.innerHTML = '';
+            saleTargetSelect.innerHTML = '<option value="">Välj...</option>';
             groupsData.forEach(g => {
                 const option = document.createElement('option');
                 option.value = g.id;
-                option.textContent = g.name;
+                option.textContent = `Grupp: ${g.name}`;
                 groupSelect.appendChild(option);
-                if (g.isDefault) {
-                    defaultGroupId = g.id;
-                    option.selected = true;
-                }
+                saleTargetSelect.appendChild(option.cloneNode(true));
+            });
+            postcardsData.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p.id;
+                option.textContent = `Produkt: ${p.title}`;
+                saleTargetSelect.appendChild(option);
             });
         }
         
@@ -269,6 +301,7 @@
             const groupsList = document.getElementById('groups-list');
             const postcardsList = document.getElementById('postcards-list');
             const adminsList = document.getElementById('admin-list');
+            const salesList = document.getElementById('sales-list');
 
             priceGroupsList.innerHTML = '';
             priceGroupsData.forEach(pg => {
@@ -279,7 +312,7 @@
                     <span>${pg.name} ${pg.isDefault ? ' (Standard)' : ''} ${pricesText}</span>
                     <div class="space-x-2">
                         <button onclick="editPriceGroup('${pg.id}')" class="text-blue-500 hover:text-blue-700">Ändra</button>
-                        ${!pg.isDefault ? `<button onclick="deletePriceGroup('${pg.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>` : ''}
+                        ${priceGroupsData.length > 1 ? `<button onclick="deletePriceGroup('${pg.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>` : ''}
                     </div>
                 `;
                 priceGroupsList.appendChild(div);
@@ -293,7 +326,7 @@
                     <span>${g.name} ${g.isDefault ? ' (Standard)' : ''}</span>
                     <div class="space-x-2">
                         <button onclick="editGroup('${g.id}')" class="text-blue-500 hover:text-blue-700">Ändra</button>
-                        ${!g.isDefault ? `<button onclick="deleteGroup('${g.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>` : ''}
+                        ${groupsData.length > 1 ? `<button onclick="deleteGroup('${g.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>` : ''}
                     </div>
                 `;
                 groupsList.appendChild(div);
@@ -326,10 +359,25 @@
                 div.innerHTML = `
                     <span>${a.username}</span>
                     <div class="space-x-2">
-                        <button onclick="deleteAdmin('${a.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>
+                        ${adminsData.length > 1 ? `<button onclick="deleteAdmin('${a.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>` : ''}
                     </div>
                 `;
                 adminsList.appendChild(div);
+            });
+
+            salesList.innerHTML = '';
+            salesData.forEach(s => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center p-2 bg-gray-100 rounded-md";
+                const targetText = s.targetType === 'all' ? 'Hela varukorgen' :
+                                   s.targetType === 'group' ? `Grupp: ${groupsData.find(g => g.id === s.targetId)?.name || 'Okänd'}` :
+                                   `Produkt: ${postcardsData.find(p => p.id === s.targetId)?.title || 'Okänd'}`;
+                const valueText = s.type === 'percent' ? `${s.value}%` : `${s.value} kr`;
+                div.innerHTML = `
+                    <span>${s.name} (${valueText} rabatt på ${targetText})</span>
+                    <button onclick="deleteSale('${s.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>
+                `;
+                salesList.appendChild(div);
             });
         }
         
@@ -360,6 +408,10 @@
 
         async function deletePriceGroup(id) {
             if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            if (priceGroupsData.length <= 1) {
+                showMessage('Kan inte ta bort den sista prisgruppen.');
+                return;
+            }
             if (priceGroupsData.find(pg => pg.id === id)?.isDefault) {
                 showMessage('Kan inte ta bort standardprisgruppen.');
                 return;
@@ -403,6 +455,10 @@
 
         async function deleteGroup(id) {
             if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            if (groupsData.length <= 1) {
+                showMessage('Kan inte ta bort den sista gruppen.');
+                return;
+            }
             if (groupsData.find(g => g.id === id)?.isDefault) {
                 showMessage('Kan inte ta bort standardgruppen.');
                 return;
@@ -481,9 +537,28 @@
         
         async function deleteAdmin(id) {
             if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            if (adminsData.length <= 1) {
+                showMessage('Kan inte ta bort den sista administratören.');
+                return;
+            }
             showConfirmation("Är du säker på att du vill ta bort denna admin?", async () => {
                 await deleteDoc(doc(db, `artifacts/${appId}/public/data/admins`, id));
                 showMessage('Admin borttagen.');
+            });
+        }
+        
+        async function addSale(name, value, type, targetType, targetId) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const salesCollection = collection(db, `artifacts/${appId}/public/data/sales`);
+            await addDoc(salesCollection, { name, value: Number(value), type, targetType, targetId });
+            showMessage('Rea tillagd!');
+        }
+
+        async function deleteSale(id) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            showConfirmation("Är du säker på att du vill ta bort denna rea?", async () => {
+                await deleteDoc(doc(db, `artifacts/${appId}/public/data/sales`, id));
+                showMessage('Rea borttagen.');
             });
         }
 
@@ -508,11 +583,18 @@
             unsubscribePostcards = onSnapshot(postcardsRef, (snapshot) => {
                 postcardsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderAdminLists();
+                renderGroupsAndPrices(); // Uppdatera filter-listorna när vykort läggs till/tas bort
             });
             
             const adminsRef = collection(db, `artifacts/${appId}/public/data/admins`);
             unsubscribeAdmins = onSnapshot(adminsRef, (snapshot) => {
                 adminsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderAdminLists();
+            });
+            
+            const salesRef = collection(db, `artifacts/${appId}/public/data/sales`);
+            unsubscribeSales = onSnapshot(salesRef, (snapshot) => {
+                salesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderAdminLists();
             });
         }
@@ -522,6 +604,7 @@
             if (unsubscribeGroups) unsubscribeGroups();
             if (unsubscribePostcards) unsubscribePostcards();
             if (unsubscribeAdmins) unsubscribeAdmins();
+            if (unsubscribeSales) unsubscribeSales();
         }
 
         // Globala funktioner för att anropa från HTML
@@ -533,6 +616,7 @@
         window.deletePostcard = deletePostcard;
         window.addAdmin = addAdmin;
         window.deleteAdmin = deleteAdmin;
+        window.deleteSale = deleteSale;
         
         // Logik för inloggning
         async function handleLogin() {
@@ -545,19 +629,6 @@
             }
 
             try {
-                // Hårdkodad inloggning för "admin"
-                if (username === 'admin' && password === 'admin') {
-                    isAdminLoggedIn = true;
-                    document.getElementById('admin-login-panel').classList.add('hidden');
-                    document.getElementById('admin-panel').classList.remove('hidden');
-                    document.getElementById('admin-management-section').classList.remove('hidden');
-                    document.getElementById('admin-indicator').classList.remove('hidden');
-                    document.getElementById('admin-user-info').textContent = `Du är inloggad som ${username}.`;
-                    startAdminListeners();
-                    return;
-                }
-
-                // Sök i databasen för andra administratörer
                 const adminsRef = collection(db, `artifacts/${appId}/public/data/admins`);
                 const q = query(adminsRef, where('username', '==', username));
                 const querySnapshot = await getDocs(q);
@@ -656,6 +727,30 @@
                 const username = document.getElementById('new-admin-username').value;
                 const password = document.getElementById('new-admin-password').value;
                 addAdmin(username, password);
+                e.target.reset();
+            });
+            
+            const saleTargetTypeSelect = document.getElementById('sale-target-type');
+            const saleTargetSelectContainer = document.getElementById('sale-target-select-container');
+            saleTargetTypeSelect.addEventListener('change', (e) => {
+                if (e.target.value === 'group' || e.target.value === 'product') {
+                    saleTargetSelectContainer.classList.remove('hidden');
+                } else {
+                    saleTargetSelectContainer.classList.add('hidden');
+                }
+            });
+
+            document.getElementById('add-sale-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('sale-name').value;
+                const value = document.getElementById('sale-value').value;
+                const type = document.getElementById('sale-type').value;
+                const targetType = document.getElementById('sale-target-type').value;
+                let targetId = '';
+                if (targetType === 'group' || targetType === 'product') {
+                    targetId = document.getElementById('sale-target-id').value;
+                }
+                addSale(name, value, type, targetType, targetId);
                 e.target.reset();
             });
         };
