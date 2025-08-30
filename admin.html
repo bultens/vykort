@@ -1,0 +1,544 @@
+<!-- Fil: admin.html - Adminpanel - Ver. 1.1 -->
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adminpanel - Bultens.net</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 0.75rem;
+            width: 80%;
+            max-width: 500px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header class="bg-gray-800 text-white shadow-lg">
+        <div class="container py-4 flex flex-col sm:flex-row justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <div class="flex flex-col items-start">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-3xl font-bold tracking-tight">Adminpanel</span>
+                        <span id="admin-indicator" class="hidden bg-green-500 text-white text-xs font-bold rounded-full px-2 py-1">ADMIN</span>
+                    </div>
+                </div>
+            </div>
+            <nav>
+                <ul class="flex space-x-4 font-medium">
+                    <li><a href="index.html" class="hover:text-gray-300 transition duration-300">Till Butik</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Admininloggning -->
+        <section id="admin-login-panel" class="card max-w-md mx-auto">
+            <h1 class="text-2xl font-bold mb-4">Admininloggning</h1>
+            <input type="text" id="admin-username" placeholder="Användarnamn" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
+            <input type="password" id="admin-password" placeholder="Lösenord" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
+            <button id="login-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300">Logga in</button>
+        </section>
+
+        <!-- Administrationspanel -->
+        <section id="admin-panel" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-4xl font-bold">Administrationspanel</h1>
+                <button id="logout-btn" class="px-4 py-2 bg-gray-500 text-white font-bold rounded-lg hover:bg-gray-600 transition duration-300">Logga ut</button>
+            </div>
+            <div id="admin-user-info" class="mb-4 text-sm text-gray-500"></div>
+
+            <!-- Prisgrupper -->
+            <div class="card">
+                <h2 class="text-2xl font-bold mb-4">Prisgrupper</h2>
+                <div id="price-groups-list" class="space-y-4 mb-4"></div>
+                <form id="add-price-group-form" class="space-y-4">
+                    <input type="text" id="new-price-group-name" placeholder="Namn på prisgrupp" required class="w-full p-2 border rounded-md">
+                    <div class="flex gap-4">
+                        <input type="number" id="price-liten" placeholder="Pris Liten" required class="w-1/3 p-2 border rounded-md">
+                        <input type="number" id="price-mellan" placeholder="Pris Mellan" required class="w-1/3 p-2 border rounded-md">
+                        <input type="number" id="price-stor" placeholder="Pris Stor" required class="w-1/3 p-2 border rounded-md">
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700">Lägg till prisgrupp</button>
+                </form>
+            </div>
+
+            <!-- Grupperingar -->
+            <div class="card">
+                <h2 class="text-2xl font-bold mb-4">Vykortsgrupper</h2>
+                <div id="groups-list" class="space-y-4 mb-4"></div>
+                <form id="add-group-form" class="space-y-4">
+                    <input type="text" id="new-group-name" placeholder="Namn på grupp" required class="w-full p-2 border rounded-md">
+                    <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700">Lägg till grupp</button>
+                </form>
+            </div>
+
+            <!-- Vykortshantering -->
+            <div class="card">
+                <h2 class="text-2xl font-bold mb-4">Vykort</h2>
+                <form id="add-postcard-form" class="space-y-4">
+                    <input type="text" id="postcard-title" placeholder="Titel på vykort" required class="w-full p-2 border rounded-md">
+                    <input type="url" id="postcard-image-url" placeholder="URL till bild" required class="w-full p-2 border rounded-md">
+                    <select id="postcard-group" required class="w-full p-2 border rounded-md"></select>
+                    <select id="postcard-price-group" required class="w-full p-2 border rounded-md"></select>
+                    <button type="submit" id="add-postcard-btn" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">Lägg till vykort</button>
+                </form>
+                <div id="postcards-list" class="mt-8 space-y-4"></div>
+            </div>
+        </section>
+
+        <!-- Modals -->
+        <div id="messageModal" class="modal">
+            <div class="modal-content">
+                <p id="modal-message"></p>
+                <button onclick="document.getElementById('messageModal').classList.remove('active')" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md">OK</button>
+            </div>
+        </div>
+        <div id="confirmationModal" class="modal">
+            <div class="modal-content">
+                <p id="confirm-message"></p>
+                <div class="flex justify-center space-x-4 mt-4">
+                    <button id="confirm-yes-btn" class="px-4 py-2 bg-green-600 text-white rounded-md">Ja</button>
+                    <button id="confirm-no-btn" class="px-4 py-2 bg-gray-600 text-white rounded-md">Nej</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white text-center py-4 mt-8">
+        <div class="container text-sm">
+            <p>&copy; 2025 Bultens.net</p>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK-skript -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, onSnapshot, collection, addDoc, deleteDoc, doc, updateDoc, query, where, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Globala variabler från Canvas-miljön
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let db;
+        let auth;
+        let isAdminLoggedIn = false;
+        let defaultPriceGroupId = 'default';
+        let defaultGroupId = 'default';
+        let currentEditingPostcardId = null;
+        let priceGroupsData = [];
+        let groupsData = [];
+        let postcardsData = [];
+        let unsubscribePriceGroups = null;
+        let unsubscribeGroups = null;
+        let unsubscribePostcards = null;
+
+        // Modala funktioner
+        function showMessage(message) {
+            document.getElementById('modal-message').textContent = message;
+            document.getElementById('messageModal').classList.add('active');
+        }
+
+        function showConfirmation(message, onConfirm) {
+            document.getElementById('confirm-message').textContent = message;
+            document.getElementById('confirmationModal').classList.add('active');
+            
+            const confirmBtn = document.getElementById('confirm-yes-btn');
+            const cancelBtn = document.getElementById('confirm-no-btn');
+
+            confirmBtn.onclick = () => {
+                onConfirm();
+                document.getElementById('confirmationModal').classList.remove('active');
+            };
+            cancelBtn.onclick = () => {
+                document.getElementById('confirmationModal').classList.remove('active');
+            };
+        }
+
+        // Funktion för att rendera grupper och prisgrupper
+        function renderGroupsAndPrices() {
+            const priceGroupSelect = document.getElementById('postcard-price-group');
+            const groupSelect = document.getElementById('postcard-group');
+
+            priceGroupSelect.innerHTML = '';
+            priceGroupsData.forEach(pg => {
+                const option = document.createElement('option');
+                option.value = pg.id;
+                option.textContent = pg.name;
+                priceGroupSelect.appendChild(option);
+                if (pg.isDefault) {
+                    defaultPriceGroupId = pg.id;
+                    option.selected = true;
+                }
+            });
+
+            groupSelect.innerHTML = '';
+            groupsData.forEach(g => {
+                const option = document.createElement('option');
+                option.value = g.id;
+                option.textContent = g.name;
+                groupSelect.appendChild(option);
+                if (g.isDefault) {
+                    defaultGroupId = g.id;
+                    option.selected = true;
+                }
+            });
+        }
+        
+        // Funktion för att rendera listor i adminpanelen
+        function renderAdminLists() {
+            if (!isAdminLoggedIn) return;
+
+            const priceGroupsList = document.getElementById('price-groups-list');
+            const groupsList = document.getElementById('groups-list');
+            const postcardsList = document.getElementById('postcards-list');
+
+            priceGroupsList.innerHTML = '';
+            priceGroupsData.forEach(pg => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center p-2 bg-gray-100 rounded-md";
+                let pricesText = `(Liten: ${pg.prices.liten}, Mellan: ${pg.prices.mellan}, Stor: ${pg.prices.stor})`;
+                div.innerHTML = `
+                    <span>${pg.name} ${pg.isDefault ? ' (Standard)' : ''} ${pricesText}</span>
+                    <div class="space-x-2">
+                        <button onclick="editPriceGroup('${pg.id}')" class="text-blue-500 hover:text-blue-700">Ändra</button>
+                        ${!pg.isDefault ? `<button onclick="deletePriceGroup('${pg.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>` : ''}
+                    </div>
+                `;
+                priceGroupsList.appendChild(div);
+            });
+
+            groupsList.innerHTML = '';
+            groupsData.forEach(g => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center p-2 bg-gray-100 rounded-md";
+                div.innerHTML = `
+                    <span>${g.name} ${g.isDefault ? ' (Standard)' : ''}</span>
+                    <div class="space-x-2">
+                        <button onclick="editGroup('${g.id}')" class="text-blue-500 hover:text-blue-700">Ändra</button>
+                        ${!g.isDefault ? `<button onclick="deleteGroup('${g.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>` : ''}
+                    </div>
+                `;
+                groupsList.appendChild(div);
+            });
+
+            postcardsList.innerHTML = '';
+            postcardsData.forEach(p => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center p-4 bg-gray-100 rounded-md";
+                const priceGroupName = priceGroupsData.find(pg => pg.id === p.priceGroup)?.name || 'Okänd';
+                const groupName = groupsData.find(g => g.id === p.group)?.name || 'Okänd';
+                div.innerHTML = `
+                    <div class="flex-1 space-y-1">
+                        <h3 class="font-bold">${p.title}</h3>
+                        <p class="text-sm text-gray-600">Grupp: ${groupName}</p>
+                        <p class="text-sm text-gray-600">Prisgrupp: ${priceGroupName}</p>
+                    </div>
+                    <div class="space-x-2 flex-shrink-0">
+                        <button onclick="editPostcard('${p.id}')" class="text-blue-500 hover:text-blue-700">Ändra</button>
+                        <button onclick="deletePostcard('${p.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>
+                    </div>
+                `;
+                postcardsList.appendChild(div);
+            });
+        }
+        
+        // CRUD-funktioner för prisgrupper
+        async function addPriceGroup(name, prices) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const priceGroupsCollection = collection(db, `artifacts/${appId}/public/data/priceGroups`);
+            await addDoc(priceGroupsCollection, { name, prices, isDefault: false });
+        }
+
+        async function editPriceGroup(id) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const priceGroupsCollection = collection(db, `artifacts/${appId}/public/data/priceGroups`);
+            const pg = (await getDocs(query(priceGroupsCollection, where('__name__', '==', id)))).docs[0];
+            if (pg) {
+                const name = prompt("Ändra namn på prisgrupp:", pg.data().name);
+                const liten = prompt("Ändra pris Liten:", pg.data().prices.liten);
+                const mellan = prompt("Ändra pris Mellan:", pg.data().prices.mellan);
+                const stor = prompt("Ändra pris Stor:", pg.data().prices.stor);
+                if (name && liten && mellan && stor) {
+                    await updateDoc(doc(db, `artifacts/${appId}/public/data/priceGroups`, id), {
+                        name,
+                        prices: { liten: Number(liten), mellan: Number(mellan), stor: Number(stor) }
+                    });
+                }
+            }
+        }
+
+        async function deletePriceGroup(id) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const priceGroupsCollection = collection(db, `artifacts/${appId}/public/data/priceGroups`);
+            const postcardsCollection = collection(db, `artifacts/${appId}/public/data/postcards`);
+            
+            showConfirmation("Är du säker på att du vill ta bort denna prisgrupp? Vykort som använder denna prisgrupp kommer att tilldelas standardprisgruppen.", async () => {
+                const batch = writeBatch(db);
+                // Uppdatera vykort som använder denna prisgrupp
+                const q = query(postcardsCollection, where('priceGroup', '==', id));
+                const snapshot = await getDocs(q);
+                snapshot.forEach(doc => {
+                    batch.update(doc.ref, { priceGroup: defaultPriceGroupId });
+                });
+                // Ta bort prisgruppen
+                batch.delete(doc(priceGroupsCollection, id));
+                await batch.commit();
+                showMessage('Prisgrupp borttagen och vykort uppdaterade.');
+            });
+        }
+
+        // CRUD-funktioner för grupper
+        async function addGroup(name) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const groupsCollection = collection(db, `artifacts/${appId}/public/data/groups`);
+            await addDoc(groupsCollection, { name, isDefault: false });
+        }
+
+        async function editGroup(id) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const groupsCollection = collection(db, `artifacts/${appId}/public/data/groups`);
+            const g = (await getDocs(query(groupsCollection, where('__name__', '==', id)))).docs[0];
+            if (g) {
+                const name = prompt("Ändra namn på grupp:", g.data().name);
+                if (name) {
+                    await updateDoc(doc(db, `artifacts/${appId}/public/data/groups`, id), { name });
+                }
+            }
+        }
+
+        async function deleteGroup(id) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const groupsCollection = collection(db, `artifacts/${appId}/public/data/groups`);
+            const postcardsCollection = collection(db, `artifacts/${appId}/public/data/postcards`);
+
+            showConfirmation("Är du säker på att du vill ta bort denna grupp? Vykort som använder denna grupp kommer att tilldelas standardgruppen.", async () => {
+                const batch = writeBatch(db);
+                const q = query(postcardsCollection, where('group', '==', id));
+                const snapshot = await getDocs(q);
+                snapshot.forEach(doc => {
+                    batch.update(doc.ref, { group: defaultGroupId });
+                });
+                batch.delete(doc(groupsCollection, id));
+                await batch.commit();
+                showMessage('Grupp borttagen och vykort uppdaterade.');
+            });
+        }
+        
+        // CRUD-funktioner för vykort
+        async function addOrUpdatePostcard() {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const form = document.getElementById('add-postcard-form');
+            const title = document.getElementById('postcard-title').value;
+            const imageURL = document.getElementById('postcard-image-url').value;
+            const group = document.getElementById('postcard-group').value;
+            const priceGroup = document.getElementById('postcard-price-group').value;
+
+            const postcardData = { title, imageURL, group, priceGroup };
+
+            try {
+                if (currentEditingPostcardId) {
+                    await updateDoc(doc(db, `artifacts/${appId}/public/data/postcards`, currentEditingPostcardId), postcardData);
+                    showMessage('Vykort uppdaterat!');
+                } else {
+                    await addDoc(collection(db, `artifacts/${appId}/public/data/postcards`), postcardData);
+                    showMessage('Vykort tillagt!');
+                }
+                form.reset();
+                currentEditingPostcardId = null;
+                document.getElementById('add-postcard-btn').textContent = 'Lägg till vykort';
+            } catch (e) {
+                console.error("Fel vid hantering av vykort:", e);
+                showMessage('Fel: Kunde inte spara vykort. Kontrollera behörigheter.');
+            }
+        }
+
+        async function editPostcard(id) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const postcardsCollection = collection(db, `artifacts/${appId}/public/data/postcards`);
+            const postcard = (await getDocs(query(postcardsCollection, where('__name__', '==', id)))).docs[0];
+            if (postcard) {
+                document.getElementById('postcard-title').value = postcard.data().title;
+                document.getElementById('postcard-image-url').value = postcard.data().imageURL;
+                document.getElementById('postcard-group').value = postcard.data().group;
+                document.getElementById('postcard-price-group').value = postcard.data().priceGroup;
+                currentEditingPostcardId = id;
+                document.getElementById('add-postcard-btn').textContent = 'Spara ändringar';
+            }
+        }
+
+        async function deletePostcard(id) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            showConfirmation("Är du säker på att du vill ta bort detta vykort?", async () => {
+                await deleteDoc(doc(db, `artifacts/${appId}/public/data/postcards`, id));
+                showMessage('Vykort borttaget.');
+            });
+        }
+
+        function startAdminListeners() {
+            if (!db) return; // Säkerställ att db är initierad
+            
+            const priceGroupsRef = collection(db, `artifacts/${appId}/public/data/priceGroups`);
+            unsubscribePriceGroups = onSnapshot(priceGroupsRef, (snapshot) => {
+                priceGroupsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderGroupsAndPrices();
+                renderAdminLists();
+            });
+
+            const groupsRef = collection(db, `artifacts/${appId}/public/data/groups`);
+            unsubscribeGroups = onSnapshot(groupsRef, (snapshot) => {
+                groupsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderGroupsAndPrices();
+                renderAdminLists();
+            });
+
+            const postcardsRef = collection(db, `artifacts/${appId}/public/data/postcards`);
+            unsubscribePostcards = onSnapshot(postcardsRef, (snapshot) => {
+                postcardsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderAdminLists();
+            });
+        }
+
+        function stopAdminListeners() {
+            if (unsubscribePriceGroups) unsubscribePriceGroups();
+            if (unsubscribeGroups) unsubscribeGroups();
+            if (unsubscribePostcards) unsubscribePostcards();
+        }
+
+        // Globala funktioner för att anropa från HTML
+        window.editPriceGroup = editPriceGroup;
+        window.deletePriceGroup = deletePriceGroup;
+        window.editGroup = editGroup;
+        window.deleteGroup = deleteGroup;
+        window.editPostcard = editPostcard;
+        window.deletePostcard = deletePostcard;
+        
+        // Logik för inloggning
+        async function handleLogin() {
+            const username = document.getElementById('admin-username').value;
+            const password = document.getElementById('admin-password').value;
+
+            // Kontrollera standardinloggning först
+            if (username === 'admin' && password === 'admin') {
+                isAdminLoggedIn = true;
+                document.getElementById('admin-login-panel').classList.add('hidden');
+                document.getElementById('admin-panel').classList.remove('hidden');
+                document.getElementById('admin-indicator').classList.remove('hidden');
+                document.getElementById('admin-user-info').textContent = 'Du är inloggad som admin.';
+                startAdminListeners();
+                return;
+            }
+
+            showMessage('Fel: Ogiltiga inloggningsuppgifter.');
+        }
+
+        function handleLogout() {
+            isAdminLoggedIn = false;
+            document.getElementById('admin-login-panel').classList.remove('hidden');
+            document.getElementById('admin-panel').classList.add('hidden');
+            document.getElementById('admin-indicator').classList.add('hidden');
+            document.getElementById('admin-username').value = '';
+            document.getElementById('admin-password').value = '';
+            currentEditingPostcardId = null;
+            document.getElementById('add-postcard-btn').textContent = 'Lägg till vykort';
+            document.getElementById('add-postcard-form').reset();
+            stopAdminListeners();
+        }
+
+        window.onload = function () {
+            if (firebaseConfig.projectId) {
+                try {
+                    const app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+                    
+                    // Lyssna på autentiseringstillstånd
+                    onAuthStateChanged(auth, (user) => {
+                        if (!user) {
+                            signInAnonymously(auth).catch(e => console.error("Anonym inloggning misslyckades", e));
+                        }
+                    });
+
+                } catch (e) {
+                    console.error("Firebase initieringsfel:", e);
+                    showMessage("Databasen kunde inte anslutas. Kontakta webbplatsadministratören.");
+                }
+            } else {
+                showMessage("Firebase-konfiguration saknas.");
+            }
+
+            // Eventlyssnare för formulär och knappar
+            document.getElementById('login-btn').addEventListener('click', handleLogin);
+            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+            document.getElementById('add-price-group-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('new-price-group-name').value;
+                const prices = {
+                    liten: Number(document.getElementById('price-liten').value),
+                    mellan: Number(document.getElementById('price-mellan').value),
+                    stor: Number(document.getElementById('price-stor').value)
+                };
+                addPriceGroup(name, prices);
+                e.target.reset();
+            });
+            document.getElementById('add-group-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('new-group-name').value;
+                addGroup(name);
+                e.target.reset();
+            });
+            document.getElementById('add-postcard-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                addOrUpdatePostcard();
+            });
+        };
+    </script>
+</body>
+</html>
