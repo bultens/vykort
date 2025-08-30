@@ -1,4 +1,4 @@
-<!-- Fil: index.html - Vykortsbutik - Ver. 1.8 -->
+<!-- Fil: index.html - Vykortsbutik - Ver. 1.9 -->
 <!DOCTYPE html>
 <html lang="sv">
 <head>
@@ -84,7 +84,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.8</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.9</div>
 
     <main class="container">
         <h1 class="text-4xl font-bold mb-6 text-center">Vykort</h1>
@@ -110,7 +110,11 @@
             <h2 class="text-2xl font-bold mb-4">Varukorg</h2>
             <div id="cart-items" class="space-y-4 mb-4"></div>
             <div id="cart-summary" class="text-right font-bold text-lg border-t pt-4">
-                Total: <span id="cart-total">0 kr</span>
+                <div class="flex justify-between items-center mb-2">
+                    <span>Total:</span>
+                    <span id="cart-total">0 kr</span>
+                </div>
+                <button id="clear-cart-btn" class="px-4 py-2 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 transition duration-300">Töm varukorg</button>
             </div>
             <button id="checkout-btn" class="mt-4 w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300">Gå till kassan</button>
         </div>
@@ -157,6 +161,7 @@
                     db = getFirestore(app);
                     auth = getAuth(app);
                     signInAnonymously(auth);
+
                     startListeners();
                 } catch (e) {
                     console.error("Firebase initieringsfel:", e);
@@ -182,6 +187,8 @@
                     document.getElementById('cartModal').classList.remove('active');
                 }
             });
+            
+            document.getElementById('clear-cart-btn').addEventListener('click', clearCart);
         });
 
         function startListeners() {
@@ -258,10 +265,14 @@
                 let prices = {};
                 if (priceGroup) {
                     prices = priceGroup.prices;
-                    priceText = `Liten: ${prices.liten} kr, Mellan: ${prices.mellan} kr, Stor: ${prices.stor} kr`;
                 }
                 
-                // Hitta tillämpliga reor
+                let salePrices = {
+                    liten: prices.liten,
+                    mellan: prices.mellan,
+                    stor: prices.stor
+                };
+
                 const applicableSales = salesData.filter(s => 
                     s.targetType === 'all' || 
                     (s.targetType === 'group' && s.targetId === p.group) || 
@@ -269,26 +280,95 @@
                 );
                 
                 let saleBadge = '';
+                let hasSale = false;
+
                 if (applicableSales.length > 0) {
                     saleBadge = '<span class="ml-2 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full">REA!</span>';
+                    hasSale = true;
                 }
+                
+                // Beräkna rabatterade priser för visning
+                for (const size in salePrices) {
+                    let originalPrice = prices[size];
+                    let discountedPrice = originalPrice;
+                    let appliedSale = null;
+                    
+                    const productSale = applicableSales.find(s => s.targetType === 'product' && s.targetId === p.id);
+                    const groupSale = applicableSales.find(s => s.targetType === 'group' && s.targetId === p.group);
+                    
+                    if (productSale) {
+                        appliedSale = productSale;
+                    } else if (groupSale) {
+                        appliedSale = groupSale;
+                    }
+
+                    if (appliedSale) {
+                        if (appliedSale.type === 'percent') {
+                            discountedPrice = originalPrice - (originalPrice * (appliedSale.value / 100));
+                        } else if (appliedSale.type === 'summa') {
+                            discountedPrice = originalPrice - appliedSale.value;
+                            if (discountedPrice < 0) discountedPrice = 0;
+                        }
+                    }
+                    salePrices[size] = discountedPrice;
+                }
+                
+                let priceHtml = '';
+                for (const size in prices) {
+                    let originalPrice = prices[size];
+                    let discountedPrice = salePrices[size];
+                    if (originalPrice !== discountedPrice) {
+                        priceHtml += `<p class="text-sm text-gray-600 mb-1">
+                                          ${size.charAt(0).toUpperCase() + size.slice(1)}: <span class="line-through text-gray-400">${originalPrice} kr</span>
+                                          <span class="text-red-600 font-bold ml-1">${discountedPrice} kr</span>
+                                      </p>`;
+                    } else {
+                        priceHtml += `<p class="text-sm text-gray-600 mb-1">${size.charAt(0).toUpperCase() + size.slice(1)}: ${originalPrice} kr</p>`;
+                    }
+                }
+
 
                 postcardsList.innerHTML += `
                     <div class="card flex flex-col items-center text-center">
                         <img src="${p.imageURL}" alt="${p.title}" class="w-full h-auto rounded-lg mb-4">
-                        <h2 class="text-xl font-bold mb-2">${p.title}${saleBadge}</h2>
+                        <h2 class="text-xl font-bold mb-2">${p.title}${hasSale ? saleBadge : ''}</h2>
                         <p class="text-sm text-gray-600 mb-1">Grupp: ${group ? group.name : 'Okänd'}</p>
-                        <p class="text-sm text-gray-600 mb-4">Priser: ${priceText}</p>
-                        <div class="flex space-x-2">
-                            <button onclick="addToCart('${p.id}', 'liten')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Lägg till Liten</button>
-                            <button onclick="addToCart('${p.id}', 'mellan')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Lägg till Mellan</button>
-                            <button onclick="addToCart('${p.id}', 'stor')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Lägg till Stor</button>
+                        ${priceHtml}
+                        <div class="flex space-x-2 mt-4">
+                            <button onclick="addToCart('${p.id}', 'liten')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Liten</button>
+                            <button onclick="addToCart('${p.id}', 'mellan')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Mellan</button>
+                            <button onclick="addToCart('${p.id}', 'stor')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Stor</button>
                         </div>
                     </div>
                 `;
             });
         }
         
+        function getDiscountedPrice(item) {
+            const originalPrice = postcardsData.find(p => p.id === item.id)?.prices?.[item.size] || item.price;
+            let finalPrice = originalPrice;
+
+            const productSale = salesData.find(s => s.targetType === 'product' && s.targetId === item.id);
+            const groupSale = salesData.find(s => s.targetType === 'group' && s.targetId === postcardsData.find(p => p.id === item.id)?.group);
+            
+            let appliedSale = null;
+            if (productSale) {
+                appliedSale = productSale;
+            } else if (groupSale) {
+                appliedSale = groupSale;
+            }
+
+            if (appliedSale) {
+                if (appliedSale.type === 'percent') {
+                    finalPrice = originalPrice - (originalPrice * (appliedSale.value / 100));
+                } else if (appliedSale.type === 'summa') {
+                    finalPrice = originalPrice - appliedSale.value;
+                    if (finalPrice < 0) finalPrice = 0;
+                }
+            }
+            return finalPrice;
+        }
+
         function addToCart(postcardId, size) {
             const postcard = postcardsData.find(p => p.id === postcardId);
             if (!postcard) return;
@@ -323,38 +403,12 @@
 
         function calculateCartTotal() {
             let total = 0;
-            let cartItems = JSON.parse(JSON.stringify(cart)); // Kopia för att inte ändra originalet
+            cart.forEach(item => {
+                const discountedPrice = getDiscountedPrice(item);
+                total += discountedPrice * item.quantity;
+            });
             
             const applicableSales = salesData.filter(s => s.targetType === 'all');
-            const groupSales = salesData.filter(s => s.targetType === 'group');
-            const productSales = salesData.filter(s => s.targetType === 'product');
-
-            // Applicera rabatter per produkt
-            cartItems.forEach(item => {
-                let itemPrice = item.price;
-                let appliedSale = null;
-                
-                const productSale = productSales.find(s => s.targetId === item.id);
-                const groupSale = groupSales.find(s => s.targetId === item.group);
-
-                if (productSale) {
-                    appliedSale = productSale;
-                } else if (groupSale) {
-                    appliedSale = groupSale;
-                }
-
-                if (appliedSale) {
-                    if (appliedSale.type === 'percent') {
-                        itemPrice -= itemPrice * (appliedSale.value / 100);
-                    } else if (appliedSale.type === 'summa') {
-                        itemPrice -= appliedSale.value;
-                        if (itemPrice < 0) itemPrice = 0;
-                    }
-                }
-                total += itemPrice * item.quantity;
-            });
-
-            // Applicera rabatter för hela varukorgen sist
             applicableSales.forEach(s => {
                 if (s.type === 'percent') {
                     total -= total * (s.value / 100);
@@ -375,39 +429,23 @@
                 cartItemsEl.innerHTML = '<p class="text-center text-gray-500">Din varukorg är tom.</p>';
             } else {
                 cart.forEach((item, index) => {
-                    const priceGroup = priceGroupsData.find(pg => pg.id === postcardsData.find(p => p.id === item.id)?.priceGroup);
-                    const originalPrice = priceGroup?.prices[item.size] || item.price;
-                    let finalPrice = originalPrice;
-                    let discountText = '';
+                    const discountedPrice = getDiscountedPrice(item);
+                    const originalPrice = item.price;
+                    let priceDisplay = `<span class="font-bold">${discountedPrice.toFixed(2)} kr</span>`;
                     
-                    const productSale = salesData.find(s => s.targetType === 'product' && s.targetId === item.id);
-                    const groupSale = salesData.find(s => s.targetType === 'group' && s.targetId === postcardsData.find(p => p.id === item.id)?.group);
-                    
-                    if (productSale) {
-                        if (productSale.type === 'percent') {
-                            finalPrice = originalPrice - (originalPrice * (productSale.value / 100));
-                            discountText = `<span class="text-red-500 ml-2">(${productSale.value}% rabatt)</span>`;
-                        } else if (productSale.type === 'summa') {
-                            finalPrice = originalPrice - productSale.value;
-                            if (finalPrice < 0) finalPrice = 0;
-                            discountText = `<span class="text-red-500 ml-2">(${productSale.value} kr rabatt)</span>`;
-                        }
-                    } else if (groupSale) {
-                         if (groupSale.type === 'percent') {
-                            finalPrice = originalPrice - (originalPrice * (groupSale.value / 100));
-                            discountText = `<span class="text-red-500 ml-2">(${groupSale.value}% rabatt)</span>`;
-                        } else if (groupSale.type === 'summa') {
-                            finalPrice = originalPrice - groupSale.value;
-                            if (finalPrice < 0) finalPrice = 0;
-                            discountText = `<span class="text-red-500 ml-2">(${groupSale.value} kr rabatt)</span>`;
-                        }
+                    if (originalPrice !== discountedPrice) {
+                        priceDisplay = `<span class="line-through text-gray-400">${originalPrice.toFixed(2)} kr</span>
+                                        <span class="font-bold ml-1 text-red-600">${discountedPrice.toFixed(2)} kr</span>`;
                     }
                     
                     cartItemsEl.innerHTML += `
                         <div class="flex items-center justify-between p-2 bg-gray-100 rounded-md">
                             <div>
-                                <p class="font-semibold">${item.title} (${item.size})</p>
-                                <p class="text-sm text-gray-600">${item.quantity} st @ ${finalPrice} kr/st${discountText}</p>
+                                <p class="font-semibold">${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)})</p>
+                                <p class="text-sm text-gray-600">
+                                    ${item.quantity} st @ 
+                                    ${priceDisplay}
+                                </p>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <button onclick="updateQuantity(${index}, -1)" class="px-2 py-1 bg-gray-300 rounded-md hover:bg-gray-400">-</button>
@@ -443,9 +481,16 @@
             renderCart();
         }
         
+        function clearCart() {
+            cart = [];
+            saveCart();
+            renderCart();
+        }
+        
         window.addToCart = addToCart;
         window.updateQuantity = updateQuantity;
         window.removeFromCart = removeFromCart;
+        window.clearCart = clearCart;
     </script>
 </body>
 </html>

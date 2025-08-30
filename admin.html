@@ -1,4 +1,4 @@
-<!-- Fil: admin.html - Adminpanel - Ver. 1.8 -->
+<!-- Fil: admin.html - Adminpanel - Ver. 1.9 -->
 <!DOCTYPE html>
 <html lang="sv">
 <head>
@@ -76,7 +76,7 @@
         </div>
     </header>
     
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.8</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.9</div>
 
     <main class="container">
         <!-- Admininloggning -->
@@ -629,6 +629,7 @@
             }
 
             try {
+                // Sök i databasen efter administratörer
                 const adminsRef = collection(db, `artifacts/${appId}/public/data/admins`);
                 const q = query(adminsRef, where('username', '==', username));
                 const querySnapshot = await getDocs(q);
@@ -735,6 +736,7 @@
             saleTargetTypeSelect.addEventListener('change', (e) => {
                 if (e.target.value === 'group' || e.target.value === 'product') {
                     saleTargetSelectContainer.classList.remove('hidden');
+                    renderGroupsAndPrices(); // Uppdatera dropdownlistan
                 } else {
                     saleTargetSelectContainer.classList.add('hidden');
                 }
