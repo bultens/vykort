@@ -1,408 +1,186 @@
-<!-- Fil: index.html - Vykortsbutik - Ver. 1.0 -->
 <!DOCTYPE html>
 <html lang="sv">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vykortsbutik - Bultens.net</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-<style>
-        :root {
-            --primary-bg: #1a1a1a;
-            --secondary-bg: #2b2b2b;
-            --text-color: #f5f5f5;
-            --accent-color: #3498db;
-            --card-bg: #333;
-        }
+    <title>Vykortsbutik</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: var(--primary-bg);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            line-height: 1.6;
-        }
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 5%;
-            background-color: var(--secondary-bg);
-            border-bottom: 1px solid #444;
-        }
-        .logo {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-            font-size: 1.5em;
-            text-transform: uppercase;
-        }
-        nav a {
-            color: var(--text-color);
-            text-decoration: none;
-            margin-left: 25px;
-            font-weight: 400;
-            transition: color 0.3s;
-        }
-        nav a:hover {
-            color: var(--accent-color);
-        }
-        .lang-switch {
-            background: none;
-            border: 1px solid var(--text-color);
-            color: var(--text-color);
-            padding: 8px 12px;
-            cursor: pointer;
-            font-weight: 700;
-            font-family: 'Montserrat', sans-serif;
-            border-radius: 5px;
-            transition: background-color 0.3s, color 0.3s;
-            margin-left: 25px;
-        }
-        .lang-switch:hover {
-            background-color: var(--accent-color);
-            border-color: var(--accent-color);
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
         }
         .container {
-            padding: 40px 5%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
         }
-        h2 {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-            font-size: 2em;
-            text-transform: uppercase;
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 25px;
-        }
-        .postcard-card {
-            background-color: var(--card-bg);
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            transition: transform 0.3s, box-shadow 0.3s;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .postcard-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-        }
-        .postcard-card img {
-            width: 100%;
-            height: auto;
-            border-radius: 5px;
-        }
-        .postcard-content {
-            padding: 20px;
-            text-align: center;
-            width: 100%;
-        }
-        .size-selector {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 15px 0;
-        }
-        .size-selector button {
-            background-color: #555;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .size-selector button.active, .size-selector button:hover {
-            background-color: var(--accent-color);
-        }
-        .price {
-            font-size: 1.5em;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-        footer {
-            text-align: center;
-            padding: 30px 5%;
-            background-color: var(--secondary-bg);
-            margin-top: 40px;
-            border-top: 1px solid #444;
-        }
-        footer .social-links a {
-            color: var(--text-color);
-            margin: 0 10px;
-            font-size: 1.5em;
-            text-decoration: none;
-        }
-        footer .social-links a:hover {
-            color: var(--accent-color);
+        .card {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
         }
     </style>
 </head>
-<body onload="setLang('sv');">
-    <header>
-        <div class="logo" data-sv="BULTENS.NET" data-en="BULTENS.NET">BULTENS.NET</div>
-        <nav>
-            <a href="https://bultens.github.io/CV/" data-sv="CV" data-en="CV">CV</a>
-            <a href="index.html#sidor" data-sv="Sidor" data-en="Pages">Sidor</a>
-            <a href="index.html" data-sv="Vykort" data-en="Postcards">Vykort</a>
-            <a href="https://bultens.github.io/links/" data-sv="Länkar" data-en="Links">Länkar</a>
-            <a href="admin.html" data-sv="Admin" data-en="Admin">Admin</a>
-            <a href="index.html#contact" data-sv="Kontakt" data-en="Contact">Kontakt</a>
-            <button class="lang-switch" onclick="toggleLang()">EN</button>
-        </nav>
+<body>
+    <header class="bg-gray-800 text-white shadow-lg">
+        <div class="container py-4 flex justify-between items-center">
+            <span class="text-3xl font-bold tracking-tight">Vykortsbutik</span>
+            <nav>
+                <ul class="flex space-x-4 font-medium">
+                    <li><a href="admin.html" class="hover:text-gray-300 transition duration-300">Adminpanel</a></li>
+                </ul>
+            </nav>
+        </div>
     </header>
 
-    <div class="container" id="postcards">
-        <h2 data-sv="Köp vykort" data-en="Buy postcards">Köp vykort</h2>
-        <p style="text-align: center; max-width: 800px; margin: 0 auto 40px; color: #bbb;"
-           data-sv="Välj ditt favoritmotiv från mitt DeviantArt-arkiv och den storlek du önskar."
-           data-en="Choose your favorite motif from my DeviantArt archive and the size you want.">
-           Välj ditt favoritmotiv från mitt DeviantArt-arkiv och den storlek du önskar.
-        </p>
-
-        <div class="card-grid" id="postcard-container">
-            <!-- Vykort kommer att renderas här av JavaScript -->
-            <div id="loading-spinner" style="display: flex; justify-content: center; align-items: center; width: 100%; padding: 50px;">
-                <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg" style="animation: spin 1s linear infinite;">
-                    <path d="M25 5C14.5 5 5 14.5 5 25C5 35.5 14.5 45 25 45C35.5 45 45 35.5 45 25C45 14.5 35.5 5 25 5ZM25 10C32.7 10 39 16.3 39 24C39 31.7 32.7 38 25 38C17.3 38 11 31.7 11 24C11 16.3 17.3 10 25 10Z" fill="#3498db" />
-                    <path d="M25 5C19.7997 5.00007 14.8142 6.8242 10.9754 10.1505C7.13651 13.4768 4.67385 17.9392 3.9856 22.8488C3.29735 27.7584 4.41733 32.8465 7.18525 37.0343C9.95318 41.2222 14.1251 44.2016 19.0069 45.3676" stroke="#3498db" stroke-width="6" stroke-linecap="round" />
-                </svg>
+    <main class="container">
+        <h1 class="text-4xl font-bold mb-6 text-center">Vykort</h1>
+        <div id="filter-section" class="mb-6 flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+            <div>
+                <label for="group-filter" class="block text-sm font-medium text-gray-700">Filtrera efter grupp:</label>
+                <select id="group-filter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"></select>
             </div>
-            <p id="no-products-message" style="display: none; text-align: center; width: 100%;">Det finns inga produkter att visa just nu.</p>
+            <div>
+                <label for="price-group-filter" class="block text-sm font-medium text-gray-700">Filtrera efter prisgrupp:</label>
+                <select id="price-group-filter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"></select>
+            </div>
         </div>
-    </div>
-    
-    <footer id="contact">
-        <p data-sv="Kontakta mig på: " data-en="Contact me at: ">Kontakta mig på: <a href="mailto:mats@bultens.net">mats@bultens.net</a></p>
-        <div class="social-links">
-            <a href="https://www.linkedin.com/in/matsjohnsson1972/" target="_blank">
-                <img src="https://placehold.co/50x50/0077b5/ffffff?text=LinkedIn" width="50" height="50"></a>
-            <a href="https://www.deviantart.com/macsaidesign" target="_blank">
-                <img src="https://placehold.co/50x50/05cc47/ffffff?text=DeviantArt" width="50" height="50"></a>
-            <a href="https://www.facebook.com/macsswe" target="_blank">
-                <img src="https://placehold.co/50x50/3b5998/ffffff?text=Facebook" width="50" height="50"></a>
+        <div id="postcards-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white text-center py-4 mt-8">
+        <div class="container text-sm">
+            <p>&copy; 2025 Vykortsbutik</p>
         </div>
-        <p style="font-size: 0.8em; margin-top: 10px;">&copy; 2025 Mats Jonsson</p>
     </footer>
 
-    <!-- Firebase SDK-skript -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Globala variabler för Canvas-miljön
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // Firebase-konfiguration från din 'kumlaskytte'-fil
+        const firebaseConfig = {
+            apiKey: "AIzaSyCorCZf8cH8vD1v47aOADdW3x0hCWlVUfw",
+            authDomain: "kumlaskytte.firebaseapp.com",
+            projectId: "kumlaskytte",
+            storageBucket: "kumlaskytte.firebasestorage.app",
+            messagingSenderId: "571676149705",
+            appId: "1:571676149705:web:a0ace868f4680298a78a18",
+            measurementId: "G-KSJ9NLNDBX"
+        };
         
+        // Här används projectId från din konfiguration som appId
+        const appId = firebaseConfig.projectId;
+
         let db;
         let auth;
         let postcardsData = [];
         let priceGroupsData = [];
         let groupsData = [];
-        
-        let currentLang = 'sv';
-        const texts = document.querySelectorAll('[data-sv]');
-        const langSwitchButton = document.querySelector('.lang-switch');
-        const htmlElement = document.querySelector('html');
 
-        // Funktion för att rendera vykort baserat på data från Firestore
-        function renderPostcards() {
-            const container = document.getElementById('postcard-container');
-            if (!container) return;
-
-            // Rensa befintliga vykort och visa laddningsikon
-            container.innerHTML = '';
-            const loadingSpinner = document.getElementById('loading-spinner');
-            const noProductsMessage = document.getElementById('no-products-message');
-            
-            if (loadingSpinner) {
-                loadingSpinner.style.display = 'flex';
-            }
-            if (noProductsMessage) {
-                noProductsMessage.style.display = 'none';
-            }
-
-            if (postcardsData.length === 0) {
-                if (loadingSpinner) {
-                    loadingSpinner.style.display = 'none';
-                }
-                if (noProductsMessage) {
-                    noProductsMessage.style.display = 'block';
-                }
-                return;
-            }
-
-            postcardsData.forEach(postcard => {
-                const postcardPrices = priceGroupsData.find(pg => pg.id === postcard.priceGroup)?.prices || {};
-                const currentPrice = postcardPrices.liten || 0; // Standardpris för liten storlek
-                
-                const cardHtml = `
-                    <div class="postcard-card" data-id="${postcard.id}" data-prices='${JSON.stringify(postcardPrices)}'>
-                        <img src="${postcard.imageURL}" alt="${postcard.title}">
-                        <div class="postcard-content">
-                            <h3>${postcard.title}</h3>
-                            <div class="size-selector">
-                                <button class="size-btn active" data-size="liten" data-sv="Liten" data-en="Small">Liten</button>
-                                <button class="size-btn" data-size="mellan" data-sv="Mellan" data-en="Medium">Mellan</button>
-                                <button class="size-btn" data-size="stor" data-sv="Stor" data-en="Large">Stor</button>
-                            </div>
-                            <div class="price">
-                                <span class="price-value">${currentPrice}</span> SEK
-                            </div>
-                            <!-- PayPal-knapp - ersätt "YOUR_PAYPAL_ID" med ditt riktiga PayPal-ID -->
-                            <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
-                                <input type="hidden" name="cmd" value="_xclick">
-                                <input type="hidden" name="business" value="YOUR_PAYPAL_ID">
-                                <input type="hidden" name="lc" value="SE">
-                                <input type="hidden" name="item_name" value="${postcard.title} (Liten)">
-                                <input type="hidden" name="item_number" value="${postcard.id}-liten">
-                                <input type="hidden" name="amount" value="${currentPrice}">
-                                <input type="hidden" name="currency_code" value="SEK">
-                                <input type="hidden" name="button_subtype" value="services">
-                                <input type="hidden" name="no_note" value="0">
-                                <input type="hidden" name="cn" value="Lägg till en notering (valfritt)">
-                                <input type="hidden" name="no_shipping" value="2">
-                                <input type="hidden" name="rm" value="1">
-                                <input type="hidden" name="return" value="https://bultens.github.io/tack.html">
-                                <input type="hidden" name="cancel_return" value="https://bultens.github.io/avbryt.html">
-                                <input type="hidden" name="bn" value="PP-BuyNowBF:btn_buynow_LG.gif:NonHosted">
-                                <input type="image" src="https://www.paypalobjects.com/sv_SE/SE/i/btn/btn_buynow_LG.gif" border="0" name="submit" alt="PayPal - Det smarta och säkra sättet att betala.">
-                                <img alt="" border="0" src="https://www.paypalobjects.com/sv_SE/i/scr/pixel.gif" width="1" height="1">
-                            </form>
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += cardHtml;
-            });
-
-            if (loadingSpinner) {
-                loadingSpinner.style.display = 'none';
-            }
-
-            // Lägg till event-lyssnare efter att vykort har renderats
-            document.querySelectorAll('.postcard-card').forEach(card => {
-                const buttons = card.querySelectorAll('.size-btn');
-                const priceValueSpan = card.querySelector('.price-value');
-                const prices = JSON.parse(card.dataset.prices);
-                const paypalForm = card.querySelector('form');
-                
-                buttons.forEach(button => {
-                    button.addEventListener('click', () => {
-                        buttons.forEach(btn => btn.classList.remove('active'));
-                        button.classList.add('active');
-                        
-                        const size = button.dataset.size;
-                        const newPrice = prices[size] || prices.liten || 0;
-                        priceValueSpan.textContent = newPrice;
-                        
-                        // Uppdatera PayPal-formuläret
-                        const title = card.querySelector('h3').textContent;
-                        paypalForm.querySelector('input[name="item_name"]').value = `${title} (${button.getAttribute(`data-${currentLang}`)})`;
-                        paypalForm.querySelector('input[name="item_number"]').value = `${card.dataset.id}-${size}`;
-                        paypalForm.querySelector('input[name="amount"]').value = newPrice;
-                    });
-                });
-            });
-        }
-        
-        // Språkhantering
-        function setLang(lang) {
-            currentLang = lang;
-            htmlElement.setAttribute('lang', lang);
-            texts.forEach(element => {
-                element.textContent = element.getAttribute(`data-${lang}`);
-            });
-            langSwitchButton.textContent = currentLang === 'sv' ? 'EN' : 'SV';
-            document.querySelectorAll('.size-btn').forEach(btn => {
-                btn.textContent = btn.getAttribute(`data-${lang}`);
-            });
-            const paypalBtn = document.querySelector('input[name="submit"]');
-            if (paypalBtn) {
-                paypalBtn.alt = currentLang === 'sv' ? "PayPal - Det smarta och säkra sättet att betala." : "PayPal - The smart and secure way to pay.";
-            }
-        }
-
-        function toggleLang() {
-            const newLang = currentLang === 'sv' ? 'en' : 'sv';
-            setLang(newLang);
-        }
-
-        window.onload = function () {
-            setLang('sv');
-
+        document.addEventListener('DOMContentLoaded', () => {
             if (firebaseConfig.projectId) {
                 try {
                     const app = initializeApp(firebaseConfig);
                     db = getFirestore(app);
                     auth = getAuth(app);
+                    signInAnonymously(auth);
 
-                    // Anonym inloggning
-                    onAuthStateChanged(auth, (user) => {
-                        if (user) {
-                            console.log("Anonym inloggning lyckades! Användar-ID:", user.uid);
-                            
-                            const postcardsRef = collection(db, `artifacts/${appId}/public/data/postcards`);
-                            onSnapshot(postcardsRef, (snapshot) => {
-                                postcardsData = [];
-                                snapshot.forEach(doc => postcardsData.push({ id: doc.id, ...doc.data() }));
-                                renderPostcards();
-                            });
-
-                            const priceGroupsRef = collection(db, `artifacts/${appId}/public/data/priceGroups`);
-                            onSnapshot(priceGroupsRef, (snapshot) => {
-                                priceGroupsData = [];
-                                snapshot.forEach(doc => priceGroupsData.push({ id: doc.id, ...doc.data() }));
-                                renderPostcards();
-                            });
-
-                            const groupsRef = collection(db, `artifacts/${appId}/public/data/groups`);
-                            onSnapshot(groupsRef, (snapshot) => {
-                                groupsData = [];
-                                snapshot.forEach(doc => groupsData.push({ id: doc.id, ...doc.data() }));
-                                renderPostcards();
-                            });
-                        } else {
-                            // Försök att logga in anonymt om ingen användare finns
-                            if (initialAuthToken) {
-                                signInWithCustomToken(auth, initialAuthToken)
-                                .catch((error) => {
-                                    console.error("Inloggning med anpassad token misslyckades:", error);
-                                    document.getElementById('loading-spinner').style.display = 'none';
-                                    document.getElementById('no-products-message').style.display = 'block';
-                                    document.getElementById('no-products-message').textContent = 'Kunde inte logga in. Kontakta administratören.';
-                                });
-                            } else {
-                                signInAnonymously(auth)
-                                .catch((error) => {
-                                    console.error("Anonym inloggning misslyckades:", error);
-                                    document.getElementById('loading-spinner').style.display = 'none';
-                                    document.getElementById('no-products-message').style.display = 'block';
-                                    document.getElementById('no-products-message').textContent = 'Kunde inte logga in anonymt. Kontakta administratören.';
-                                });
-                            }
-                        }
-                    });
-
+                    startListeners();
                 } catch (e) {
                     console.error("Firebase initieringsfel:", e);
-                    document.getElementById('loading-spinner').style.display = 'none';
-                    document.getElementById('no-products-message').style.display = 'block';
-                    document.getElementById('no-products-message').textContent = 'Databasen kunde inte anslutas. Kontakta webbplatsadministratören.';
+                    document.getElementById('postcards-list').innerHTML = '<p class="text-center text-red-500">Kunde inte ansluta till databasen.</p>';
                 }
             } else {
-                document.getElementById('loading-spinner').style.display = 'none';
-                document.getElementById('no-products-message').style.display = 'block';
-                document.getElementById('no-products-message').textContent = 'Databasen kunde inte anslutas. Kontakta webbplatsadministratören.';
+                document.getElementById('postcards-list').innerHTML = '<p class="text-center text-red-500">Firebase-konfiguration saknas.</p>';
             }
-        };
+
+            document.getElementById('group-filter').addEventListener('change', renderPostcards);
+            document.getElementById('price-group-filter').addEventListener('change', renderPostcards);
+        });
+
+        function startListeners() {
+            onSnapshot(collection(db, `artifacts/${appId}/public/data/postcards`), (snapshot) => {
+                postcardsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderPostcards();
+            });
+            onSnapshot(collection(db, `artifacts/${appId}/public/data/priceGroups`), (snapshot) => {
+                priceGroupsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                populateFilters();
+                renderPostcards();
+            });
+            onSnapshot(collection(db, `artifacts/${appId}/public/data/groups`), (snapshot) => {
+                groupsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                populateFilters();
+                renderPostcards();
+            });
+        }
+
+        function populateFilters() {
+            const groupFilter = document.getElementById('group-filter');
+            const priceGroupFilter = document.getElementById('price-group-filter');
+
+            groupFilter.innerHTML = '<option value="all">Alla Grupper</option>';
+            groupsData.forEach(g => {
+                const option = document.createElement('option');
+                option.value = g.id;
+                option.textContent = g.name;
+                groupFilter.appendChild(option);
+            });
+
+            priceGroupFilter.innerHTML = '<option value="all">Alla Prisgrupper</option>';
+            priceGroupsData.forEach(pg => {
+                const option = document.createElement('option');
+                option.value = pg.id;
+                option.textContent = pg.name;
+                priceGroupFilter.appendChild(option);
+            });
+        }
+
+        function renderPostcards() {
+            const postcardsList = document.getElementById('postcards-list');
+            const groupFilter = document.getElementById('group-filter').value;
+            const priceGroupFilter = document.getElementById('price-group-filter').value;
+            
+            postcardsList.innerHTML = '';
+            
+            const filteredPostcards = postcardsData.filter(p => {
+                const matchesGroup = groupFilter === 'all' || p.group === groupFilter;
+                const matchesPriceGroup = priceGroupFilter === 'all' || p.priceGroup === priceGroupFilter;
+                return matchesGroup && matchesPriceGroup;
+            });
+            
+            if (filteredPostcards.length === 0) {
+                postcardsList.innerHTML = '<p class="text-center text-gray-500">Inga vykort hittades med de valda filtren.</p>';
+                return;
+            }
+
+            filteredPostcards.forEach(p => {
+                const priceGroup = priceGroupsData.find(pg => pg.id === p.priceGroup);
+                const group = groupsData.find(g => g.id === p.group);
+                
+                let priceText = 'Pris saknas';
+                if (priceGroup) {
+                    priceText = `Liten: ${priceGroup.prices.liten} kr, Mellan: ${priceGroup.prices.mellan} kr, Stor: ${priceGroup.prices.stor} kr`;
+                }
+
+                postcardsList.innerHTML += `
+                    <div class="card flex flex-col items-center text-center">
+                        <img src="${p.imageURL}" alt="${p.title}" class="w-full h-auto rounded-lg mb-4">
+                        <h2 class="text-xl font-bold mb-2">${p.title}</h2>
+                        <p class="text-sm text-gray-600 mb-1">Grupp: ${group ? group.name : 'Okänd'}</p>
+                        <p class="text-sm text-gray-600 mb-4">Priser: ${priceText}</p>
+                    </div>
+                `;
+            });
+        }
     </script>
 </body>
 </html>
