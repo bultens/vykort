@@ -127,7 +127,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.23</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.24</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -376,16 +376,36 @@
                 return;
             }
 
-            const groupedPostcards = groupsData.filter(g => groupFilter === 'all' || g.id === groupFilter).map(group => {
+            const groupsWithPostcards = groupsData.map(group => {
                 return {
                     ...group,
                     postcards: filteredPostcards.filter(p => p.group === group.id)
                 };
             }).filter(group => group.postcards.length > 0);
 
-            if (groupedPostcards.length === 0 && filteredPostcards.length > 0) {
-                 const ungroupedPostcards = filteredPostcards.filter(p => !groupsData.some(g => g.id === p.group));
-                 if (ungroupedPostcards.length > 0) {
+            const renderedPostcardIds = new Set();
+            const groupSections = [];
+
+            for (const group of groupsWithPostcards) {
+                const groupSection = document.createElement('div');
+                groupSection.innerHTML = `<h2 class="text-3xl font-bold mt-8 mb-4">${group.name}</h2>`;
+                const groupPostcardsList = document.createElement('div');
+                groupPostcardsList.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start';
+
+                const postcardPromises = group.postcards.map(p => {
+                    renderedPostcardIds.add(p.id);
+                    return createPostcardHtml(p);
+                });
+                const postcardHtmls = await Promise.all(postcardPromises);
+                postcardHtmls.forEach(html => groupPostcardsList.innerHTML += html);
+
+                groupSection.appendChild(groupPostcardsList);
+                groupSections.push(groupSection);
+            }
+
+            if (groupFilter === 'all') {
+                const ungroupedPostcards = filteredPostcards.filter(p => !renderedPostcardIds.has(p.id));
+                if (ungroupedPostcards.length > 0) {
                     const groupSection = document.createElement('div');
                     groupSection.innerHTML = `<h2 class="text-3xl font-bold mt-8 mb-4">Övrigt</h2>`;
                     const groupPostcardsList = document.createElement('div');
@@ -394,25 +414,13 @@
                     const postcardPromises = ungroupedPostcards.map(p => createPostcardHtml(p));
                     const postcardHtmls = await Promise.all(postcardPromises);
                     postcardHtmls.forEach(html => groupPostcardsList.innerHTML += html);
-
-                    groupSection.appendChild(groupPostcardsList);
-                    postcardsList.appendChild(groupSection);
-                }
-            } else {
-                for (const group of groupedPostcards) {
-                    const groupSection = document.createElement('div');
-                    groupSection.innerHTML = `<h2 class="text-3xl font-bold mt-8 mb-4">${group.name}</h2>`;
-                    const groupPostcardsList = document.createElement('div');
-                    groupPostcardsList.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start';
                     
-                    const postcardPromises = group.postcards.map(p => createPostcardHtml(p));
-                    const postcardHtmls = await Promise.all(postcardPromises);
-                    postcardHtmls.forEach(html => groupPostcardsList.innerHTML += html);
-
                     groupSection.appendChild(groupPostcardsList);
-                    postcardsList.appendChild(groupSection);
+                    groupSections.push(groupSection);
                 }
             }
+
+            groupSections.forEach(section => postcardsList.appendChild(section));
         }
         
         async function createPostcardHtml(p) {
