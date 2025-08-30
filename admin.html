@@ -1,4 +1,4 @@
-<!-- Fil: admin.html - Adminpanel - Ver. 1.12 -->
+<!-- Fil: admin.html - Adminpanel - Ver. 1.13 -->
 <!DOCTYPE html>
 <html lang="sv">
 <head>
@@ -76,7 +76,7 @@
         </div>
     </header>
     
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.12</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.13</div>
 
     <main class="container">
         <!-- Admininloggning -->
@@ -138,13 +138,17 @@
                 <h2 class="text-2xl font-bold mb-4">Rea</h2>
                 <div id="sales-list" class="space-y-4 mb-4"></div>
                 <form id="add-sale-form" class="space-y-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <input type="text" id="sale-name" placeholder="Namn på rea" required class="w-full p-2 border rounded-md">
-                        <input type="number" id="sale-value" placeholder="Värde" required class="w-full p-2 border rounded-md">
+                    <div class="flex gap-4">
+                        <input type="text" id="sale-name" placeholder="Namn på rea" required class="w-1/2 p-2 border rounded-md">
+                        <input type="number" id="sale-value" placeholder="Värde" required class="w-1/2 p-2 border rounded-md">
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <input type="datetime-local" id="sale-start-date" required class="w-full p-2 border rounded-md">
-                        <input type="datetime-local" id="sale-end-date" required class="w-full p-2 border rounded-md">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <input type="checkbox" id="no-time-limit" checked>
+                        <label for="no-time-limit" class="text-sm">Ingen tidsbegränsning</label>
+                    </div>
+                    <div id="sale-date-fields" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <input type="datetime-local" id="sale-start-date" class="w-full p-2 border rounded-md">
+                        <input type="datetime-local" id="sale-end-date" class="w-full p-2 border rounded-md">
                     </div>
                     <select id="sale-timezone" class="w-full p-2 border rounded-md">
                         <option value="UTC">UTC</option>
@@ -557,10 +561,18 @@
             });
         }
         
-        async function addSale(name, value, type, targetType, targetId, startDate, endDate, timezone) {
+        async function addSale(name, value, type, targetType, targetId, noTimeLimit, startDate, endDate, timezone) {
             if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
             const salesCollection = collection(db, `artifacts/${appId}/public/data/sales`);
-            await addDoc(salesCollection, { name, value: Number(value), type, targetType, targetId, startDate, endDate, timezone });
+            
+            const saleData = { name, value: Number(value), type, targetType, targetId, noTimeLimit };
+            if (!noTimeLimit) {
+                saleData.startDate = startDate;
+                saleData.endDate = endDate;
+                saleData.timezone = timezone;
+            }
+            
+            await addDoc(salesCollection, saleData);
             showMessage('Rea tillagd!');
         }
 
@@ -743,6 +755,17 @@
             
             const saleTargetTypeSelect = document.getElementById('sale-target-type');
             const saleTargetSelectContainer = document.getElementById('sale-target-select-container');
+            const saleDateFields = document.getElementById('sale-date-fields');
+            const noTimeLimitCheckbox = document.getElementById('no-time-limit');
+
+            noTimeLimitCheckbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    saleDateFields.classList.add('hidden');
+                } else {
+                    saleDateFields.classList.remove('hidden');
+                }
+            });
+
             saleTargetTypeSelect.addEventListener('change', (e) => {
                 if (e.target.value === 'group' || e.target.value === 'product') {
                     saleTargetSelectContainer.classList.remove('hidden');
@@ -758,15 +781,26 @@
                 const value = document.getElementById('sale-value').value;
                 const type = document.getElementById('sale-type').value;
                 const targetType = document.getElementById('sale-target-type').value;
-                let startDate = document.getElementById('sale-start-date').value;
-                let endDate = document.getElementById('sale-end-date').value;
-                let timezone = document.getElementById('sale-timezone').value;
+                const noTimeLimit = document.getElementById('no-time-limit').checked;
+                let startDate = null;
+                let endDate = null;
+                let timezone = null;
+
+                if (!noTimeLimit) {
+                    startDate = document.getElementById('sale-start-date').value;
+                    endDate = document.getElementById('sale-end-date').value;
+                    timezone = document.getElementById('sale-timezone').value;
+                }
+
                 let targetId = '';
                 if (targetType === 'group' || targetType === 'product') {
                     targetId = document.getElementById('sale-target-id').value;
                 }
-                addSale(name, value, type, targetType, targetId, startDate, endDate, timezone);
+                
+                addSale(name, value, type, targetType, targetId, noTimeLimit, startDate, endDate, timezone);
                 e.target.reset();
+                noTimeLimitCheckbox.checked = true; // Återställ
+                saleDateFields.classList.add('hidden'); // Dölj datumfälten igen
             });
         };
     </script>

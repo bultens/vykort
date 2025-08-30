@@ -1,4 +1,4 @@
-<!-- Fil: index.html - Vykortsbutik - Ver. 1.12 -->
+<!-- Fil: index.html - Vykortsbutik - Ver. 1.13 -->
 <!DOCTYPE html>
 <html lang="sv">
 <head>
@@ -101,7 +101,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.12</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.13</div>
 
     <main class="container">
         <h1 class="text-4xl font-bold mb-6 text-center">Vykort</h1>
@@ -324,10 +324,7 @@
                 
                 const applicableSales = salesData.filter(s => {
                     const now = new Date();
-                    const startDate = new Date(s.startDate);
-                    const endDate = new Date(s.endDate);
-                    
-                    const isTimeValid = now >= startDate && now <= endDate;
+                    const isTimeValid = s.noTimeLimit || (now >= new Date(s.startDate) && now <= new Date(s.endDate));
                     
                     const isTargetValid = (s.targetType === 'group' && s.targetId === p.group) || 
                                           (s.targetType === 'product' && s.targetId === p.id);
@@ -429,10 +426,7 @@
             
             const applicableSales = salesData.filter(s => {
                 const now = new Date();
-                const startDate = new Date(s.startDate);
-                const endDate = new Date(s.endDate);
-                
-                const isTimeValid = now >= startDate && now <= endDate;
+                const isTimeValid = s.noTimeLimit || (now >= new Date(s.startDate) && now <= new Date(s.endDate));
                 const isTargetValid = s.targetType === 'all';
                 return isTimeValid && isTargetValid;
             });
