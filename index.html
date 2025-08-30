@@ -127,7 +127,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.35</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.36</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -224,6 +224,12 @@
         let groupsData = [];
         let salesData = [];
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        
+        let initialDataLoaded = {
+            postcards: false,
+            priceGroups: false,
+            groups: false
+        };
 
         document.addEventListener('DOMContentLoaded', () => {
             if (firebaseConfig.projectId) {
@@ -262,20 +268,29 @@
             updateCartCount();
         });
 
+        function checkAndRender() {
+            if (initialDataLoaded.postcards && initialDataLoaded.priceGroups && initialDataLoaded.groups) {
+                renderPostcards();
+            }
+        }
+
         function startListeners() {
             onSnapshot(collection(db, `artifacts/${appId}/public/data/postcards`), (snapshot) => {
                 postcardsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderPostcards();
+                initialDataLoaded.postcards = true;
+                checkAndRender();
             });
             onSnapshot(collection(db, `artifacts/${appId}/public/data/priceGroups`), (snapshot) => {
                 priceGroupsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 populateFilters();
-                renderPostcards();
+                initialDataLoaded.priceGroups = true;
+                checkAndRender();
             });
             onSnapshot(query(collection(db, `artifacts/${appId}/public/data/groups`), orderBy('order')), (snapshot) => {
                 groupsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 populateFilters();
-                renderPostcards();
+                initialDataLoaded.groups = true;
+                checkAndRender();
             });
             onSnapshot(collection(db, `artifacts/${appId}/public/data/sales`), (snapshot) => {
                 salesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
