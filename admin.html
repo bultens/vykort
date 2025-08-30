@@ -137,7 +137,7 @@
         </div>
     </header>
     
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.15</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.16</div>
 
     <main class="container">
         <section id="admin-login-panel" class="card max-w-md mx-auto">
@@ -173,6 +173,7 @@
                 <div id="groups-list" class="space-y-4 mb-4"></div>
                 <form id="add-group-form" class="space-y-4">
                     <input type="text" id="new-group-name" placeholder="Namn på grupp" required class="w-full p-2 border rounded-md">
+                    <input type="number" id="new-group-order" placeholder="Ordning (lägre nummer först)" value="0" class="w-full p-2 border rounded-md">
                     <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700">Lägg till grupp</button>
                 </form>
             </div>
@@ -410,7 +411,7 @@
                 const div = document.createElement('div');
                 div.className = "flex justify-between items-center p-2 bg-gray-100 rounded-md";
                 div.innerHTML = `
-                    <span>${g.name} ${g.isDefault ? ' (Standard)' : ''}</span>
+                    <span>${g.name} (Ordning: ${g.order}) ${g.isDefault ? ' (Standard)' : ''}</span>
                     <div class="space-x-2">
                         <button onclick="editGroup('${g.id}')" class="text-blue-500 hover:text-blue-700">Ändra</button>
                         ${groupsData.length > 1 ? `<button onclick="deleteGroup('${g.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>` : ''}
@@ -536,10 +537,10 @@
         }
 
         // CRUD-funktioner för grupper
-        async function addGroup(name) {
+        async function addGroup(name, order) {
             if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
             const groupsCollection = collection(db, `artifacts/${appId}/public/data/groups`);
-            await addDoc(groupsCollection, { name, isDefault: false });
+            await addDoc(groupsCollection, { name, order: Number(order), isDefault: false });
         }
 
         async function editGroup(id) {
@@ -548,8 +549,9 @@
             const g = groupsData.find(g => g.id === id);
             if (g) {
                 const name = prompt("Ändra namn på grupp:", g.name);
-                if (name) {
-                    await updateDoc(doc(db, `artifacts/${appId}/public/data/groups`, id), { name });
+                const order = prompt("Ändra ordning på grupp:", g.order);
+                if (name && order) {
+                    await updateDoc(doc(db, `artifacts/${appId}/public/data/groups`, id), { name, order: Number(order) });
                 }
             }
         }
@@ -708,7 +710,7 @@
                 renderAdminLists();
             });
 
-            const groupsRef = collection(db, `artifacts/${appId}/public/data/groups`);
+            const groupsRef = query(collection(db, `artifacts/${appId}/public/data/groups`), orderBy('order'));
             unsubscribeGroups = onSnapshot(groupsRef, (snapshot) => {
                 groupsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderGroupsAndPrices();
@@ -861,7 +863,8 @@
             document.getElementById('add-group-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const name = document.getElementById('new-group-name').value;
-                addGroup(name);
+                const order = document.getElementById('new-group-order').value;
+                addGroup(name, order);
                 e.target.reset();
             });
             document.getElementById('add-postcard-form').addEventListener('submit', (e) => {

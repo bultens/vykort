@@ -107,7 +107,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.16</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.17</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -123,7 +123,7 @@
         <p>Leverans tar 3 till 15 dagar, beroende på destination. Vänligen kontakta mig för en mer exakt uppskattning.</p>
     </div>
 
-    <div id="news-section" class="container py-4">
+    <div id="news-section" class="container py-4 hidden">
         <hr class="my-6">
         <h2 class="text-3xl font-bold mb-4 text-center">Nyheter</h2>
         <div id="news-list">
@@ -143,7 +143,7 @@
                 <select id="price-group-filter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"></select>
             </div>
         </div>
-        <div id="postcards-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="postcards-list">
             </div>
     </main>
     
@@ -257,7 +257,7 @@
                 populateFilters();
                 renderPostcards();
             });
-            onSnapshot(collection(db, `artifacts/${appId}/public/data/groups`), (snapshot) => {
+            onSnapshot(query(collection(db, `artifacts/${appId}/public/data/groups`), orderBy('order')), (snapshot) => {
                 groupsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 populateFilters();
                 renderPostcards();
@@ -373,62 +373,96 @@
                 return;
             }
 
-            filteredPostcards.forEach(p => {
-                const priceGroup = priceGroupsData.find(pg => pg.id === p.priceGroup);
-                
-                let priceHtml = '';
-                let hasSale = false;
-                
-                const applicableSales = salesData.filter(s => {
-                    const now = new Date();
-                    const isTimeValid = s.noTimeLimit || (now >= s.startDate.toDate() && now <= s.endDate.toDate());
-                    
-                    const isTargetValid = (s.targetType === 'group' && s.targetId === p.group) || 
-                                          (s.targetType === 'product' && s.targetId === p.id);
-                                          
-                    return isTimeValid && isTargetValid;
-                });
-                
-                if(applicableSales.length > 0) hasSale = true;
+            // Gruppera vykort efter grupp och sortera dem enligt ordning
+            const groupedPostcards = groupsData.filter(g => groupFilter === 'all' || g.id === groupFilter).map(group => {
+                return {
+                    ...group,
+                    postcards: filteredPostcards.filter(p => p.group === group.id)
+                };
+            }).filter(group => group.postcards.length > 0);
 
-                if (priceGroup) {
-                    const sizes = ['liten', 'mellan', 'stor'];
-                    sizes.forEach(size => {
-                        const originalPrice = priceGroup.prices[size];
-                        const discountedPrice = getDiscountedPrice({ id: p.id, size: size, price: originalPrice });
-                        
-                        if (originalPrice !== discountedPrice) {
-                            priceHtml += `
-                                <div class="flex items-center justify-between mb-1">
-                                    <span class="text-sm">
-                                        ${size.charAt(0).toUpperCase() + size.slice(1)}:
-                                        <span class="line-through text-gray-400">${originalPrice} kr</span>
-                                        <span class="text-red-600 font-bold ml-1">${discountedPrice.toFixed(2)} kr</span>
-                                    </span>
-                                    <button onclick="addToCart('${p.id}', '${size}')" class="ml-2 px-2 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700">Köp</button>
-                                </div>
-                            `;
-                        } else {
-                            priceHtml += `
-                                <div class="flex items-center justify-between mb-1">
-                                    <span class="text-sm">${size.charAt(0).toUpperCase() + size.slice(1)}: ${originalPrice} kr</span>
-                                    <button onclick="addToCart('${p.id}', '${size}')" class="ml-2 px-2 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700">Köp</button>
-                                </div>
-                            `;
-                        }
+            if (groupedPostcards.length === 0 && filteredPostcards.length > 0) {
+                 // Visa vykort utan grupp om de finns och inga filter är valda
+                 const ungroupedPostcards = filteredPostcards.filter(p => !groupsData.some(g => g.id === p.group));
+                 if (ungroupedPostcards.length > 0) {
+                    const groupSection = document.createElement('div');
+                    groupSection.innerHTML = `<h2 class="text-3xl font-bold mt-8 mb-4">Övrigt</h2>
+                                              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>`;
+                    const groupPostcardsList = groupSection.querySelector('.grid');
+                    ungroupedPostcards.forEach(p => {
+                        groupPostcardsList.innerHTML += createPostcardHtml(p);
                     });
+                    postcardsList.appendChild(groupSection);
                 }
+            } else {
+                groupedPostcards.forEach(group => {
+                    const groupSection = document.createElement('div');
+                    groupSection.innerHTML = `<h2 class="text-3xl font-bold mt-8 mb-4">${group.name}</h2>
+                                              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>`;
+                    const groupPostcardsList = groupSection.querySelector('.grid');
+                    group.postcards.forEach(p => {
+                        groupPostcardsList.innerHTML += createPostcardHtml(p);
+                    });
+                    postcardsList.appendChild(groupSection);
+                });
+            }
+        }
+        
+        function createPostcardHtml(p) {
+            const priceGroup = priceGroupsData.find(pg => pg.id === p.priceGroup);
+            
+            let priceHtml = '';
+            let hasSale = false;
+            
+            const applicableSales = salesData.filter(s => {
+                const now = new Date();
+                const isTimeValid = s.noTimeLimit || (now >= s.startDate.toDate() && now <= s.endDate.toDate());
                 
-                const saleBadge = hasSale ? '<span class="ml-2 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full">REA!</span>' : '';
-
-                postcardsList.innerHTML += `
-                    <div class="card flex flex-col items-center text-center">
-                        <img src="${p.imageURL}" alt="${p.title}" class="w-full h-auto rounded-lg mb-4">
-                        <h2 class="text-xl font-bold mb-2">${p.title}${saleBadge}</h2>
-                        ${priceHtml}
-                    </div>
-                `;
+                const isTargetValid = (s.targetType === 'group' && s.targetId === p.group) || 
+                                      (s.targetType === 'product' && s.targetId === p.id);
+                                      
+                return isTimeValid && isTargetValid;
             });
+            
+            if(applicableSales.length > 0) hasSale = true;
+
+            if (priceGroup) {
+                const sizes = ['liten', 'mellan', 'stor'];
+                sizes.forEach(size => {
+                    const originalPrice = priceGroup.prices[size];
+                    const discountedPrice = getDiscountedPrice({ id: p.id, size: size, price: originalPrice });
+                    
+                    if (originalPrice !== discountedPrice) {
+                        priceHtml += `
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-sm">
+                                    ${size.charAt(0).toUpperCase() + size.slice(1)}:
+                                    <span class="line-through text-gray-400">${originalPrice} kr</span>
+                                    <span class="text-red-600 font-bold ml-1">${discountedPrice.toFixed(2)} kr</span>
+                                </span>
+                                <button onclick="addToCart('${p.id}', '${size}')" class="ml-2 px-2 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700">Köp</button>
+                            </div>
+                        `;
+                    } else {
+                        priceHtml += `
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-sm">${size.charAt(0).toUpperCase() + size.slice(1)}: ${originalPrice} kr</span>
+                                <button onclick="addToCart('${p.id}', '${size}')" class="ml-2 px-2 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700">Köp</button>
+                            </div>
+                        `;
+                    }
+                });
+            }
+            
+            const saleBadge = hasSale ? '<span class="ml-2 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full">REA!</span>' : '';
+
+            return `
+                <div class="card flex flex-col items-center text-center">
+                    <img src="${p.imageURL}" alt="${p.title}" class="w-full h-auto rounded-lg mb-4">
+                    <h2 class="text-xl font-bold mb-2">${p.title}${saleBadge}</h2>
+                    ${priceHtml}
+                </div>
+            `;
         }
         
         function addToCart(postcardId, size) {
