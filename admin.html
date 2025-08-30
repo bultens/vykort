@@ -1,4 +1,4 @@
-<!-- Fil: admin.html - Adminpanel - Ver. 1.10 -->
+<!-- Fil: admin.html - Adminpanel - Ver. 1.12 -->
 <!DOCTYPE html>
 <html lang="sv">
 <head>
@@ -76,7 +76,7 @@
         </div>
     </header>
     
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.10</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.12</div>
 
     <main class="container">
         <!-- Admininloggning -->
@@ -138,10 +138,20 @@
                 <h2 class="text-2xl font-bold mb-4">Rea</h2>
                 <div id="sales-list" class="space-y-4 mb-4"></div>
                 <form id="add-sale-form" class="space-y-4">
-                    <div class="flex gap-4">
-                        <input type="text" id="sale-name" placeholder="Namn på rea" required class="w-1/2 p-2 border rounded-md">
-                        <input type="number" id="sale-value" placeholder="Värde" required class="w-1/2 p-2 border rounded-md">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <input type="text" id="sale-name" placeholder="Namn på rea" required class="w-full p-2 border rounded-md">
+                        <input type="number" id="sale-value" placeholder="Värde" required class="w-full p-2 border rounded-md">
                     </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <input type="datetime-local" id="sale-start-date" required class="w-full p-2 border rounded-md">
+                        <input type="datetime-local" id="sale-end-date" required class="w-full p-2 border rounded-md">
+                    </div>
+                    <select id="sale-timezone" class="w-full p-2 border rounded-md">
+                        <option value="UTC">UTC</option>
+                        <option value="Europe/Stockholm" selected>Europe/Stockholm</option>
+                        <option value="America/New_York">America/New_York</option>
+                        <option value="Asia/Tokyo">Asia/Tokyo</option>
+                    </select>
                     <select id="sale-type" class="w-full p-2 border rounded-md">
                         <option value="percent">%</option>
                         <option value="summa">Summa</option>
@@ -547,10 +557,10 @@
             });
         }
         
-        async function addSale(name, value, type, targetType, targetId) {
+        async function addSale(name, value, type, targetType, targetId, startDate, endDate, timezone) {
             if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
             const salesCollection = collection(db, `artifacts/${appId}/public/data/sales`);
-            await addDoc(salesCollection, { name, value: Number(value), type, targetType, targetId });
+            await addDoc(salesCollection, { name, value: Number(value), type, targetType, targetId, startDate, endDate, timezone });
             showMessage('Rea tillagd!');
         }
 
@@ -748,11 +758,14 @@
                 const value = document.getElementById('sale-value').value;
                 const type = document.getElementById('sale-type').value;
                 const targetType = document.getElementById('sale-target-type').value;
+                let startDate = document.getElementById('sale-start-date').value;
+                let endDate = document.getElementById('sale-end-date').value;
+                let timezone = document.getElementById('sale-timezone').value;
                 let targetId = '';
                 if (targetType === 'group' || targetType === 'product') {
                     targetId = document.getElementById('sale-target-id').value;
                 }
-                addSale(name, value, type, targetType, targetId);
+                addSale(name, value, type, targetType, targetId, startDate, endDate, timezone);
                 e.target.reset();
             });
         };

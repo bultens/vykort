@@ -1,4 +1,4 @@
-<!-- Fil: index.html - Vykortsbutik - Ver. 1.11 -->
+<!-- Fil: index.html - Vykortsbutik - Ver. 1.12 -->
 <!DOCTYPE html>
 <html lang="sv">
 <head>
@@ -101,7 +101,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.11</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.12</div>
 
     <main class="container">
         <h1 class="text-4xl font-bold mb-6 text-center">Vykort</h1>
@@ -128,7 +128,7 @@
             <div id="cart-items" class="space-y-4 mb-4"></div>
             <div id="cart-summary" class="text-right font-bold text-lg border-t pt-4">
                 <div class="flex justify-between items-center mb-2">
-                    <span>Totalt (exkl. rea på hela varukorgen):</span>
+                    <span>Totalt (exkl. rea):</span>
                     <span id="cart-subtotal">0 kr</span>
                 </div>
                 <div id="cart-total-discount-container" class="flex justify-between items-center mb-2 hidden">
@@ -322,10 +322,19 @@
                 let priceHtml = '';
                 let hasSale = false;
                 
-                const applicableSales = salesData.filter(s => 
-                    (s.targetType === 'group' && s.targetId === p.group) || 
-                    (s.targetType === 'product' && s.targetId === p.id)
-                );
+                const applicableSales = salesData.filter(s => {
+                    const now = new Date();
+                    const startDate = new Date(s.startDate);
+                    const endDate = new Date(s.endDate);
+                    
+                    const isTimeValid = now >= startDate && now <= endDate;
+                    
+                    const isTargetValid = (s.targetType === 'group' && s.targetId === p.group) || 
+                                          (s.targetType === 'product' && s.targetId === p.id);
+                                          
+                    return isTimeValid && isTargetValid;
+                });
+                
                 if(applicableSales.length > 0) hasSale = true;
 
                 if (priceGroup) {
@@ -418,7 +427,16 @@
                 subtotal += discountedPrice * item.quantity;
             });
             
-            const applicableSales = salesData.filter(s => s.targetType === 'all');
+            const applicableSales = salesData.filter(s => {
+                const now = new Date();
+                const startDate = new Date(s.startDate);
+                const endDate = new Date(s.endDate);
+                
+                const isTimeValid = now >= startDate && now <= endDate;
+                const isTargetValid = s.targetType === 'all';
+                return isTimeValid && isTargetValid;
+            });
+            
             let totalDiscount = 0;
             let finalTotal = subtotal;
 
