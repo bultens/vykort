@@ -127,7 +127,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.24</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.25</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -363,48 +363,41 @@
 
         async function renderPostcards() {
             const postcardsList = document.getElementById('postcards-list');
-            const groupFilter = document.getElementById('group-filter').value;
+            const groupFilterValue = document.getElementById('group-filter').value;
             
             postcardsList.innerHTML = '';
-            
-            const filteredPostcards = postcardsData.filter(p => {
-                return groupFilter === 'all' || p.group === groupFilter;
-            });
-            
-            if (filteredPostcards.length === 0) {
-                postcardsList.innerHTML = '<p class="text-center text-gray-500">Inga vykort hittades med de valda filtren.</p>';
-                return;
-            }
-
-            const groupsWithPostcards = groupsData.map(group => {
-                return {
-                    ...group,
-                    postcards: filteredPostcards.filter(p => p.group === group.id)
-                };
-            }).filter(group => group.postcards.length > 0);
-
             const renderedPostcardIds = new Set();
-            const groupSections = [];
+            
+            // Hantera grupperade vykort först
+            for (const group of groupsData) {
+                if (groupFilterValue !== 'all' && group.id !== groupFilterValue) {
+                    continue;
+                }
+                
+                const postcardsInGroup = postcardsData.filter(p => p.group === group.id);
+                
+                if (postcardsInGroup.length > 0) {
+                    const groupSection = document.createElement('div');
+                    groupSection.innerHTML = `<h2 class="text-3xl font-bold mt-8 mb-4">${group.name}</h2>`;
+                    const groupPostcardsList = document.createElement('div');
+                    groupPostcardsList.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start';
+                    
+                    const postcardPromises = postcardsInGroup.map(p => {
+                        renderedPostcardIds.add(p.id);
+                        return createPostcardHtml(p);
+                    });
 
-            for (const group of groupsWithPostcards) {
-                const groupSection = document.createElement('div');
-                groupSection.innerHTML = `<h2 class="text-3xl font-bold mt-8 mb-4">${group.name}</h2>`;
-                const groupPostcardsList = document.createElement('div');
-                groupPostcardsList.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start';
+                    const postcardHtmls = await Promise.all(postcardPromises);
+                    postcardHtmls.forEach(html => groupPostcardsList.innerHTML += html);
 
-                const postcardPromises = group.postcards.map(p => {
-                    renderedPostcardIds.add(p.id);
-                    return createPostcardHtml(p);
-                });
-                const postcardHtmls = await Promise.all(postcardPromises);
-                postcardHtmls.forEach(html => groupPostcardsList.innerHTML += html);
-
-                groupSection.appendChild(groupPostcardsList);
-                groupSections.push(groupSection);
+                    groupSection.appendChild(groupPostcardsList);
+                    postcardsList.appendChild(groupSection);
+                }
             }
 
-            if (groupFilter === 'all') {
-                const ungroupedPostcards = filteredPostcards.filter(p => !renderedPostcardIds.has(p.id));
+            // Hantera vykort som inte tillhör någon grupp
+            if (groupFilterValue === 'all') {
+                const ungroupedPostcards = postcardsData.filter(p => !p.group || !renderedPostcardIds.has(p.id));
                 if (ungroupedPostcards.length > 0) {
                     const groupSection = document.createElement('div');
                     groupSection.innerHTML = `<h2 class="text-3xl font-bold mt-8 mb-4">Övrigt</h2>`;
@@ -416,11 +409,9 @@
                     postcardHtmls.forEach(html => groupPostcardsList.innerHTML += html);
                     
                     groupSection.appendChild(groupPostcardsList);
-                    groupSections.push(groupSection);
+                    postcardsList.appendChild(groupSection);
                 }
             }
-
-            groupSections.forEach(section => postcardsList.appendChild(section));
         }
         
         async function createPostcardHtml(p) {
@@ -471,7 +462,6 @@
             
             const saleBadge = hasSale ? '<span class="ml-2 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full">REA!</span>' : '';
 
-            // Ladda bilden för att få dess dimensioner
             const image = new Image();
             image.src = p.imageURL;
             await new Promise(resolve => image.onload = resolve);
