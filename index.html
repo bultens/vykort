@@ -107,7 +107,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.17</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.18</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -137,10 +137,6 @@
             <div>
                 <label for="group-filter" class="block text-sm font-medium text-gray-700">Filtrera efter grupp:</label>
                 <select id="group-filter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"></select>
-            </div>
-            <div>
-                <label for="price-group-filter" class="block text-sm font-medium text-gray-700">Filtrera efter prisgrupp:</label>
-                <select id="price-group-filter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"></select>
             </div>
         </div>
         <div id="postcards-list">
@@ -227,7 +223,6 @@
             }
 
             document.getElementById('group-filter').addEventListener('change', renderPostcards);
-            document.getElementById('price-group-filter').addEventListener('change', renderPostcards);
             
             // Varukorgs-knappen
             document.getElementById('cart-btn').addEventListener('click', () => {
@@ -303,7 +298,6 @@
 
         function populateFilters() {
             const groupFilter = document.getElementById('group-filter');
-            const priceGroupFilter = document.getElementById('price-group-filter');
 
             groupFilter.innerHTML = '<option value="all">Alla Grupper</option>';
             groupsData.forEach(g => {
@@ -311,14 +305,6 @@
                 option.value = g.id;
                 option.textContent = g.name;
                 groupFilter.appendChild(option);
-            });
-
-            priceGroupFilter.innerHTML = '<option value="all">Alla Prisgrupper</option>';
-            priceGroupsData.forEach(pg => {
-                const option = document.createElement('option');
-                option.value = pg.id;
-                option.textContent = pg.name;
-                priceGroupFilter.appendChild(option);
             });
         }
 
@@ -358,14 +344,11 @@
         function renderPostcards() {
             const postcardsList = document.getElementById('postcards-list');
             const groupFilter = document.getElementById('group-filter').value;
-            const priceGroupFilter = document.getElementById('price-group-filter').value;
             
             postcardsList.innerHTML = '';
             
             const filteredPostcards = postcardsData.filter(p => {
-                const matchesGroup = groupFilter === 'all' || p.group === groupFilter;
-                const matchesPriceGroup = priceGroupFilter === 'all' || p.priceGroup === priceGroupFilter;
-                return matchesGroup && matchesPriceGroup;
+                return groupFilter === 'all' || p.group === groupFilter;
             });
             
             if (filteredPostcards.length === 0) {
