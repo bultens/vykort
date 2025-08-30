@@ -1,4 +1,4 @@
-<!-- Fil: index.html - Vykortsbutik - Ver. 1.10 -->
+<!-- Fil: index.html - Vykortsbutik - Ver. 1.11 -->
 <!DOCTYPE html>
 <html lang="sv">
 <head>
@@ -66,6 +66,23 @@
             text-decoration: none;
             cursor: pointer;
         }
+        .confirmation-message {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #10B981; /* Tailwind green-500 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px; /* Tailwind rounded-full */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .confirmation-message.active {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -84,7 +101,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.10</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.11</div>
 
     <main class="container">
         <h1 class="text-4xl font-bold mb-6 text-center">Vykort</h1>
@@ -111,7 +128,15 @@
             <div id="cart-items" class="space-y-4 mb-4"></div>
             <div id="cart-summary" class="text-right font-bold text-lg border-t pt-4">
                 <div class="flex justify-between items-center mb-2">
-                    <span>Total:</span>
+                    <span>Totalt (exkl. rea på hela varukorgen):</span>
+                    <span id="cart-subtotal">0 kr</span>
+                </div>
+                <div id="cart-total-discount-container" class="flex justify-between items-center mb-2 hidden">
+                    <span>Rabatt på hela korgen:</span>
+                    <span id="cart-total-discount">-0 kr</span>
+                </div>
+                <div class="flex justify-between items-center mb-2">
+                    <span>Att betala:</span>
                     <span id="cart-total">0 kr</span>
                 </div>
                 <button id="clear-cart-btn" class="px-4 py-2 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 transition duration-300">Töm varukorg</button>
@@ -119,6 +144,12 @@
             <button id="checkout-btn" class="mt-4 w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300">Gå till kassan</button>
         </div>
     </div>
+    
+    <!-- Bekräftelsemeddelande -->
+    <div id="confirmation-toast" class="confirmation-message hidden">
+        Vara tillagd i varukorgen!
+    </div>
+
 
     <footer class="bg-gray-800 text-white text-center py-4 mt-8">
         <div class="container text-sm">
@@ -290,38 +321,26 @@
                 
                 let priceHtml = '';
                 let hasSale = false;
+                
+                const applicableSales = salesData.filter(s => 
+                    (s.targetType === 'group' && s.targetId === p.group) || 
+                    (s.targetType === 'product' && s.targetId === p.id)
+                );
+                if(applicableSales.length > 0) hasSale = true;
 
                 if (priceGroup) {
                     const sizes = ['liten', 'mellan', 'stor'];
                     sizes.forEach(size => {
                         const originalPrice = priceGroup.prices[size];
+                        const discountedPrice = getDiscountedPrice({ id: p.id, size: size, price: originalPrice });
                         
-                        const applicableSales = salesData.filter(s => 
-                            (s.targetType === 'group' && s.targetId === p.group) || 
-                            (s.targetType === 'product' && s.targetId === p.id)
-                        );
-                        
-                        let finalPrice = originalPrice;
-                        let appliedSale = null;
-                        
-                        if (applicableSales.length > 0) {
-                            appliedSale = applicableSales[0]; // Tar första bästa rean
-                            if (appliedSale.type === 'percent') {
-                                finalPrice = originalPrice - (originalPrice * (appliedSale.value / 100));
-                            } else if (appliedSale.type === 'summa') {
-                                finalPrice = originalPrice - appliedSale.value;
-                                if (finalPrice < 0) finalPrice = 0;
-                            }
-                            hasSale = true;
-                        }
-
-                        if (originalPrice !== finalPrice) {
+                        if (originalPrice !== discountedPrice) {
                             priceHtml += `
                                 <div class="flex items-center justify-between mb-1">
                                     <span class="text-sm">
                                         ${size.charAt(0).toUpperCase() + size.slice(1)}:
                                         <span class="line-through text-gray-400">${originalPrice} kr</span>
-                                        <span class="text-red-600 font-bold ml-1">${finalPrice.toFixed(2)} kr</span>
+                                        <span class="text-red-600 font-bold ml-1">${discountedPrice.toFixed(2)} kr</span>
                                     </span>
                                     <button onclick="addToCart('${p.id}', '${size}')" class="ml-2 px-2 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700">Köp</button>
                                 </div>
@@ -368,7 +387,18 @@
                     group: postcard.group
                 });
             }
+            showConfirmationToast();
             saveCart();
+        }
+        
+        function showConfirmationToast() {
+            const toast = document.getElementById('confirmation-toast');
+            if (toast) {
+                toast.classList.add('active');
+                setTimeout(() => {
+                    toast.classList.remove('active');
+                }, 2000);
+            }
         }
 
         function saveCart() {
@@ -382,23 +412,28 @@
         }
 
         function calculateCartTotal() {
-            let total = 0;
+            let subtotal = 0;
             cart.forEach(item => {
                 const discountedPrice = getDiscountedPrice(item);
-                total += discountedPrice * item.quantity;
+                subtotal += discountedPrice * item.quantity;
             });
             
             const applicableSales = salesData.filter(s => s.targetType === 'all');
+            let totalDiscount = 0;
+            let finalTotal = subtotal;
+
             applicableSales.forEach(s => {
                 if (s.type === 'percent') {
-                    total -= total * (s.value / 100);
+                    totalDiscount += subtotal * (s.value / 100);
                 } else if (s.type === 'summa') {
-                    total -= s.value;
-                    if (total < 0) total = 0;
+                    totalDiscount += s.value;
                 }
             });
 
-            return total;
+            finalTotal = subtotal - totalDiscount;
+            if (finalTotal < 0) finalTotal = 0;
+
+            return { subtotal, totalDiscount, finalTotal };
         }
 
         function renderCart() {
@@ -438,8 +473,16 @@
                 });
             }
             
-            const total = calculateCartTotal();
-            document.getElementById('cart-total').textContent = `${total.toFixed(2)} kr`;
+            const { subtotal, totalDiscount, finalTotal } = calculateCartTotal();
+            document.getElementById('cart-subtotal').textContent = `${subtotal.toFixed(2)} kr`;
+            document.getElementById('cart-total').textContent = `${finalTotal.toFixed(2)} kr`;
+
+            if (totalDiscount > 0) {
+                document.getElementById('cart-total-discount-container').classList.remove('hidden');
+                document.getElementById('cart-total-discount').textContent = `-${totalDiscount.toFixed(2)} kr`;
+            } else {
+                document.getElementById('cart-total-discount-container').classList.add('hidden');
+            }
             
             updateCartCount();
         }
