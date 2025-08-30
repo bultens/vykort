@@ -1,4 +1,4 @@
-<!-- Fil: index.html - Vykortsbutik - Ver. 1.9 -->
+<!-- Fil: index.html - Vykortsbutik - Ver. 1.10 -->
 <!DOCTYPE html>
 <html lang="sv">
 <head>
@@ -84,7 +84,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.9</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.10</div>
 
     <main class="container">
         <h1 class="text-4xl font-bold mb-6 text-center">Vykort</h1>
@@ -239,6 +239,34 @@
             return prices || { liten: 0, mellan: 0, stor: 0 };
         }
 
+        function getDiscountedPrice(item) {
+            const postcard = postcardsData.find(p => p.id === item.id);
+            if (!postcard) return item.price;
+            
+            const originalPrice = calculatePrice(postcard)[item.size];
+            let finalPrice = originalPrice;
+
+            const productSale = salesData.find(s => s.targetType === 'product' && s.targetId === item.id);
+            const groupSale = salesData.find(s => s.targetType === 'group' && s.targetId === postcard.group);
+            
+            let appliedSale = null;
+            if (productSale) {
+                appliedSale = productSale;
+            } else if (groupSale) {
+                appliedSale = groupSale;
+            }
+
+            if (appliedSale) {
+                if (appliedSale.type === 'percent') {
+                    finalPrice = originalPrice - (originalPrice * (appliedSale.value / 100));
+                } else if (appliedSale.type === 'summa') {
+                    finalPrice = originalPrice - appliedSale.value;
+                    if (finalPrice < 0) finalPrice = 0;
+                }
+            }
+            return finalPrice;
+        }
+
         function renderPostcards() {
             const postcardsList = document.getElementById('postcards-list');
             const groupFilter = document.getElementById('group-filter').value;
@@ -259,116 +287,68 @@
 
             filteredPostcards.forEach(p => {
                 const priceGroup = priceGroupsData.find(pg => pg.id === p.priceGroup);
-                const group = groupsData.find(g => g.id === p.group);
-                
-                let priceText = 'Pris saknas';
-                let prices = {};
-                if (priceGroup) {
-                    prices = priceGroup.prices;
-                }
-                
-                let salePrices = {
-                    liten: prices.liten,
-                    mellan: prices.mellan,
-                    stor: prices.stor
-                };
-
-                const applicableSales = salesData.filter(s => 
-                    s.targetType === 'all' || 
-                    (s.targetType === 'group' && s.targetId === p.group) || 
-                    (s.targetType === 'product' && s.targetId === p.id)
-                );
-                
-                let saleBadge = '';
-                let hasSale = false;
-
-                if (applicableSales.length > 0) {
-                    saleBadge = '<span class="ml-2 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full">REA!</span>';
-                    hasSale = true;
-                }
-                
-                // Beräkna rabatterade priser för visning
-                for (const size in salePrices) {
-                    let originalPrice = prices[size];
-                    let discountedPrice = originalPrice;
-                    let appliedSale = null;
-                    
-                    const productSale = applicableSales.find(s => s.targetType === 'product' && s.targetId === p.id);
-                    const groupSale = applicableSales.find(s => s.targetType === 'group' && s.targetId === p.group);
-                    
-                    if (productSale) {
-                        appliedSale = productSale;
-                    } else if (groupSale) {
-                        appliedSale = groupSale;
-                    }
-
-                    if (appliedSale) {
-                        if (appliedSale.type === 'percent') {
-                            discountedPrice = originalPrice - (originalPrice * (appliedSale.value / 100));
-                        } else if (appliedSale.type === 'summa') {
-                            discountedPrice = originalPrice - appliedSale.value;
-                            if (discountedPrice < 0) discountedPrice = 0;
-                        }
-                    }
-                    salePrices[size] = discountedPrice;
-                }
                 
                 let priceHtml = '';
-                for (const size in prices) {
-                    let originalPrice = prices[size];
-                    let discountedPrice = salePrices[size];
-                    if (originalPrice !== discountedPrice) {
-                        priceHtml += `<p class="text-sm text-gray-600 mb-1">
-                                          ${size.charAt(0).toUpperCase() + size.slice(1)}: <span class="line-through text-gray-400">${originalPrice} kr</span>
-                                          <span class="text-red-600 font-bold ml-1">${discountedPrice} kr</span>
-                                      </p>`;
-                    } else {
-                        priceHtml += `<p class="text-sm text-gray-600 mb-1">${size.charAt(0).toUpperCase() + size.slice(1)}: ${originalPrice} kr</p>`;
-                    }
-                }
+                let hasSale = false;
 
+                if (priceGroup) {
+                    const sizes = ['liten', 'mellan', 'stor'];
+                    sizes.forEach(size => {
+                        const originalPrice = priceGroup.prices[size];
+                        
+                        const applicableSales = salesData.filter(s => 
+                            (s.targetType === 'group' && s.targetId === p.group) || 
+                            (s.targetType === 'product' && s.targetId === p.id)
+                        );
+                        
+                        let finalPrice = originalPrice;
+                        let appliedSale = null;
+                        
+                        if (applicableSales.length > 0) {
+                            appliedSale = applicableSales[0]; // Tar första bästa rean
+                            if (appliedSale.type === 'percent') {
+                                finalPrice = originalPrice - (originalPrice * (appliedSale.value / 100));
+                            } else if (appliedSale.type === 'summa') {
+                                finalPrice = originalPrice - appliedSale.value;
+                                if (finalPrice < 0) finalPrice = 0;
+                            }
+                            hasSale = true;
+                        }
+
+                        if (originalPrice !== finalPrice) {
+                            priceHtml += `
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-sm">
+                                        ${size.charAt(0).toUpperCase() + size.slice(1)}:
+                                        <span class="line-through text-gray-400">${originalPrice} kr</span>
+                                        <span class="text-red-600 font-bold ml-1">${finalPrice.toFixed(2)} kr</span>
+                                    </span>
+                                    <button onclick="addToCart('${p.id}', '${size}')" class="ml-2 px-2 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700">Köp</button>
+                                </div>
+                            `;
+                        } else {
+                            priceHtml += `
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-sm">${size.charAt(0).toUpperCase() + size.slice(1)}: ${originalPrice} kr</span>
+                                    <button onclick="addToCart('${p.id}', '${size}')" class="ml-2 px-2 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700">Köp</button>
+                                </div>
+                            `;
+                        }
+                    });
+                }
+                
+                const saleBadge = hasSale ? '<span class="ml-2 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full">REA!</span>' : '';
 
                 postcardsList.innerHTML += `
                     <div class="card flex flex-col items-center text-center">
                         <img src="${p.imageURL}" alt="${p.title}" class="w-full h-auto rounded-lg mb-4">
-                        <h2 class="text-xl font-bold mb-2">${p.title}${hasSale ? saleBadge : ''}</h2>
-                        <p class="text-sm text-gray-600 mb-1">Grupp: ${group ? group.name : 'Okänd'}</p>
+                        <h2 class="text-xl font-bold mb-2">${p.title}${saleBadge}</h2>
                         ${priceHtml}
-                        <div class="flex space-x-2 mt-4">
-                            <button onclick="addToCart('${p.id}', 'liten')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Liten</button>
-                            <button onclick="addToCart('${p.id}', 'mellan')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Mellan</button>
-                            <button onclick="addToCart('${p.id}', 'stor')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Stor</button>
-                        </div>
                     </div>
                 `;
             });
         }
         
-        function getDiscountedPrice(item) {
-            const originalPrice = postcardsData.find(p => p.id === item.id)?.prices?.[item.size] || item.price;
-            let finalPrice = originalPrice;
-
-            const productSale = salesData.find(s => s.targetType === 'product' && s.targetId === item.id);
-            const groupSale = salesData.find(s => s.targetType === 'group' && s.targetId === postcardsData.find(p => p.id === item.id)?.group);
-            
-            let appliedSale = null;
-            if (productSale) {
-                appliedSale = productSale;
-            } else if (groupSale) {
-                appliedSale = groupSale;
-            }
-
-            if (appliedSale) {
-                if (appliedSale.type === 'percent') {
-                    finalPrice = originalPrice - (originalPrice * (appliedSale.value / 100));
-                } else if (appliedSale.type === 'summa') {
-                    finalPrice = originalPrice - appliedSale.value;
-                    if (finalPrice < 0) finalPrice = 0;
-                }
-            }
-            return finalPrice;
-        }
-
         function addToCart(postcardId, size) {
             const postcard = postcardsData.find(p => p.id === postcardId);
             if (!postcard) return;
@@ -430,7 +410,7 @@
             } else {
                 cart.forEach((item, index) => {
                     const discountedPrice = getDiscountedPrice(item);
-                    const originalPrice = item.price;
+                    const originalPrice = postcardsData.find(p => p.id === item.id)?.prices?.[item.size] || item.price;
                     let priceDisplay = `<span class="font-bold">${discountedPrice.toFixed(2)} kr</span>`;
                     
                     if (originalPrice !== discountedPrice) {
