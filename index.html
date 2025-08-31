@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vykort - Bultens.net</title>
+    <title>Vykortsbutik</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
@@ -23,6 +23,71 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             padding: 2rem;
             margin-bottom: 1.5rem;
+        }
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 0.75rem;
+            width: 80%;
+            max-width: 600px;
+            text-align: left;
+        }
+        .modal-close-btn {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .modal-close-btn:hover,
+        .modal-close-btn:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .confirmation-message {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #10B981; /* Tailwind green-500 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px; /* Tailwind rounded-full */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .confirmation-message.active {
+            opacity: 1;
+        }
+        .news-item {
+            border-left: 4px solid #3b82f6;
+            background-color: #eff6ff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
         }
         .postcard-image-wrapper {
             position: relative;
@@ -49,29 +114,96 @@
 <body>
     <header class="bg-gray-800 text-white shadow-lg">
         <div class="container py-4 flex justify-between items-center">
-            <span class="text-3xl font-bold tracking-tight">Vykort</span>
-            <div class="text-center mt-2 text-gray-400 text-sm">Version 1.0</div>
-            <a href="index.html" class="hover:text-gray-300 transition duration-300">Tillbaka till butiken</a>
+            <span class="text-3xl font-bold tracking-tight">Vykortsbutik</span>
+            <div class="flex space-x-4 items-center">
+                <button id="cart-btn" class="relative hover:text-gray-300 transition duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span id="cart-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">0</span>
+                </button>
+                <a href="admin.html" class="hover:text-gray-300 transition duration-300">Adminpanel</a>
+            </div>
         </div>
     </header>
-    
+
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.42</div>
+
+    <div class="container text-center py-4 text-gray-700 leading-relaxed">
+        <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
+        <br>
+        <p class="font-bold">Storlekar:</p>
+        <ul class="list-disc list-inside mx-auto max-w-lg text-left">
+            <li>Liten (A6, 105 × 148 mm, 4.1 × 5.8 tum)</li>
+            <li>Mellan (A5, 148 × 210 mm, 5.8 × 8.3 tum)</li>
+            <li>Stor (A4, 210 × 297 mm, 8.3 × 11.7 tum)</li>
+        </ul>
+        <br>
+        <p class="font-bold">Leveranstid:</p>
+        <p>Leverans tar 3 till 15 dagar, beroende på destination. Vänligen kontakta mig för en mer exakt uppskattning.</p>
+    </div>
+
+    <div id="news-section" class="container py-4 hidden">
+        <hr class="my-6">
+        <h2 class="text-3xl font-bold mb-4 text-center">Nyheter</h2>
+        <div id="news-list">
+            </div>
+        <hr class="my-6">
+    </div>
+
     <main class="container">
         <h1 class="text-4xl font-bold mb-6 text-center">Vykort</h1>
+        <div id="filter-section" class="mb-6 flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+            <div>
+                <label for="group-filter" class="block text-sm font-medium text-gray-700">Filtrera efter grupp:</label>
+                <select id="group-filter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"></select>
+            </div>
+        </div>
         <div id="postcards-list">
             </div>
     </main>
     
+    <div id="cartModal" class="modal">
+        <div class="modal-content">
+            <span id="close-cart-modal" class="modal-close-btn">&times;</span>
+            <h2 class="text-2xl font-bold mb-4">Varukorg</h2>
+            <div id="cart-items" class="space-y-4 mb-4"></div>
+            <div id="cart-summary" class="text-right font-bold text-lg border-t pt-4">
+                <div class="flex justify-between items-center mb-2">
+                    <span>Totalt (exkl. rea):</span>
+                    <span id="cart-subtotal">0 kr</span>
+                </div>
+                <div id="cart-total-discount-container" class="flex justify-between items-center mb-2 hidden">
+                    <span>Rabatt på hela korgen:</span>
+                    <span id="cart-total-discount">-0 kr</span>
+                </div>
+                <div class="flex justify-between items-center mb-2">
+                    <span>Att betala:</span>
+                    <span id="cart-total">0 kr</span>
+                </div>
+                <button id="clear-cart-btn" class="px-4 py-2 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 transition duration-300">Töm varukorg</button>
+            </div>
+            <button id="checkout-btn" class="mt-4 w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300">Gå till kassan</button>
+        </div>
+    </div>
+    
+    <div id="confirmation-toast" class="confirmation-message">
+        Vara tillagd i varukorgen!
+    </div>
+
+
     <footer class="bg-gray-800 text-white text-center py-4 mt-8">
         <div class="container text-sm">
-            <p>&copy; 2025 Bultens.net</p>
+            <p>&copy; 2025 Vykortsbutik</p>
         </div>
     </footer>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, onSnapshot, collection, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, onSnapshot, collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // Firebase-konfiguration från din 'kumlaskytte'-fil
         const firebaseConfig = {
             apiKey: "AIzaSyCorCZf8cH8vD1v47aOADdW3x0hCWlVUfw",
             authDomain: "kumlaskytte.firebaseapp.com",
@@ -82,6 +214,7 @@
             measurementId: "G-KSJ9NLNDBX"
         };
         
+        // Här används projectId från din konfiguration som appId
         const appId = firebaseConfig.projectId;
 
         let db;
@@ -89,12 +222,17 @@
         let postcardsData = [];
         let priceGroupsData = [];
         let groupsData = [];
+        let salesData = [];
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
         
         let initialDataLoaded = {
             postcards: false,
             priceGroups: false,
             groups: false
         };
+
+        // En flagga för att se till att vi bara renderar en gång initialt
+        let hasRenderedInitially = false;
 
         document.addEventListener('DOMContentLoaded', () => {
             if (firebaseConfig.projectId) {
@@ -112,10 +250,32 @@
             } else {
                 document.getElementById('postcards-list').innerHTML = '<p class="text-center text-red-500">Firebase-konfiguration saknas.</p>';
             }
+
+            document.getElementById('group-filter').addEventListener('change', renderPostcards);
+            
+            // Varukorgs-knappen
+            document.getElementById('cart-btn').addEventListener('click', () => {
+                renderCart();
+                document.getElementById('cartModal').classList.add('active');
+            });
+            document.getElementById('close-cart-modal').addEventListener('click', () => {
+                document.getElementById('cartModal').classList.remove('active');
+            });
+            window.addEventListener('click', (event) => {
+                if (event.target === document.getElementById('cartModal')) {
+                    document.getElementById('cartModal').classList.remove('active');
+                }
+            });
+            
+            document.getElementById('clear-cart-btn').addEventListener('click', clearCart);
+            updateCartCount();
         });
 
         function checkAndRender() {
-            if (initialDataLoaded.postcards && initialDataLoaded.priceGroups && initialDataLoaded.groups) {
+            if (initialDataLoaded.postcards && initialDataLoaded.priceGroups && initialDataLoaded.groups && !hasRenderedInitially) {
+                renderPostcards();
+                hasRenderedInitially = true; // Sätt flaggan efter första renderingen
+            } else if (initialDataLoaded.postcards && initialDataLoaded.priceGroups && initialDataLoaded.groups) {
                 renderPostcards();
             }
         }
@@ -133,18 +293,107 @@
             });
             onSnapshot(query(collection(db, `artifacts/${appId}/public/data/groups`), orderBy('order')), (snapshot) => {
                 groupsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                populateFilters(); 
                 initialDataLoaded.groups = true;
                 checkAndRender();
             });
+            onSnapshot(collection(db, `artifacts/${appId}/public/data/sales`), (snapshot) => {
+                salesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderPostcards();
+                renderCart();
+            });
+            onSnapshot(query(collection(db, `artifacts/${appId}/public/data/news`), orderBy('order')), (snapshot) => {
+                const newsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderNews(newsData);
+            });
         }
         
+        function renderNews(news) {
+            const newsList = document.getElementById('news-list');
+            newsList.innerHTML = '';
+            
+            const now = new Date();
+            const activeNews = news.filter(item => 
+                item.noTimeLimit || (now >= item.startDate.toDate() && now <= item.endDate.toDate())
+            );
+
+            if (activeNews.length === 0) {
+                document.getElementById('news-section').classList.add('hidden');
+                return;
+            } else {
+                document.getElementById('news-section').classList.remove('hidden');
+            }
+
+            activeNews.forEach(item => {
+                const newsItem = document.createElement('div');
+                newsItem.className = 'news-item';
+                newsItem.innerHTML = `
+                    <h3 class="font-bold text-lg mb-1">${item.title}</h3>
+                    <p class="text-sm">${item.text}</p>
+                `;
+                newsList.appendChild(newsItem);
+            });
+        }
+
+
+        function populateFilters() {
+            const groupFilter = document.getElementById('group-filter');
+
+            groupFilter.innerHTML = '<option value="all">Alla Grupper</option>';
+            groupsData.forEach(g => {
+                const option = document.createElement('option');
+                option.value = g.id;
+                option.textContent = g.name;
+                groupFilter.appendChild(option);
+            });
+        }
+
+        function calculatePrice(postcard) {
+            const prices = priceGroupsData.find(pg => pg.id === postcard.priceGroup)?.prices;
+            return prices || { liten: 0, mellan: 0, stor: 0 };
+        }
+
+        function getDiscountedPrice(item) {
+            const postcard = postcardsData.find(p => p.id === item.id);
+            if (!postcard) return item.price;
+            
+            const originalPrice = calculatePrice(postcard)[item.size];
+            let finalPrice = originalPrice;
+
+            const productSale = salesData.find(s => s.targetType === 'product' && s.targetId === item.id);
+            const groupSale = salesData.find(s => s.targetType === 'group' && s.targetId === postcard.group);
+            
+            let appliedSale = null;
+            if (productSale) {
+                appliedSale = productSale;
+            } else if (groupSale) {
+                appliedSale = groupSale;
+            }
+
+            if (appliedSale) {
+                if (appliedSale.type === 'percent') {
+                    finalPrice = originalPrice - (originalPrice * (appliedSale.value / 100));
+                } else if (appliedSale.type === 'summa') {
+                    finalPrice = originalPrice - appliedSale.value;
+                    if (finalPrice < 0) finalPrice = 0;
+                }
+            }
+            return finalPrice;
+        }
+
         async function renderPostcards() {
             const postcardsList = document.getElementById('postcards-list');
+            const groupFilterValue = document.getElementById('group-filter').value;
+            
             postcardsList.innerHTML = ''; 
 
+            const groupsToRender = groupFilterValue === 'all'
+                ? groupsData
+                : groupsData.filter(g => g.id === groupFilterValue);
+            
             const renderedGroups = new Set();
             
-            for (const group of groupsData) {
+            for (const group of groupsToRender) {
                 if (renderedGroups.has(group.id)) continue;
                 renderedGroups.add(group.id);
 
@@ -172,18 +421,51 @@
             const priceGroup = priceGroupsData.find(pg => pg.id === p.priceGroup);
             
             let priceHtml = '';
+            let hasSale = false;
+            
+            const applicableSales = salesData.filter(s => {
+                const now = new Date();
+                const isTimeValid = s.noTimeLimit || (s.startDate && s.endDate && now >= new Date(s.startDate) && now <= new Date(s.endDate));
+                
+                const isTargetValid = (s.targetType === 'group' && s.targetId === p.group) || 
+                                      (s.targetType === 'product' && s.targetId === p.id);
+                                      
+                return isTimeValid && isTargetValid;
+            });
+            
+            if(applicableSales.length > 0) hasSale = true;
+
             if (priceGroup) {
                 const sizes = ['liten', 'mellan', 'stor'];
                 sizes.forEach(size => {
                     const originalPrice = priceGroup.prices[size];
-                    priceHtml += `
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="text-sm">${size.charAt(0).toUpperCase() + size.slice(1)}: ${originalPrice} kr</span>
-                        </div>
-                    `;
+                    const discountedPrice = getDiscountedPrice({ id: p.id, size: size, price: originalPrice });
+                    
+                    if (originalPrice !== discountedPrice) {
+                        priceHtml += `
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-sm">
+                                    ${size.charAt(0).toUpperCase() + size.slice(1)}:
+                                    <span class="line-through text-gray-400">${originalPrice} kr</span>
+                                    <span class="text-red-600 font-bold ml-1">${discountedPrice.toFixed(2)} kr</span>
+                                </span>
+                                <button onclick="addToCart('${p.id}', '${size}')" class="ml-2 px-2 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700">Köp</button>
+                            </div>
+                        `;
+                    } else {
+                        priceHtml += `
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-sm">${size.charAt(0).toUpperCase() + size.slice(1)}: ${originalPrice} kr</span>
+                                <button onclick="addToCart('${p.id}', '${size}')" class="ml-2 px-2 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700">Köp</button>
+                            </div>
+                        `;
+                    }
                 });
             }
             
+            const saleBadge = hasSale ? '<span class="ml-2 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full">REA!</span>' : '';
+
+            // Ladda bilden för att bestämma orientering
             const image = new Image();
             image.src = p.imageURL;
             await new Promise(resolve => image.onload = resolve);
@@ -194,11 +476,164 @@
                     <div class="postcard-image-wrapper ${orientation} rounded-lg mb-4">
                         <img src="${p.imageURL}" alt="${p.title}">
                     </div>
-                    <h2 class="text-xl font-bold mb-2">${p.title}</h2>
+                    <h2 class="text-xl font-bold mb-2">${p.title}${saleBadge}</h2>
                     ${priceHtml}
                 </div>
             `;
         }
+        
+        function addToCart(postcardId, size) {
+            const postcard = postcardsData.find(p => p.id === postcardId);
+            if (!postcard) return;
+
+            const existingItem = cart.find(item => item.id === postcardId && item.size === size);
+
+            if (existingItem) {
+                existingItem.quantity++;
+            } else {
+                const prices = calculatePrice(postcard);
+                cart.push({
+                    id: postcardId,
+                    title: postcard.title,
+                    size: size,
+                    price: prices[size],
+                    quantity: 1,
+                    group: postcard.group
+                });
+            }
+            showConfirmationToast();
+            saveCart();
+        }
+        
+        function showConfirmationToast() {
+            const toast = document.getElementById('confirmation-toast');
+            if (toast) {
+                toast.classList.add('active');
+                setTimeout(() => {
+                    toast.classList.remove('active');
+                }, 2000);
+            }
+        }
+
+        function saveCart() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+        }
+
+        function updateCartCount() {
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cart-count').textContent = count;
+        }
+
+        function calculateCartTotal() {
+            let subtotal = 0;
+            cart.forEach(item => {
+                const discountedPrice = getDiscountedPrice(item);
+                subtotal += discountedPrice * item.quantity;
+            });
+            
+            const applicableSales = salesData.filter(s => {
+                const now = new Date();
+                const isTimeValid = s.noTimeLimit || (s.startDate && s.endDate && now >= new Date(s.startDate) && now <= new Date(s.endDate));
+                const isTargetValid = s.targetType === 'all';
+                return isTimeValid && isTargetValid;
+            });
+            
+            let totalDiscount = 0;
+            let finalTotal = subtotal;
+
+            applicableSales.forEach(s => {
+                if (s.type === 'percent') {
+                    totalDiscount += subtotal * (s.value / 100);
+                } else if (s.type === 'summa') {
+                    totalDiscount += s.value;
+                }
+            });
+
+            finalTotal = subtotal - totalDiscount;
+            if (finalTotal < 0) finalTotal = 0;
+
+            return { subtotal, totalDiscount, finalTotal };
+        }
+
+        function renderCart() {
+            const cartItemsEl = document.getElementById('cart-items');
+            cartItemsEl.innerHTML = '';
+            
+            if (cart.length === 0) {
+                cartItemsEl.innerHTML = '<p class="text-center text-gray-500">Din varukorg är tom.</p>';
+            } else {
+                cart.forEach((item, index) => {
+                    const discountedPrice = getDiscountedPrice(item);
+                    const originalPrice = postcardsData.find(p => p.id === item.id)?.prices?.[item.size] || item.price;
+                    let priceDisplay = `<span class="font-bold">${discountedPrice.toFixed(2)} kr</span>`;
+                    
+                    if (originalPrice !== discountedPrice) {
+                        priceDisplay = `<span class="line-through text-gray-400">${originalPrice.toFixed(2)} kr</span>
+                                        <span class="font-bold ml-1 text-red-600">${discountedPrice.toFixed(2)} kr</span>`;
+                    }
+                    
+                    cartItemsEl.innerHTML += `
+                        <div class="flex items-center justify-between p-2 bg-gray-100 rounded-md">
+                            <div>
+                                <p class="font-semibold">${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)})</p>
+                                <p class="text-sm text-gray-600">
+                                    ${item.quantity} st @ 
+                                    ${priceDisplay}
+                                </p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="updateQuantity(${index}, -1)" class="px-2 py-1 bg-gray-300 rounded-md hover:bg-gray-400">-</button>
+                                <span class="w-6 text-center">${item.quantity}</span>
+                                <button onclick="updateQuantity(${index}, 1)" class="px-2 py-1 bg-gray-300 rounded-md hover:bg-gray-400">+</button>
+                                <button onclick="removeFromCart(${index})" class="px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600">Ta bort</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            const { subtotal, totalDiscount, finalTotal } = calculateCartTotal();
+            document.getElementById('cart-subtotal').textContent = `${subtotal.toFixed(2)} kr`;
+            document.getElementById('cart-total').textContent = `${finalTotal.toFixed(2)} kr`;
+
+            if (totalDiscount > 0) {
+                document.getElementById('cart-total-discount-container').classList.remove('hidden');
+                document.getElementById('cart-total-discount').textContent = `-${totalDiscount.toFixed(2)} kr`;
+            } else {
+                document.getElementById('cart-total-discount-container').classList.add('hidden');
+            }
+            
+            updateCartCount();
+        }
+
+        function updateQuantity(index, change) {
+            if (cart[index]) {
+                cart[index].quantity += change;
+                if (cart[index].quantity <= 0) {
+                    cart.splice(index, 1);
+                }
+                saveCart();
+                renderCart();
+            }
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            saveCart();
+            renderCart();
+        }
+        
+        function clearCart() {
+            cart = [];
+            saveCart();
+            renderCart();
+        }
+        
+        window.addToCart = addToCart;
+        window.updateQuantity = updateQuantity;
+        window.removeFromCart = removeFromCart;
+        window.clearCart = clearCart;
     </script>
 </body>
 </html>
