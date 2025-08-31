@@ -139,7 +139,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.51</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.52</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -271,8 +271,8 @@
         let priceGroupsData = [];
         let groupsData = [];
         let salesData = [];
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
-        
+        let cart = []; // Låt den vara tom initialt, vi fyller den från localStorage direkt
+
         let initialDataLoaded = {
             postcards: false,
             priceGroups: false,
@@ -362,8 +362,13 @@
             });
 
             document.getElementById('clear-cart-btn').addEventListener('click', clearCart);
-            updateCartCount();
+            loadCart(); // Ladda varukorgen när sidan laddas
         });
+
+        function loadCart() {
+            cart = JSON.parse(localStorage.getItem('cart')) || [];
+            updateCartCount();
+        }
 
         function checkAndRender() {
             if (initialDataLoaded.postcards && initialDataLoaded.priceGroups && initialDataLoaded.groups && initialDataLoaded.sales && initialDataLoaded.news) {
@@ -655,7 +660,7 @@
             const prices = calculatePrice(postcard);
             const price = prices[item.size];
             
-            cart.push({
+            const newCartItem = {
                 id: postcard.id,
                 title: postcard.title,
                 size: item.size,
@@ -663,7 +668,10 @@
                 group: postcard.group,
                 recipient: item.recipient,
                 message: item.message
-            });
+            };
+
+            cart.push(newCartItem);
+            
             showConfirmationToast();
             saveCart();
             renderCart();
