@@ -139,7 +139,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.64</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.66</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -365,7 +365,7 @@
                     message: messageText
                 };
 
-                if (cartItemIndex !== "") {
+                if (cartItemIndex !== "" && parseInt(cartItemIndex) !== -1) {
                     editCartItem(parseInt(cartItemIndex), newItem);
                 } else {
                     addToCart(newItem);
@@ -635,7 +635,7 @@
             const priceGroup = priceGroupsData.find(pg => pg.id === postcard.priceGroup);
             if (priceGroup) {
                 const sizes = ['liten', 'mellan', 'stor'];
-                sizes.forEach((size, index) => {
+                sizes.forEach(size => {
                     const originalPrice = priceGroup.prices[size];
                     const discountedPrice = getDiscountedPrice({ id: postcard.id, size: size, price: originalPrice });
                     
@@ -674,16 +674,15 @@
         }
 
         function addToCart(item) {
+            console.log("addToCart()", item);
             cart.push(item);
-            
-            showConfirmationToast();
             saveCart();
             renderCart();
         }
 
         function editCartItem(index, newItem) {
+            console.log("editCartItem()", index, newItem);
             cart[index] = newItem;
-            showConfirmationToast("Vara uppdaterad i varukorgen!");
             saveCart();
             renderCart();
         }
@@ -700,6 +699,7 @@
         }
 
         function saveCart() {
+            console.log("saveCart() →", cart);
             localStorage.setItem('cart', JSON.stringify(cart));
             updateCartCount();
         }
