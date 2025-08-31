@@ -20,7 +20,7 @@
         .card {
             background-color: #ffffff;
             border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1-px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             padding: 2rem;
             margin-bottom: 1.5rem;
         }
@@ -109,6 +109,18 @@
             object-fit: cover;
             object-position: center;
         }
+        .cart-item-details {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.5rem 1rem;
+        }
+        .cart-item-details strong {
+            justify-self: start;
+        }
+        .cart-item-details span {
+            justify-self: end;
+            text-align: right;
+        }
     </style>
 </head>
 <body>
@@ -127,7 +139,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.47</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.48</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -606,7 +618,6 @@
                 });
             }
 
-            // Fyll i formuläret om vi redigerar en befintlig vara
             if (cartItemIndex !== -1) {
                 const itemToEdit = cart[cartItemIndex];
                 document.getElementById(`size-${itemToEdit.size}`).checked = true;
@@ -737,6 +748,9 @@
                                         <span class="font-bold ml-1 text-red-600">${discountedPrice.toFixed(2)} kr</span>`;
                     }
                     
+                    const recipientText = `${item.recipient.name}, ${item.recipient.address}, ${item.recipient.zip} ${item.recipient.city}, ${item.recipient.country}`;
+                    const messageText = item.message.substring(0, 50) + (item.message.length > 50 ? '...' : '');
+
                     cartItemsEl.innerHTML += `
                         <div class="flex flex-col p-2 bg-gray-100 rounded-md">
                             <div class="flex items-center justify-between">
@@ -746,10 +760,13 @@
                                     <button onclick="removeFromCart(${index})" class="px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600">Ta bort</button>
                                 </div>
                             </div>
-                            <div class="mt-2 text-sm text-gray-600">
-                                <p><strong>Pris:</strong> ${priceDisplay}</p>
-                                <p><strong>Text:</strong> ${item.message || 'Ingen text'}</p>
-                                <p><strong>Mottagare:</strong> ${item.recipient.name || 'Ej angiven'}, ${item.recipient.address || 'Ej angiven'}, ${item.recipient.zip || ''} ${item.recipient.city || ''}, ${item.recipient.country || ''}</p>
+                            <div class="mt-2 text-sm text-gray-600 cart-item-details">
+                                <strong>Pris:</strong>
+                                <span>${priceDisplay}</span>
+                                <strong>Text:</strong>
+                                <span>${messageText || 'Ingen text'}</span>
+                                <strong>Mottagare:</strong>
+                                <span>${recipientText || 'Ej angiven'}</span>
                             </div>
                         </div>
                     `;
