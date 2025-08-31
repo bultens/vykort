@@ -139,7 +139,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.57</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.58</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -674,26 +674,7 @@
         }
 
         function addToCart(item) {
-            const postcard = postcardsData.find(p => p.id === item.id);
-            if (!postcard) {
-                console.error("Kunde inte lägga till i varukorgen, vykortet hittades inte.");
-                return;
-            }
-
-            const prices = calculatePrice(postcard);
-            const price = prices[item.size];
-            
-            const newCartItem = {
-                id: postcard.id,
-                title: postcard.title,
-                size: item.size,
-                price: price,
-                group: postcard.group,
-                recipient: item.recipient,
-                message: item.message
-            };
-
-            cart.push(newCartItem);
+            cart.push(item);
             
             showConfirmationToast();
             saveCart();
@@ -701,24 +682,7 @@
         }
 
         function editCartItem(index, newItem) {
-            const postcard = postcardsData.find(p => p.id === newItem.id);
-            if (!postcard) {
-                console.error("Kunde inte uppdatera i varukorgen, vykortet hittades inte.");
-                return;
-            }
-
-            const prices = calculatePrice(postcard);
-            const newPrice = prices[newItem.size];
-
-            cart[index] = {
-                id: postcard.id,
-                title: postcard.title,
-                size: newItem.size,
-                price: newPrice,
-                group: postcard.group,
-                recipient: newItem.recipient,
-                message: newItem.message
-            };
+            cart[index] = newItem;
             showConfirmationToast("Vara uppdaterad i varukorgen!");
             saveCart();
             renderCart();
