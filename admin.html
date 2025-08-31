@@ -6,7 +6,6 @@
     <title>Adminpanel - Bultens.net</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
         body {
@@ -145,7 +144,7 @@
         </div>
     </header>
     
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.20</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.18</div>
 
     <main class="container">
         <section id="admin-login-panel" class="card max-w-md mx-auto">
@@ -211,8 +210,8 @@
                         <label for="no-time-limit" class="text-sm">Ingen tidsbegränsning</label>
                     </div>
                     <div id="sale-date-fields" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <input type="text" id="sale-start-date" class="w-full p-2 border rounded-md" placeholder="Startdatum">
-                        <input type="text" id="sale-end-date" class="w-full p-2 border rounded-md" placeholder="Slutdatum">
+                        <input type="datetime-local" id="sale-start-date" class="w-full p-2 border rounded-md">
+                        <input type="datetime-local" id="sale-end-date" class="w-full p-2 border rounded-md">
                     </div>
                     <select id="sale-timezone" class="w-full p-2 border rounded-md">
                         <option value="UTC">UTC</option>
@@ -248,8 +247,8 @@
                         <label for="news-no-time-limit" class="text-sm">Ingen tidsbegränsning</label>
                     </div>
                     <div id="news-date-fields" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <input type="text" id="news-start-date" class="w-full p-2 border rounded-md" placeholder="Startdatum">
-                        <input type="text" id="news-end-date" class="w-full p-2 border rounded-md" placeholder="Slutdatum">
+                        <input type="datetime-local" id="news-start-date" class="w-full p-2 border rounded-md">
+                        <input type="datetime-local" id="news-end-date" class="w-full p-2 border rounded-md">
                     </div>
                     <button type="submit" class="w-full bg-orange-600 text-white py-2 rounded-md hover:bg-orange-700">Lägg till nyhet</button>
                 </form>
@@ -293,7 +292,6 @@
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -356,7 +354,7 @@
         
         // Hjälpfunktion för att formatera datum till ISO-format
         function formatDateToISO(timestamp) {
-            if (!timestamp) return 'Okänt datum';
+            if (!timestamp) return null;
             const date = timestamp.toDate();
             const year = date.getFullYear();
             const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -528,6 +526,7 @@
 
         async function editPriceGroup(id) {
             if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const priceGroupsCollection = collection(db, `artifacts/${appId}/public/data/priceGroups`);
             const pg = priceGroupsData.find(p => p.id === id);
             if (pg) {
                 const name = prompt("Ändra namn på prisgrupp:", pg.name);
@@ -558,17 +557,20 @@
             
             showConfirmation("Är du säker på att du vill ta bort denna prisgrupp? Vykort som använder denna prisgrupp kommer att tilldelas standardprisgruppen.", async () => {
                 const batch = writeBatch(db);
+                // Uppdatera vykort som använder denna prisgrupp
                 const q = query(postcardsCollection, where('priceGroup', '==', id));
                 const snapshot = await getDocs(q);
                 snapshot.forEach(doc => {
                     batch.update(doc.ref, { priceGroup: defaultPriceGroupId });
                 });
+                // Ta bort prisgruppen
                 batch.delete(doc(priceGroupsCollection, id));
                 await batch.commit();
                 showMessage('Prisgrupp borttagen och vykort uppdaterade.');
             });
         }
 
+        // CRUD-funktioner för grupper
         async function addGroup(name, order) {
             if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
             const groupsCollection = collection(db, `artifacts/${appId}/public/data/groups`);
@@ -577,6 +579,7 @@
 
         async function editGroup(id) {
             if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const groupsCollection = collection(db, `artifacts/${appId}/public/data/groups`);
             const g = groupsData.find(g => g.id === id);
             if (g) {
                 const name = prompt("Ändra namn på grupp:", g.name);
@@ -613,6 +616,7 @@
             });
         }
         
+        // CRUD-funktioner för vykort
         async function addOrUpdatePostcard() {
             if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
             const form = document.getElementById('add-postcard-form');
@@ -731,7 +735,7 @@
 
 
         function startAdminListeners() {
-            if (!db) return;
+            if (!db) return; // Säkerställ att db är initierad
             
             const priceGroupsRef = collection(db, `artifacts/${appId}/public/data/priceGroups`);
             unsubscribePriceGroups = onSnapshot(priceGroupsRef, (snapshot) => {
@@ -751,7 +755,7 @@
             unsubscribePostcards = onSnapshot(postcardsRef, (snapshot) => {
                 postcardsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderAdminLists();
-                renderGroupsAndPrices();
+                renderGroupsAndPrices(); // Uppdatera filter-listorna när vykort läggs till/tas bort
             });
             
             const adminsRef = collection(db, `artifacts/${appId}/public/data/admins`);
@@ -782,6 +786,75 @@
             if (unsubscribeNews) unsubscribeNews();
         }
 
+        // Globala funktioner för att anropa från HTML
+        window.editPriceGroup = editPriceGroup;
+        window.deletePriceGroup = deletePriceGroup;
+        window.editGroup = editGroup;
+        window.deleteGroup = deleteGroup;
+        window.editPostcard = editPostcard;
+        window.deletePostcard = deletePostcard;
+        window.addAdmin = addAdmin;
+        window.deleteAdmin = deleteAdmin;
+        window.deleteSale = deleteSale;
+        window.editNews = editNews;
+        window.deleteNews = deleteNews;
+        
+        // Logik för inloggning
+        async function handleLogin() {
+            const username = document.getElementById('admin-username').value;
+            const password = document.getElementById('admin-password').value;
+
+            if (!db) {
+                showMessage("Databasen är inte ansluten.");
+                return;
+            }
+
+            try {
+                // Sök i databasen efter administratörer
+                const adminsRef = collection(db, `artifacts/${appId}/public/data/admins`);
+                const q = query(adminsRef, where('username', '==', username));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    showMessage('Fel: Ogiltiga inloggningsuppgifter.');
+                    return;
+                }
+
+                const adminData = querySnapshot.docs[0].data();
+                
+                // Jämför lösenordet i koden
+                if (adminData.password === password) {
+                    isAdminLoggedIn = true;
+                    document.getElementById('admin-login-panel').classList.add('hidden');
+                    document.getElementById('admin-panel').classList.remove('hidden');
+                    document.getElementById('admin-management-section').classList.remove('hidden');
+                    document.getElementById('admin-indicator').classList.remove('hidden');
+                    document.getElementById('admin-user-info').textContent = `Du är inloggad som ${username}.`;
+                    startAdminListeners();
+                } else {
+                    showMessage('Fel: Ogiltiga inloggningsuppgifter.');
+                }
+                
+            } catch (e) {
+                console.error("Inloggningsfel:", e);
+                showMessage('Ett fel uppstod vid inloggning.');
+            }
+        }
+
+        function handleLogout() {
+            isAdminLoggedIn = false;
+            document.getElementById('admin-login-panel').classList.remove('hidden');
+            document.getElementById('admin-panel').classList.add('hidden');
+            document.getElementById('admin-management-section').classList.add('hidden');
+            document.getElementById('admin-indicator').classList.add('hidden');
+            document.getElementById('admin-username').value = '';
+            document.getElementById('admin-password').value = '';
+            currentEditingPostcardId = null;
+            document.getElementById('add-postcard-btn').textContent = 'Lägg till vykort';
+            document.getElementById('add-postcard-form').reset();
+            stopAdminListeners();
+        }
+
         window.onload = function () {
             if (firebaseConfig.projectId) {
                 try {
@@ -807,39 +880,7 @@
                 showMessage("Firebase-konfiguration saknas.");
             }
 
-            flatpickr("#sale-start-date", {
-                enableTime: true,
-                dateFormat: "Y-m-d H:i",
-                time_24hr: true,
-                locale: {
-                    firstDayOfWeek: 1
-                }
-            });
-            flatpickr("#sale-end-date", {
-                enableTime: true,
-                dateFormat: "Y-m-d H:i",
-                time_24hr: true,
-                locale: {
-                    firstDayOfWeek: 1
-                }
-            });
-            flatpickr("#news-start-date", {
-                enableTime: true,
-                dateFormat: "Y-m-d H:i",
-                time_24hr: true,
-                locale: {
-                    firstDayOfWeek: 1
-                }
-            });
-            flatpickr("#news-end-date", {
-                enableTime: true,
-                dateFormat: "Y-m-d H:i",
-                time_24hr: true,
-                locale: {
-                    firstDayOfWeek: 1
-                }
-            });
-
+            // Eventlyssnare för formulär och knappar
             document.getElementById('login-btn').addEventListener('click', handleLogin);
             document.getElementById('admin-password').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
@@ -847,7 +888,7 @@
                 }
             });
             document.getElementById('logout-btn').addEventListener('click', handleLogout);
-            document.getElementById('add-price-group-form').addEventListener('submit', async (e) => {
+            document.getElementById('add-price-group-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const name = document.getElementById('new-price-group-name').value;
                 const prices = {
@@ -855,25 +896,25 @@
                     mellan: Number(document.getElementById('price-mellan').value),
                     stor: Number(document.getElementById('price-stor').value)
                 };
-                await addPriceGroup(name, prices);
+                addPriceGroup(name, prices);
                 e.target.reset();
             });
-            document.getElementById('add-group-form').addEventListener('submit', async (e) => {
+            document.getElementById('add-group-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const name = document.getElementById('new-group-name').value;
                 const order = document.getElementById('new-group-order').value;
-                await addGroup(name, order);
+                addGroup(name, order);
                 e.target.reset();
             });
-            document.getElementById('add-postcard-form').addEventListener('submit', async (e) => {
+            document.getElementById('add-postcard-form').addEventListener('submit', (e) => {
                 e.preventDefault();
-                await addOrUpdatePostcard();
+                addOrUpdatePostcard();
             });
-            document.getElementById('add-admin-form').addEventListener('submit', async (e) => {
+            document.getElementById('add-admin-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const username = document.getElementById('new-admin-username').value;
                 const password = document.getElementById('new-admin-password').value;
-                await addAdmin(username, password);
+                addAdmin(username, password);
                 e.target.reset();
             });
             
@@ -893,13 +934,13 @@
             saleTargetTypeSelect.addEventListener('change', (e) => {
                 if (e.target.value === 'group' || e.target.value === 'product') {
                     saleTargetSelectContainer.classList.remove('hidden');
-                    renderGroupsAndPrices();
+                    renderGroupsAndPrices(); // Uppdatera dropdownlistan
                 } else {
                     saleTargetSelectContainer.classList.add('hidden');
                 }
             });
 
-            document.getElementById('add-sale-form').addEventListener('submit', async (e) => {
+            document.getElementById('add-sale-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const name = document.getElementById('sale-name').value;
                 const value = document.getElementById('sale-value').value;
@@ -921,10 +962,10 @@
                     targetId = document.getElementById('sale-target-id').value;
                 }
                 
-                await addSale(name, value, type, targetType, targetId, noTimeLimit, startDate, endDate, timezone);
+                addSale(name, value, type, targetType, targetId, noTimeLimit, startDate, endDate, timezone);
                 e.target.reset();
-                noTimeLimitCheckbox.checked = true;
-                saleDateFields.classList.add('hidden');
+                noTimeLimitCheckbox.checked = true; // Återställ
+                saleDateFields.classList.add('hidden'); // Dölj datumfälten igen
             });
             
             const newsDateFields = document.getElementById('news-date-fields');
@@ -936,7 +977,7 @@
                     newsDateFields.classList.remove('hidden');
                 }
             });
-            document.getElementById('add-news-form').addEventListener('submit', async (e) => {
+            document.getElementById('add-news-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const title = document.getElementById('news-title').value;
                 const text = document.getElementById('news-text').value;
@@ -950,7 +991,7 @@
                     endDate = document.getElementById('news-end-date').value;
                 }
                 
-                await addNews(title, text, order, noTimeLimit, startDate, endDate);
+                addNews(title, text, order, noTimeLimit, startDate, endDate);
                 e.target.reset();
                 newsNoTimeLimitCheckbox.checked = true;
                 newsDateFields.classList.add('hidden');
