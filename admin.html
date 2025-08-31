@@ -144,7 +144,7 @@
         </div>
     </header>
     
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.19</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.21</div>
 
     <main class="container">
         <section id="admin-login-panel" class="card max-w-md mx-auto">
@@ -520,8 +520,8 @@
                 div.className = "flex justify-between items-center p-2 bg-gray-100 rounded-md";
                 let dateInfo = '';
                 if (!n.noTimeLimit) {
-                    const start = new Date(n.startDate).toLocaleString();
-                    const end = new Date(n.endDate).toLocaleString();
+                    const start = n.startDate ? new Date(n.startDate).toLocaleString() : 'Ej angivet';
+                    const end = n.endDate ? new Date(n.endDate).toLocaleString() : 'Ej angivet';
                     dateInfo = `(Period: ${start} - ${end})`;
                 } else {
                     dateInfo = '(Ingen tidsbegränsning)';
@@ -775,8 +775,8 @@
                 newsDataToUpdate.endDate = document.getElementById('edit-news-end-date').value;
             } else {
                 // Ta bort tidsbegränsade fält om de inte används
-                delete newsDataToUpdate.startDate;
-                delete newsDataToUpdate.endDate;
+                if (newsDataToUpdate.startDate) delete newsDataToUpdate.startDate;
+                if (newsDataToUpdate.endDate) delete newsDataToUpdate.endDate;
             }
 
             await updateDoc(doc(db, `artifacts/${appId}/public/data/news`, id), newsDataToUpdate);
@@ -833,11 +833,12 @@
             unsubscribeNews = onSnapshot(newsRef, (snapshot) => {
                 newsData = snapshot.docs.map(doc => {
                     const data = doc.data();
-                    if (data.startDate instanceof Date) {
-                        data.startDate = data.startDate.toISOString().substring(0, 16);
+                    // Handle Timestamp objects from Firestore
+                    if (data.startDate && data.startDate.toDate) {
+                        data.startDate = data.startDate.toDate().toISOString().substring(0, 16);
                     }
-                    if (data.endDate instanceof Date) {
-                        data.endDate = data.endDate.toISOString().substring(0, 16);
+                    if (data.endDate && data.endDate.toDate) {
+                        data.endDate = data.endDate.toDate().toISOString().substring(0, 16);
                     }
                     return { id: doc.id, ...data };
                 });
@@ -1076,14 +1077,6 @@
             document.getElementById('edit-news-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 updateNews();
-            });
-
-            document.getElementById('edit-news-no-time-limit').addEventListener('change', (e) => {
-                if (e.target.checked) {
-                    document.getElementById('edit-news-date-fields').classList.add('hidden');
-                } else {
-                    document.getElementById('edit-news-date-fields').classList.remove('hidden');
-                }
             });
         };
     </script>
