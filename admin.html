@@ -144,7 +144,7 @@
         </div>
     </header>
     
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.18</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.19</div>
 
     <main class="container">
         <section id="admin-login-panel" class="card max-w-md mx-auto">
@@ -828,10 +828,19 @@
                 salesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderAdminLists();
             });
-
+            
             const newsRef = query(collection(db, `artifacts/${appId}/public/data/news`), orderBy('order'), orderBy('startDate', 'desc'));
             unsubscribeNews = onSnapshot(newsRef, (snapshot) => {
-                newsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                newsData = snapshot.docs.map(doc => {
+                    const data = doc.data();
+                    if (data.startDate instanceof Date) {
+                        data.startDate = data.startDate.toISOString().substring(0, 16);
+                    }
+                    if (data.endDate instanceof Date) {
+                        data.endDate = data.endDate.toISOString().substring(0, 16);
+                    }
+                    return { id: doc.id, ...data };
+                });
                 renderAdminLists();
             });
         }
@@ -1067,6 +1076,14 @@
             document.getElementById('edit-news-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 updateNews();
+            });
+
+            document.getElementById('edit-news-no-time-limit').addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    document.getElementById('edit-news-date-fields').classList.add('hidden');
+                } else {
+                    document.getElementById('edit-news-date-fields').classList.remove('hidden');
+                }
             });
         };
     </script>
