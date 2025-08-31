@@ -130,7 +130,7 @@
             <div class="flex space-x-4 items-center">
                 <button id="cart-btn" class="relative hover:text-gray-300 transition duration-300">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 11-4 0 2 2 0 014 0z" />
                     </svg>
                     <span id="cart-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">0</span>
                 </button>
@@ -139,7 +139,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.48</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.49</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -253,7 +253,6 @@
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, onSnapshot, collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase-konfiguration från din 'kumlaskytte'-fil
         const firebaseConfig = {
             apiKey: "AIzaSyCorCZf8cH8vD1v47aOADdW3x0hCWlVUfw",
             authDomain: "kumlaskytte.firebaseapp.com",
@@ -264,7 +263,6 @@
             measurementId: "G-KSJ9NLNDBX"
         };
         
-        // Här används projectId från din konfiguration som appId
         const appId = firebaseConfig.projectId;
 
         let db;
@@ -278,8 +276,11 @@
         let initialDataLoaded = {
             postcards: false,
             priceGroups: false,
-            groups: false
+            groups: false,
+            sales: false,
+            news: false
         };
+        let allDataLoaded = false;
 
         document.addEventListener('DOMContentLoaded', () => {
             if (firebaseConfig.projectId) {
@@ -300,7 +301,6 @@
 
             document.getElementById('group-filter').addEventListener('change', renderPostcards);
             
-            // Varukorgs-knappen
             document.getElementById('cart-btn').addEventListener('click', () => {
                 renderCart();
                 document.getElementById('cartModal').classList.add('active');
@@ -314,7 +314,6 @@
                 }
             });
             
-            // Postcard-modalen
             document.getElementById('close-postcard-modal').addEventListener('click', () => {
                 document.getElementById('postcardModal').classList.remove('active');
             });
@@ -323,6 +322,7 @@
                     document.getElementById('postcardModal').classList.remove('active');
                 }
             });
+
             document.getElementById('add-to-cart-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const form = e.target;
@@ -366,8 +366,12 @@
         });
 
         function checkAndRender() {
-            if (initialDataLoaded.postcards && initialDataLoaded.priceGroups && initialDataLoaded.groups) {
-                renderPostcards();
+            if (initialDataLoaded.postcards && initialDataLoaded.priceGroups && initialDataLoaded.groups && initialDataLoaded.sales && initialDataLoaded.news) {
+                if (!allDataLoaded) {
+                    renderPostcards();
+                    renderCart();
+                    allDataLoaded = true;
+                }
             }
         }
 
@@ -390,12 +394,14 @@
             });
             onSnapshot(collection(db, `artifacts/${appId}/public/data/sales`), (snapshot) => {
                 salesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderPostcards();
-                renderCart();
+                initialDataLoaded.sales = true;
+                checkAndRender();
             });
             onSnapshot(query(collection(db, `artifacts/${appId}/public/data/news`), orderBy('order')), (snapshot) => {
                 const newsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderNews(newsData);
+                initialDataLoaded.news = true;
+                checkAndRender();
             });
         }
         
@@ -557,7 +563,6 @@
             
             const saleBadge = hasSale ? '<span class="ml-2 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full">REA!</span>' : '';
 
-            // Ladda bilden för att bestämma orientering
             const image = new Image();
             image.src = p.imageURL;
             await new Promise(resolve => image.onload = resolve);
@@ -655,6 +660,7 @@
             });
             showConfirmationToast();
             saveCart();
+            renderCart();
         }
 
         function editCartItem(index, newItem) {
