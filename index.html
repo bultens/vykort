@@ -127,7 +127,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.42</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.43</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -231,9 +231,6 @@
             groups: false
         };
 
-        // En flagga för att se till att vi bara renderar en gång initialt
-        let hasRenderedInitially = false;
-
         document.addEventListener('DOMContentLoaded', () => {
             if (firebaseConfig.projectId) {
                 try {
@@ -272,10 +269,7 @@
         });
 
         function checkAndRender() {
-            if (initialDataLoaded.postcards && initialDataLoaded.priceGroups && initialDataLoaded.groups && !hasRenderedInitially) {
-                renderPostcards();
-                hasRenderedInitially = true; // Sätt flaggan efter första renderingen
-            } else if (initialDataLoaded.postcards && initialDataLoaded.priceGroups && initialDataLoaded.groups) {
+            if (initialDataLoaded.postcards && initialDataLoaded.priceGroups && initialDataLoaded.groups) {
                 renderPostcards();
             }
         }
@@ -383,16 +377,15 @@
 
         async function renderPostcards() {
             const postcardsList = document.getElementById('postcards-list');
-            const groupFilterValue = document.getElementById('group-filter').value;
+            postcardsList.innerHTML = '';
             
-            postcardsList.innerHTML = ''; 
-
-            const groupsToRender = groupFilterValue === 'all'
+            const groupsToRender = document.getElementById('group-filter').value === 'all'
                 ? groupsData
-                : groupsData.filter(g => g.id === groupFilterValue);
+                : groupsData.filter(g => g.id === document.getElementById('group-filter').value);
             
             const renderedGroups = new Set();
-            
+            let allGroupsHtml = '';
+
             for (const group of groupsToRender) {
                 if (renderedGroups.has(group.id)) continue;
                 renderedGroups.add(group.id);
@@ -400,21 +393,19 @@
                 const postcardsInGroup = postcardsData.filter(p => p.group === group.id);
                 
                 if (postcardsInGroup.length > 0) {
-                    const groupSection = document.createElement('div');
-                    groupSection.innerHTML = `<h2 class="text-3xl font-bold mt-8 mb-4">${group.name}</h2>`;
-                    const groupPostcardsList = document.createElement('div');
-                    groupPostcardsList.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start';
-                    
                     const postcardHtmlPromises = postcardsInGroup.map(p => createPostcardHtml(p));
-                    
                     const postcardHtmls = await Promise.all(postcardHtmlPromises);
-                    
-                    groupPostcardsList.innerHTML = postcardHtmls.join('');
 
-                    groupSection.appendChild(groupPostcardsList);
-                    postcardsList.appendChild(groupSection);
+                    let groupSectionHtml = `<h2 class="text-3xl font-bold mt-8 mb-4">${group.name}</h2>`;
+                    groupSectionHtml += `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">`;
+                    groupSectionHtml += postcardHtmls.join('');
+                    groupSectionHtml += `</div>`;
+                    
+                    allGroupsHtml += groupSectionHtml;
                 }
             }
+            
+            postcardsList.innerHTML = allGroupsHtml;
         }
         
         async function createPostcardHtml(p) {
