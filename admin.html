@@ -6,6 +6,7 @@
     <title>Adminpanel - Bultens.net</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
         body {
@@ -144,7 +145,7 @@
         </div>
     </header>
     
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.18</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.19</div>
 
     <main class="container">
         <section id="admin-login-panel" class="card max-w-md mx-auto">
@@ -210,8 +211,8 @@
                         <label for="no-time-limit" class="text-sm">Ingen tidsbegränsning</label>
                     </div>
                     <div id="sale-date-fields" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <input type="datetime-local" id="sale-start-date" class="w-full p-2 border rounded-md">
-                        <input type="datetime-local" id="sale-end-date" class="w-full p-2 border rounded-md">
+                        <input type="text" id="sale-start-date" class="w-full p-2 border rounded-md" placeholder="Startdatum">
+                        <input type="text" id="sale-end-date" class="w-full p-2 border rounded-md" placeholder="Slutdatum">
                     </div>
                     <select id="sale-timezone" class="w-full p-2 border rounded-md">
                         <option value="UTC">UTC</option>
@@ -247,8 +248,8 @@
                         <label for="news-no-time-limit" class="text-sm">Ingen tidsbegränsning</label>
                     </div>
                     <div id="news-date-fields" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <input type="datetime-local" id="news-start-date" class="w-full p-2 border rounded-md">
-                        <input type="datetime-local" id="news-end-date" class="w-full p-2 border rounded-md">
+                        <input type="text" id="news-start-date" class="w-full p-2 border rounded-md" placeholder="Startdatum">
+                        <input type="text" id="news-end-date" class="w-full p-2 border rounded-md" placeholder="Slutdatum">
                     </div>
                     <button type="submit" class="w-full bg-orange-600 text-white py-2 rounded-md hover:bg-orange-700">Lägg till nyhet</button>
                 </form>
@@ -292,6 +293,7 @@
         </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -879,6 +881,40 @@
             } else {
                 showMessage("Firebase-konfiguration saknas.");
             }
+
+            // Initiera flatpickr för datumfälten
+            flatpickr("#sale-start-date", {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                time_24hr: true,
+                locale: {
+                    firstDayOfWeek: 1
+                }
+            });
+            flatpickr("#sale-end-date", {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                time_24hr: true,
+                locale: {
+                    firstDayOfWeek: 1
+                }
+            });
+            flatpickr("#news-start-date", {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                time_24hr: true,
+                locale: {
+                    firstDayOfWeek: 1
+                }
+            });
+            flatpickr("#news-end-date", {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                time_24hr: true,
+                locale: {
+                    firstDayOfWeek: 1
+                }
+            });
 
             // Eventlyssnare för formulär och knappar
             document.getElementById('login-btn').addEventListener('click', handleLogin);
