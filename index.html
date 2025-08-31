@@ -127,7 +127,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.44</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.45</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -184,6 +184,44 @@
                 <button id="clear-cart-btn" class="px-4 py-2 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 transition duration-300">Töm varukorg</button>
             </div>
             <button id="checkout-btn" class="mt-4 w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300">Gå till kassan</button>
+        </div>
+    </div>
+    
+    <div id="postcardModal" class="modal">
+        <div class="modal-content">
+            <span id="close-postcard-modal" class="modal-close-btn">&times;</span>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="flex flex-col items-center text-center">
+                    <div id="modal-image-wrapper" class="w-full mb-4">
+                        <img id="modal-image" src="" alt="" class="w-full h-auto rounded-lg">
+                    </div>
+                    <h3 id="modal-title" class="text-xl font-bold mb-2"></h3>
+                    <div id="modal-prices" class="text-left w-full"></div>
+                </div>
+                <div id="modal-form-section" class="space-y-4">
+                    <form id="add-to-cart-form">
+                        <input type="hidden" id="modal-postcard-id">
+                        <div class="form-group">
+                            <label class="block font-bold">Välj storlek:</label>
+                            <div id="modal-size-options" class="flex flex-col space-y-2"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="modal-recipient-name" class="block font-bold">Skickas till:</label>
+                            <input type="text" id="modal-recipient-name" name="recipientName" placeholder="Namn" class="w-full p-2 border rounded-md" required>
+                            <input type="text" id="modal-recipient-address" name="recipientAddress" placeholder="Adress" class="w-full p-2 mt-2 border rounded-md" required>
+                            <input type="text" id="modal-recipient-address2" name="recipientAddress2" placeholder="Adress 2 (valfritt)" class="w-full p-2 mt-2 border rounded-md">
+                            <input type="text" id="modal-recipient-zip" name="recipientZip" placeholder="Postadress" class="w-full p-2 mt-2 border rounded-md" required>
+                            <input type="text" id="modal-recipient-city" name="recipientCity" placeholder="Ort" class="w-full p-2 mt-2 border rounded-md" required>
+                            <input type="text" id="modal-recipient-country" name="recipientCountry" placeholder="Land" class="w-full p-2 mt-2 border rounded-md" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="modal-message-text" class="block font-bold">Text på kort:</label>
+                            <textarea id="modal-message-text" name="messageText" rows="4" placeholder="Skriv din text här..." class="w-full p-2 border rounded-md" required></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300">Lägg i varukorgen</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -264,6 +302,45 @@
                 }
             });
             
+            // Postcard-modalen
+            document.getElementById('close-postcard-modal').addEventListener('click', () => {
+                document.getElementById('postcardModal').classList.remove('active');
+            });
+            window.addEventListener('click', (event) => {
+                if (event.target === document.getElementById('postcardModal')) {
+                    document.getElementById('postcardModal').classList.remove('active');
+                }
+            });
+            document.getElementById('add-to-cart-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const form = e.target;
+                const postcardId = form.querySelector('#modal-postcard-id').value;
+                const size = form.querySelector('input[name="size"]:checked').value;
+                const recipientName = form.querySelector('#modal-recipient-name').value;
+                const recipientAddress = form.querySelector('#modal-recipient-address').value;
+                const recipientAddress2 = form.querySelector('#modal-recipient-address2').value;
+                const recipientZip = form.querySelector('#modal-recipient-zip').value;
+                const recipientCity = form.querySelector('#modal-recipient-city').value;
+                const recipientCountry = form.querySelector('#modal-recipient-country').value;
+                const messageText = form.querySelector('#modal-message-text').value;
+
+                addToCart({
+                    id: postcardId,
+                    size: size,
+                    recipient: {
+                        name: recipientName,
+                        address: recipientAddress,
+                        address2: recipientAddress2,
+                        zip: recipientZip,
+                        city: recipientCity,
+                        country: recipientCountry
+                    },
+                    message: messageText
+                });
+                document.getElementById('postcardModal').classList.remove('active');
+                form.reset();
+            });
+
             document.getElementById('clear-cart-btn').addEventListener('click', clearCart);
             updateCartCount();
         });
@@ -308,7 +385,7 @@
             
             const now = new Date();
             const activeNews = news.filter(item => 
-                item.noTimeLimit || (now >= item.startDate.toDate() && now <= item.endDate.toDate())
+                item.noTimeLimit || (item.startDate && item.endDate && now >= new Date(item.startDate) && now <= new Date(item.endDate))
             );
 
             if (activeNews.length === 0) {
@@ -406,6 +483,12 @@
             }
             
             postcardsList.innerHTML = allGroupsHtml;
+            document.querySelectorAll('.postcard-card').forEach(card => {
+                card.addEventListener('click', (e) => {
+                    const postcardId = e.currentTarget.dataset.id;
+                    openPostcardModal(postcardId);
+                });
+            });
         }
         
         async function createPostcardHtml(p) {
@@ -440,14 +523,12 @@
                                     <span class="line-through text-gray-400">${originalPrice} kr</span>
                                     <span class="text-red-600 font-bold ml-1">${discountedPrice.toFixed(2)} kr</span>
                                 </span>
-                                <button onclick="addToCart('${p.id}', '${size}')" class="ml-2 px-2 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700">Köp</button>
                             </div>
                         `;
                     } else {
                         priceHtml += `
                             <div class="flex items-center justify-between mb-1">
                                 <span class="text-sm">${size.charAt(0).toUpperCase() + size.slice(1)}: ${originalPrice} kr</span>
-                                <button onclick="addToCart('${p.id}', '${size}')" class="ml-2 px-2 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700">Köp</button>
                             </div>
                         `;
                     }
@@ -463,7 +544,7 @@
             const orientation = image.naturalWidth > image.naturalHeight ? 'landscape' : 'portrait';
 
             return `
-                <div class="card flex flex-col items-center text-center">
+                <div class="card flex flex-col items-center text-center cursor-pointer postcard-card" data-id="${p.id}">
                     <div class="postcard-image-wrapper ${orientation} rounded-lg mb-4">
                         <img src="${p.imageURL}" alt="${p.title}">
                     </div>
@@ -473,23 +554,79 @@
             `;
         }
         
-        function addToCart(postcardId, size) {
+        function openPostcardModal(postcardId) {
             const postcard = postcardsData.find(p => p.id === postcardId);
             if (!postcard) return;
 
-            const existingItem = cart.find(item => item.id === postcardId && item.size === size);
+            document.getElementById('modal-postcard-id').value = postcard.id;
+            document.getElementById('modal-title').textContent = postcard.title;
+            
+            const imageEl = document.getElementById('modal-image');
+            const imageWrapper = document.getElementById('modal-image-wrapper');
+            imageEl.src = postcard.imageURL;
+
+            // Ladda bilden för att bestämma orientering
+            const image = new Image();
+            image.src = postcard.imageURL;
+            image.onload = () => {
+                const orientation = image.naturalWidth > image.naturalHeight ? 'landscape' : 'portrait';
+                imageWrapper.className = `postcard-image-wrapper ${orientation} rounded-lg mb-4`;
+            };
+
+            const pricesEl = document.getElementById('modal-size-options');
+            pricesEl.innerHTML = '';
+            
+            const priceGroup = priceGroupsData.find(pg => pg.id === postcard.priceGroup);
+            if (priceGroup) {
+                const sizes = ['liten', 'mellan', 'stor'];
+                sizes.forEach((size, index) => {
+                    const originalPrice = priceGroup.prices[size];
+                    const discountedPrice = getDiscountedPrice({ id: postcard.id, size: size, price: originalPrice });
+                    
+                    let priceDisplay = `<span class="font-bold">${discountedPrice.toFixed(2)} kr</span>`;
+                    if (originalPrice !== discountedPrice) {
+                        priceDisplay = `<span class="line-through text-gray-400">${originalPrice.toFixed(2)} kr</span>
+                                        <span class="font-bold ml-1 text-red-600">${discountedPrice.toFixed(2)} kr</span>`;
+                    }
+                    
+                    pricesEl.innerHTML += `
+                        <div class="flex items-center">
+                            <input type="radio" id="size-${size}" name="size" value="${size}" class="mr-2" ${index === 0 ? 'checked' : ''}>
+                            <label for="size-${size}" class="flex-1">${size.charAt(0).toUpperCase() + size.slice(1)} (${priceDisplay})</label>
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById('postcardModal').classList.add('active');
+        }
+
+        function addToCart(item) {
+            const postcard = postcardsData.find(p => p.id === item.id);
+            if (!postcard) return;
+
+            const prices = calculatePrice(postcard);
+            const price = prices[item.size];
+
+            const existingItem = cart.find(cartItem => 
+                cartItem.id === item.id && 
+                cartItem.size === item.size && 
+                JSON.stringify(cartItem.recipient) === JSON.stringify(item.recipient) && 
+                cartItem.message === item.message
+            );
 
             if (existingItem) {
                 existingItem.quantity++;
             } else {
-                const prices = calculatePrice(postcard);
                 cart.push({
-                    id: postcardId,
+                    id: postcard.id,
                     title: postcard.title,
-                    size: size,
-                    price: prices[size],
+                    size: item.size,
+                    price: price,
                     quantity: 1,
-                    group: postcard.group
+                    group: postcard.group,
+                    recipient: item.recipient,
+                    message: item.message
                 });
             }
             showConfirmationToast();
@@ -559,25 +696,26 @@
                     const originalPrice = postcardsData.find(p => p.id === item.id)?.prices?.[item.size] || item.price;
                     let priceDisplay = `<span class="font-bold">${discountedPrice.toFixed(2)} kr</span>`;
                     
-                    if (originalPrice !== discountedPrice) {
+                    if (originalPrice && originalPrice !== discountedPrice) {
                         priceDisplay = `<span class="line-through text-gray-400">${originalPrice.toFixed(2)} kr</span>
                                         <span class="font-bold ml-1 text-red-600">${discountedPrice.toFixed(2)} kr</span>`;
                     }
                     
                     cartItemsEl.innerHTML += `
-                        <div class="flex items-center justify-between p-2 bg-gray-100 rounded-md">
-                            <div>
+                        <div class="flex flex-col p-2 bg-gray-100 rounded-md">
+                            <div class="flex items-center justify-between">
                                 <p class="font-semibold">${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)})</p>
-                                <p class="text-sm text-gray-600">
-                                    ${item.quantity} st @ 
-                                    ${priceDisplay}
-                                </p>
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="updateQuantity(${index}, -1)" class="px-2 py-1 bg-gray-300 rounded-md hover:bg-gray-400">-</button>
+                                    <span class="w-6 text-center">${item.quantity}</span>
+                                    <button onclick="updateQuantity(${index}, 1)" class="px-2 py-1 bg-gray-300 rounded-md hover:bg-gray-400">+</button>
+                                    <button onclick="removeFromCart(${index})" class="px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600">Ta bort</button>
+                                </div>
                             </div>
-                            <div class="flex items-center space-x-2">
-                                <button onclick="updateQuantity(${index}, -1)" class="px-2 py-1 bg-gray-300 rounded-md hover:bg-gray-400">-</button>
-                                <span class="w-6 text-center">${item.quantity}</span>
-                                <button onclick="updateQuantity(${index}, 1)" class="px-2 py-1 bg-gray-300 rounded-md hover:bg-gray-400">+</button>
-                                <button onclick="removeFromCart(${index})" class="px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600">Ta bort</button>
+                            <div class="mt-2 text-sm text-gray-600">
+                                <p><strong>Pris per st:</strong> ${priceDisplay}</p>
+                                <p><strong>Text:</strong> ${item.message || 'Ingen text'}</p>
+                                <p><strong>Mottagare:</strong> ${item.recipient.name || 'Ej angiven'}, ${item.recipient.address || 'Ej angiven'}</p>
                             </div>
                         </div>
                     `;
@@ -625,6 +763,7 @@
         window.updateQuantity = updateQuantity;
         window.removeFromCart = removeFromCart;
         window.clearCart = clearCart;
+        window.openPostcardModal = openPostcardModal;
     </script>
 </body>
 </html>
