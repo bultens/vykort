@@ -145,7 +145,7 @@
         </div>
     </header>
     
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.19</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.20</div>
 
     <main class="container">
         <section id="admin-login-panel" class="card max-w-md mx-auto">
@@ -356,7 +356,7 @@
         
         // Hjälpfunktion för att formatera datum till ISO-format
         function formatDateToISO(timestamp) {
-            if (!timestamp) return null;
+            if (!timestamp) return 'Okänt datum';
             const date = timestamp.toDate();
             const year = date.getFullYear();
             const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -737,7 +737,7 @@
 
 
         function startAdminListeners() {
-            if (!db) return; // Säkerställ att db är initierad
+            if (!db) return;
             
             const priceGroupsRef = collection(db, `artifacts/${appId}/public/data/priceGroups`);
             unsubscribePriceGroups = onSnapshot(priceGroupsRef, (snapshot) => {
@@ -757,7 +757,7 @@
             unsubscribePostcards = onSnapshot(postcardsRef, (snapshot) => {
                 postcardsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderAdminLists();
-                renderGroupsAndPrices(); // Uppdatera filter-listorna när vykort läggs till/tas bort
+                renderGroupsAndPrices();
             });
             
             const adminsRef = collection(db, `artifacts/${appId}/public/data/admins`);
@@ -801,7 +801,6 @@
         window.editNews = editNews;
         window.deleteNews = deleteNews;
         
-        // Logik för inloggning
         async function handleLogin() {
             const username = document.getElementById('admin-username').value;
             const password = document.getElementById('admin-password').value;
@@ -812,7 +811,6 @@
             }
 
             try {
-                // Sök i databasen efter administratörer
                 const adminsRef = collection(db, `artifacts/${appId}/public/data/admins`);
                 const q = query(adminsRef, where('username', '==', username));
                 const querySnapshot = await getDocs(q);
@@ -824,7 +822,6 @@
 
                 const adminData = querySnapshot.docs[0].data();
                 
-                // Jämför lösenordet i koden
                 if (adminData.password === password) {
                     isAdminLoggedIn = true;
                     document.getElementById('admin-login-panel').classList.add('hidden');
@@ -882,7 +879,6 @@
                 showMessage("Firebase-konfiguration saknas.");
             }
 
-            // Initiera flatpickr för datumfälten
             flatpickr("#sale-start-date", {
                 enableTime: true,
                 dateFormat: "Y-m-d H:i",
@@ -916,7 +912,6 @@
                 }
             });
 
-            // Eventlyssnare för formulär och knappar
             document.getElementById('login-btn').addEventListener('click', handleLogin);
             document.getElementById('admin-password').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
@@ -970,7 +965,7 @@
             saleTargetTypeSelect.addEventListener('change', (e) => {
                 if (e.target.value === 'group' || e.target.value === 'product') {
                     saleTargetSelectContainer.classList.remove('hidden');
-                    renderGroupsAndPrices(); // Uppdatera dropdownlistan
+                    renderGroupsAndPrices();
                 } else {
                     saleTargetSelectContainer.classList.add('hidden');
                 }
@@ -1000,8 +995,8 @@
                 
                 addSale(name, value, type, targetType, targetId, noTimeLimit, startDate, endDate, timezone);
                 e.target.reset();
-                noTimeLimitCheckbox.checked = true; // Återställ
-                saleDateFields.classList.add('hidden'); // Dölj datumfälten igen
+                noTimeLimitCheckbox.checked = true;
+                saleDateFields.classList.add('hidden');
             });
             
             const newsDateFields = document.getElementById('news-date-fields');
