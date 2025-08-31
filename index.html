@@ -20,7 +20,7 @@
         .card {
             background-color: #ffffff;
             border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1-px rgba(0, 0, 0, 0.06);
             padding: 2rem;
             margin-bottom: 1.5rem;
         }
@@ -127,7 +127,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.46</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.47</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -200,7 +200,8 @@
                 <div id="modal-form-section" class="space-y-4">
                     <form id="add-to-cart-form">
                         <input type="hidden" id="modal-postcard-id">
-                        <input type="hidden" id="modal-cart-item-index"> <div class="form-group">
+                        <input type="hidden" id="modal-cart-item-index"> 
+                        <div class="form-group">
                             <label class="block font-bold">Välj storlek:</label>
                             <div id="modal-size-options" class="flex flex-col space-y-2"></div>
                         </div>
@@ -314,7 +315,7 @@
                 e.preventDefault();
                 const form = e.target;
                 const postcardId = form.querySelector('#modal-postcard-id').value;
-                const cartItemIndex = form.querySelector('#modal-cart-item-index').value; // Fånga indexet
+                const cartItemIndex = form.querySelector('#modal-cart-item-index').value;
                 const size = form.querySelector('input[name="size"]:checked').value;
                 const recipientName = form.querySelector('#modal-recipient-name').value;
                 const recipientAddress = form.querySelector('#modal-recipient-address').value;
@@ -339,10 +340,8 @@
                 };
 
                 if (cartItemIndex !== "") {
-                    // Redigera befintlig vara i varukorgen
                     editCartItem(parseInt(cartItemIndex), newItem);
                 } else {
-                    // Lägg till ny vara i varukorgen
                     addToCart(newItem);
                 }
                 
@@ -563,19 +562,18 @@
             `;
         }
         
-        function openPostcardModal(postcardId, cartItemIndex = -1) { // Lade till cartItemIndex som parameter
+        function openPostcardModal(postcardId, cartItemIndex = -1) {
             const postcard = postcardsData.find(p => p.id === postcardId);
             if (!postcard) return;
 
             document.getElementById('modal-postcard-id').value = postcard.id;
-            document.getElementById('modal-cart-item-index').value = cartItemIndex; // Sätt indexet
+            document.getElementById('modal-cart-item-index').value = cartItemIndex;
             document.getElementById('modal-title').textContent = postcard.title;
             
             const imageEl = document.getElementById('modal-image');
             const imageWrapper = document.getElementById('modal-image-wrapper');
             imageEl.src = postcard.imageURL;
 
-            // Ladda bilden för att bestämma orientering
             const image = new Image();
             image.src = postcard.imageURL;
             image.onload = () => {
@@ -621,7 +619,6 @@
                 document.getElementById('modal-message-text').value = itemToEdit.message || '';
                 document.querySelector('#add-to-cart-form button[type="submit"]').textContent = "Uppdatera i varukorgen";
             } else {
-                // Återställ formuläret om det är ett nytt kort
                 document.getElementById('add-to-cart-form').reset();
                 document.querySelector('#add-to-cart-form button[type="submit"]').textContent = "Lägg i varukorgen";
             }
@@ -635,7 +632,7 @@
 
             const prices = calculatePrice(postcard);
             const price = prices[item.size];
-
+            
             cart.push({
                 id: postcard.id,
                 title: postcard.title,
@@ -660,20 +657,20 @@
                 id: postcard.id,
                 title: postcard.title,
                 size: newItem.size,
-                price: newPrice, // Uppdatera priset baserat på ny storlek
+                price: newPrice,
                 group: postcard.group,
                 recipient: newItem.recipient,
                 message: newItem.message
             };
             showConfirmationToast("Vara uppdaterad i varukorgen!");
             saveCart();
-            renderCart(); // Rendera om varukorgen efter uppdatering
+            renderCart();
         }
         
         function showConfirmationToast(message = "Vara tillagd i varukorgen!") {
             const toast = document.getElementById('confirmation-toast');
             if (toast) {
-                toast.textContent = message; // Uppdatera meddelandet
+                toast.textContent = message;
                 toast.classList.add('active');
                 setTimeout(() => {
                     toast.classList.remove('active');
@@ -687,14 +684,14 @@
         }
 
         function updateCartCount() {
-            document.getElementById('cart-count').textContent = cart.length; // Antal unika beställningar
+            document.getElementById('cart-count').textContent = cart.length;
         }
 
         function calculateCartTotal() {
             let subtotal = 0;
             cart.forEach(item => {
                 const discountedPrice = getDiscountedPrice(item);
-                subtotal += discountedPrice; // Varje item är nu en enskild beställning
+                subtotal += discountedPrice;
             });
             
             const applicableSales = salesData.filter(s => {
@@ -731,7 +728,7 @@
                 cart.forEach((item, index) => {
                     const discountedPrice = getDiscountedPrice(item);
                     const postcardOriginal = postcardsData.find(p => p.id === item.id);
-                    const originalPrice = postcardOriginal ? calculatePrice(postcardOriginal)[item.size] : item.price; // Använd priset från item om det inte finns i datan
+                    const originalPrice = postcardOriginal ? calculatePrice(postcardOriginal)[item.size] : item.price;
                     
                     let priceDisplay = `<span class="font-bold">${discountedPrice.toFixed(2)} kr</span>`;
                     
@@ -786,7 +783,7 @@
         }
         
         window.addToCart = addToCart;
-        window.editCartItem = editCartItem; // Exponera funktionen
+        window.editCartItem = editCartItem;
         window.removeFromCart = removeFromCart;
         window.clearCart = clearCart;
         window.openPostcardModal = openPostcardModal;
