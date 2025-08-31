@@ -21,7 +21,7 @@
         .card {
             background-color: #ffffff;
             border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1-px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             padding: 2rem;
             margin-bottom: 1.5rem;
         }
@@ -144,7 +144,7 @@
         </div>
     </header>
     
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.18</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.17</div>
 
     <main class="container">
         <section id="admin-login-panel" class="card max-w-md mx-auto">
@@ -351,18 +351,6 @@
                 document.getElementById('confirmationModal').classList.remove('active');
             };
         }
-        
-        // Hjälpfunktion för att formatera datum till ISO-format
-        function formatDateToISO(timestamp) {
-            if (!timestamp) return null;
-            const date = timestamp.toDate();
-            const year = date.getFullYear();
-            const month = (date.getMonth() + 1).toString().padStart(2, '0');
-            const day = date.getDate().toString().padStart(2, '0');
-            const hours = date.getHours().toString().padStart(2, '0');
-            const minutes = date.getMinutes().toString().padStart(2, '0');
-            return `${year}-${month}-${day} ${hours}:${minutes}`;
-        }
 
         // Funktion för att rendera grupper och prisgrupper
         function renderGroupsAndPrices() {
@@ -483,14 +471,8 @@
                                    s.targetType === 'group' ? `Grupp: ${groupsData.find(g => g.id === s.targetId)?.name || 'Okänd'}` :
                                    `Produkt: ${postcardsData.find(p => p.id === s.targetId)?.title || 'Okänd'}`;
                 const valueText = s.type === 'percent' ? `${s.value}%` : `${s.value} kr`;
-                
-                let timeText = s.noTimeLimit ? 'Ingen tidsbegränsning' : `${formatDateToISO(s.startDate)} - ${formatDateToISO(s.endDate)}`;
-
                 div.innerHTML = `
-                    <div>
-                        <span>${s.name} (${valueText} rabatt på ${targetText})</span><br>
-                        <span class="text-sm text-gray-500">${timeText}</span>
-                    </div>
+                    <span>${s.name} (${valueText} rabatt på ${targetText})</span>
                     <button onclick="deleteSale('${s.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>
                 `;
                 salesList.appendChild(div);
@@ -500,14 +482,8 @@
             newsData.forEach(n => {
                 const div = document.createElement('div');
                 div.className = "flex justify-between items-center p-2 bg-gray-100 rounded-md";
-                
-                let timeText = n.noTimeLimit ? 'Ingen tidsbegränsning' : `${formatDateToISO(n.startDate)} - ${formatDateToISO(n.endDate)}`;
-                
                 div.innerHTML = `
-                    <div>
-                        <span>${n.title} (Ordning: ${n.order})</span><br>
-                        <span class="text-sm text-gray-500">${timeText}</span>
-                    </div>
+                    <span>${n.title} (Ordning: ${n.order})</span>
                     <div class="space-x-2">
                         <button onclick="editNews('${n.id}')" class="text-blue-500 hover:text-blue-700">Ändra</button>
                         <button onclick="deleteNews('${n.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>
@@ -987,8 +963,8 @@
                 let endDate = null;
 
                 if (!noTimeLimit) {
-                    startDate = document.getElementById('news-start-date').value;
-                    endDate = document.getElementById('news-end-date').value;
+                    startDate = new Date(document.getElementById('news-start-date').value);
+                    endDate = new Date(document.getElementById('news-end-date').value);
                 }
                 
                 addNews(title, text, order, noTimeLimit, startDate, endDate);
