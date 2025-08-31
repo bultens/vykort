@@ -127,7 +127,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.48</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.49</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -223,14 +223,14 @@
         let priceGroupsData = [];
         let groupsData = [];
         let salesData = [];
-        let newsData = []; // Lagrar nyhetsdata
+        let newsData = [];
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
         
         let initialDataLoaded = {
             postcards: false,
             priceGroups: false,
             groups: false,
-            news: false // Lagt till flagga för nyheter
+            news: false
         };
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -271,7 +271,6 @@
         });
 
         function checkAndRender() {
-            // Endast anropa rendering när all data har laddats
             if (initialDataLoaded.postcards && initialDataLoaded.priceGroups && initialDataLoaded.groups && initialDataLoaded.news) {
                 renderPostcards();
                 renderNews(newsData);
@@ -301,9 +300,11 @@
                 renderCart();
             });
             onSnapshot(query(collection(db, `artifacts/${appId}/public/data/news`), orderBy('order')), (snapshot) => {
-                newsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const newsDataFromDb = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                newsData = newsDataFromDb; // Uppdatera globala nyhetsdatan
                 initialDataLoaded.news = true;
                 renderNews(newsData);
+                checkAndRender();
             });
         }
         
