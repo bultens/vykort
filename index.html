@@ -127,7 +127,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.47</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.44</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -308,7 +308,7 @@
             
             const now = new Date();
             const activeNews = news.filter(item => 
-                item.noTimeLimit || (item.startDate && item.endDate && now >= item.startDate.toDate() && now <= item.endDate.toDate())
+                item.noTimeLimit || (now >= item.startDate.toDate() && now <= item.endDate.toDate())
             );
 
             if (activeNews.length === 0) {
@@ -416,7 +416,7 @@
             
             const applicableSales = salesData.filter(s => {
                 const now = new Date();
-                const isTimeValid = s.noTimeLimit || (s.startDate && s.endDate && now >= s.startDate.toDate() && now <= s.endDate.toDate());
+                const isTimeValid = s.noTimeLimit || (s.startDate && s.endDate && now >= new Date(s.startDate) && now <= new Date(s.endDate));
                 
                 const isTargetValid = (s.targetType === 'group' && s.targetId === p.group) || 
                                       (s.targetType === 'product' && s.targetId === p.id);
@@ -525,7 +525,7 @@
             
             const applicableSales = salesData.filter(s => {
                 const now = new Date();
-                const isTimeValid = s.noTimeLimit || (s.startDate && s.endDate && now >= s.startDate.toDate() && now <= s.endDate.toDate());
+                const isTimeValid = s.noTimeLimit || (s.startDate && s.endDate && now >= new Date(s.startDate) && now <= new Date(s.endDate));
                 const isTargetValid = s.targetType === 'all';
                 return isTimeValid && isTargetValid;
             });
