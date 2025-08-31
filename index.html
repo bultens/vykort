@@ -127,7 +127,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.40</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.41</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -293,7 +293,7 @@
             });
             onSnapshot(query(collection(db, `artifacts/${appId}/public/data/groups`), orderBy('order')), (snapshot) => {
                 groupsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                populateFilters();
+                populateFilters(); 
                 initialDataLoaded.groups = true;
                 checkAndRender();
             });
@@ -391,7 +391,12 @@
                 ? groupsData
                 : groupsData.filter(g => g.id === groupFilterValue);
             
+            const renderedGroups = new Set();
+            
             for (const group of groupsToRender) {
+                if (renderedGroups.has(group.id)) continue;
+                renderedGroups.add(group.id);
+
                 const postcardsInGroup = postcardsData.filter(p => p.group === group.id);
                 
                 if (postcardsInGroup.length > 0) {
