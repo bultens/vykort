@@ -127,7 +127,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.45</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.46</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -196,12 +196,11 @@
                         <img id="modal-image" src="" alt="" class="w-full h-auto rounded-lg">
                     </div>
                     <h3 id="modal-title" class="text-xl font-bold mb-2"></h3>
-                    <div id="modal-prices" class="text-left w-full"></div>
                 </div>
                 <div id="modal-form-section" class="space-y-4">
                     <form id="add-to-cart-form">
                         <input type="hidden" id="modal-postcard-id">
-                        <div class="form-group">
+                        <input type="hidden" id="modal-cart-item-index"> <div class="form-group">
                             <label class="block font-bold">Välj storlek:</label>
                             <div id="modal-size-options" class="flex flex-col space-y-2"></div>
                         </div>
@@ -216,7 +215,7 @@
                         </div>
                         <div class="form-group">
                             <label for="modal-message-text" class="block font-bold">Text på kort:</label>
-                            <textarea id="modal-message-text" name="messageText" rows="4" placeholder="Skriv din text här..." class="w-full p-2 border rounded-md" required></textarea>
+                            <textarea id="modal-message-text" name="messageText" rows="4" placeholder="Skriv din text här..." class="w-full p-2 border rounded-md"></textarea>
                         </div>
                         <button type="submit" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300">Lägg i varukorgen</button>
                     </form>
@@ -315,6 +314,7 @@
                 e.preventDefault();
                 const form = e.target;
                 const postcardId = form.querySelector('#modal-postcard-id').value;
+                const cartItemIndex = form.querySelector('#modal-cart-item-index').value; // Fånga indexet
                 const size = form.querySelector('input[name="size"]:checked').value;
                 const recipientName = form.querySelector('#modal-recipient-name').value;
                 const recipientAddress = form.querySelector('#modal-recipient-address').value;
@@ -324,7 +324,7 @@
                 const recipientCountry = form.querySelector('#modal-recipient-country').value;
                 const messageText = form.querySelector('#modal-message-text').value;
 
-                addToCart({
+                const newItem = {
                     id: postcardId,
                     size: size,
                     recipient: {
@@ -336,7 +336,16 @@
                         country: recipientCountry
                     },
                     message: messageText
-                });
+                };
+
+                if (cartItemIndex !== "") {
+                    // Redigera befintlig vara i varukorgen
+                    editCartItem(parseInt(cartItemIndex), newItem);
+                } else {
+                    // Lägg till ny vara i varukorgen
+                    addToCart(newItem);
+                }
+                
                 document.getElementById('postcardModal').classList.remove('active');
                 form.reset();
             });
@@ -554,11 +563,12 @@
             `;
         }
         
-        function openPostcardModal(postcardId) {
+        function openPostcardModal(postcardId, cartItemIndex = -1) { // Lade till cartItemIndex som parameter
             const postcard = postcardsData.find(p => p.id === postcardId);
             if (!postcard) return;
 
             document.getElementById('modal-postcard-id').value = postcard.id;
+            document.getElementById('modal-cart-item-index').value = cartItemIndex; // Sätt indexet
             document.getElementById('modal-title').textContent = postcard.title;
             
             const imageEl = document.getElementById('modal-image');
@@ -598,6 +608,24 @@
                 });
             }
 
+            // Fyll i formuläret om vi redigerar en befintlig vara
+            if (cartItemIndex !== -1) {
+                const itemToEdit = cart[cartItemIndex];
+                document.getElementById(`size-${itemToEdit.size}`).checked = true;
+                document.getElementById('modal-recipient-name').value = itemToEdit.recipient.name || '';
+                document.getElementById('modal-recipient-address').value = itemToEdit.recipient.address || '';
+                document.getElementById('modal-recipient-address2').value = itemToEdit.recipient.address2 || '';
+                document.getElementById('modal-recipient-zip').value = itemToEdit.recipient.zip || '';
+                document.getElementById('modal-recipient-city').value = itemToEdit.recipient.city || '';
+                document.getElementById('modal-recipient-country').value = itemToEdit.recipient.country || '';
+                document.getElementById('modal-message-text').value = itemToEdit.message || '';
+                document.querySelector('#add-to-cart-form button[type="submit"]').textContent = "Uppdatera i varukorgen";
+            } else {
+                // Återställ formuläret om det är ett nytt kort
+                document.getElementById('add-to-cart-form').reset();
+                document.querySelector('#add-to-cart-form button[type="submit"]').textContent = "Lägg i varukorgen";
+            }
+
             document.getElementById('postcardModal').classList.add('active');
         }
 
@@ -608,34 +636,44 @@
             const prices = calculatePrice(postcard);
             const price = prices[item.size];
 
-            const existingItem = cart.find(cartItem => 
-                cartItem.id === item.id && 
-                cartItem.size === item.size && 
-                JSON.stringify(cartItem.recipient) === JSON.stringify(item.recipient) && 
-                cartItem.message === item.message
-            );
-
-            if (existingItem) {
-                existingItem.quantity++;
-            } else {
-                cart.push({
-                    id: postcard.id,
-                    title: postcard.title,
-                    size: item.size,
-                    price: price,
-                    quantity: 1,
-                    group: postcard.group,
-                    recipient: item.recipient,
-                    message: item.message
-                });
-            }
+            cart.push({
+                id: postcard.id,
+                title: postcard.title,
+                size: item.size,
+                price: price,
+                group: postcard.group,
+                recipient: item.recipient,
+                message: item.message
+            });
             showConfirmationToast();
             saveCart();
         }
+
+        function editCartItem(index, newItem) {
+            const postcard = postcardsData.find(p => p.id === newItem.id);
+            if (!postcard) return;
+
+            const prices = calculatePrice(postcard);
+            const newPrice = prices[newItem.size];
+
+            cart[index] = {
+                id: postcard.id,
+                title: postcard.title,
+                size: newItem.size,
+                price: newPrice, // Uppdatera priset baserat på ny storlek
+                group: postcard.group,
+                recipient: newItem.recipient,
+                message: newItem.message
+            };
+            showConfirmationToast("Vara uppdaterad i varukorgen!");
+            saveCart();
+            renderCart(); // Rendera om varukorgen efter uppdatering
+        }
         
-        function showConfirmationToast() {
+        function showConfirmationToast(message = "Vara tillagd i varukorgen!") {
             const toast = document.getElementById('confirmation-toast');
             if (toast) {
+                toast.textContent = message; // Uppdatera meddelandet
                 toast.classList.add('active');
                 setTimeout(() => {
                     toast.classList.remove('active');
@@ -649,15 +687,14 @@
         }
 
         function updateCartCount() {
-            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-            document.getElementById('cart-count').textContent = count;
+            document.getElementById('cart-count').textContent = cart.length; // Antal unika beställningar
         }
 
         function calculateCartTotal() {
             let subtotal = 0;
             cart.forEach(item => {
                 const discountedPrice = getDiscountedPrice(item);
-                subtotal += discountedPrice * item.quantity;
+                subtotal += discountedPrice; // Varje item är nu en enskild beställning
             });
             
             const applicableSales = salesData.filter(s => {
@@ -693,7 +730,9 @@
             } else {
                 cart.forEach((item, index) => {
                     const discountedPrice = getDiscountedPrice(item);
-                    const originalPrice = postcardsData.find(p => p.id === item.id)?.prices?.[item.size] || item.price;
+                    const postcardOriginal = postcardsData.find(p => p.id === item.id);
+                    const originalPrice = postcardOriginal ? calculatePrice(postcardOriginal)[item.size] : item.price; // Använd priset från item om det inte finns i datan
+                    
                     let priceDisplay = `<span class="font-bold">${discountedPrice.toFixed(2)} kr</span>`;
                     
                     if (originalPrice && originalPrice !== discountedPrice) {
@@ -706,16 +745,14 @@
                             <div class="flex items-center justify-between">
                                 <p class="font-semibold">${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)})</p>
                                 <div class="flex items-center space-x-2">
-                                    <button onclick="updateQuantity(${index}, -1)" class="px-2 py-1 bg-gray-300 rounded-md hover:bg-gray-400">-</button>
-                                    <span class="w-6 text-center">${item.quantity}</span>
-                                    <button onclick="updateQuantity(${index}, 1)" class="px-2 py-1 bg-gray-300 rounded-md hover:bg-gray-400">+</button>
+                                    <button onclick="openPostcardModal('${item.id}', ${index})" class="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600">Ändra</button>
                                     <button onclick="removeFromCart(${index})" class="px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600">Ta bort</button>
                                 </div>
                             </div>
                             <div class="mt-2 text-sm text-gray-600">
-                                <p><strong>Pris per st:</strong> ${priceDisplay}</p>
+                                <p><strong>Pris:</strong> ${priceDisplay}</p>
                                 <p><strong>Text:</strong> ${item.message || 'Ingen text'}</p>
-                                <p><strong>Mottagare:</strong> ${item.recipient.name || 'Ej angiven'}, ${item.recipient.address || 'Ej angiven'}</p>
+                                <p><strong>Mottagare:</strong> ${item.recipient.name || 'Ej angiven'}, ${item.recipient.address || 'Ej angiven'}, ${item.recipient.zip || ''} ${item.recipient.city || ''}, ${item.recipient.country || ''}</p>
                             </div>
                         </div>
                     `;
@@ -736,17 +773,6 @@
             updateCartCount();
         }
 
-        function updateQuantity(index, change) {
-            if (cart[index]) {
-                cart[index].quantity += change;
-                if (cart[index].quantity <= 0) {
-                    cart.splice(index, 1);
-                }
-                saveCart();
-                renderCart();
-            }
-        }
-
         function removeFromCart(index) {
             cart.splice(index, 1);
             saveCart();
@@ -760,7 +786,7 @@
         }
         
         window.addToCart = addToCart;
-        window.updateQuantity = updateQuantity;
+        window.editCartItem = editCartItem; // Exponera funktionen
         window.removeFromCart = removeFromCart;
         window.clearCart = clearCart;
         window.openPostcardModal = openPostcardModal;
