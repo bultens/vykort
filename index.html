@@ -139,7 +139,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.49</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.50</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -581,7 +581,10 @@
         
         function openPostcardModal(postcardId, cartItemIndex = -1) {
             const postcard = postcardsData.find(p => p.id === postcardId);
-            if (!postcard) return;
+            if (!postcard) {
+                console.error("Vykortet hittades inte:", postcardId);
+                return;
+            }
 
             document.getElementById('modal-postcard-id').value = postcard.id;
             document.getElementById('modal-cart-item-index').value = cartItemIndex;
@@ -644,7 +647,10 @@
 
         function addToCart(item) {
             const postcard = postcardsData.find(p => p.id === item.id);
-            if (!postcard) return;
+            if (!postcard) {
+                console.error("Kunde inte lägga till i varukorgen, vykortet hittades inte.");
+                return;
+            }
 
             const prices = calculatePrice(postcard);
             const price = prices[item.size];
@@ -665,7 +671,10 @@
 
         function editCartItem(index, newItem) {
             const postcard = postcardsData.find(p => p.id === newItem.id);
-            if (!postcard) return;
+            if (!postcard) {
+                console.error("Kunde inte uppdatera i varukorgen, vykortet hittades inte.");
+                return;
+            }
 
             const prices = calculatePrice(postcard);
             const newPrice = prices[newItem.size];
