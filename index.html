@@ -127,7 +127,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.38</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.39</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -379,7 +379,7 @@
             const postcardsList = document.getElementById('postcards-list');
             const groupFilterValue = document.getElementById('group-filter').value;
             
-            postcardsList.innerHTML = '';
+            postcardsList.innerHTML = ''; // Rensa innan rendering
 
             const groupsToRender = groupFilterValue === 'all'
                 ? groupsData
@@ -394,9 +394,14 @@
                     const groupPostcardsList = document.createElement('div');
                     groupPostcardsList.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start';
                     
-                    const postcardPromises = postcardsInGroup.map(p => createPostcardHtml(p));
-                    const postcardHtmls = await Promise.all(postcardPromises);
-                    postcardHtmls.forEach(html => groupPostcardsList.innerHTML += html);
+                    // Skapa en array av promises för att ladda bilder och generera HTML
+                    const postcardHtmlPromises = postcardsInGroup.map(p => createPostcardHtml(p));
+                    
+                    // Vänta på att alla promises ska lösas
+                    const postcardHtmls = await Promise.all(postcardHtmlPromises);
+                    
+                    // Lägg till all HTML för gruppen på en gång
+                    groupPostcardsList.innerHTML = postcardHtmls.join('');
 
                     groupSection.appendChild(groupPostcardsList);
                     postcardsList.appendChild(groupSection);
@@ -452,6 +457,7 @@
             
             const saleBadge = hasSale ? '<span class="ml-2 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full">REA!</span>' : '';
 
+            // Ladda bilden för att bestämma orientering
             const image = new Image();
             image.src = p.imageURL;
             await new Promise(resolve => image.onload = resolve);
