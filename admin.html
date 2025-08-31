@@ -858,6 +858,11 @@
 
             // Eventlyssnare för formulär och knappar
             document.getElementById('login-btn').addEventListener('click', handleLogin);
+            document.getElementById('admin-password').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    handleLogin();
+                }
+            });
             document.getElementById('logout-btn').addEventListener('click', handleLogout);
             document.getElementById('add-price-group-form').addEventListener('submit', (e) => {
                 e.preventDefault();
