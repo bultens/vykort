@@ -139,7 +139,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.67</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.68/div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -674,15 +674,13 @@
         }
 
         function addToCart(item) {
-            console.log("addToCart()", item);
             cart.push(item);
             saveCart();
             renderCart();
         }
 
         function editCartItem(index, newItem) {
-            console.log("editCartItem()", index, newItem);
-            cart[index] = newItem;
+            art[index] = newItem;
             saveCart();
             renderCart();
         }
@@ -699,7 +697,6 @@
         }
 
         function saveCart() {
-            console.log("saveCart() →", cart);
             localStorage.setItem('cart', JSON.stringify(cart));
             updateCartCount();
         }
