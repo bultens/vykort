@@ -137,7 +137,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.30</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.31</div>
 
     <main class="container">
         <h1 class="text-4xl font-bold mb-6 text-center">Beställningshantering</h1>
@@ -216,14 +216,12 @@
                     db = getFirestore(app);
                     auth = getAuth(app);
                     
-                    // Kontrollera om admin är inloggad via localStorage
                     const adminLoggedIn = localStorage.getItem('adminLoggedIn');
                     if (!adminLoggedIn) {
                         window.location.href = 'admin.html';
                         return;
                     }
 
-                    // Fortsätt med inloggad admin
                     startListeners();
                     document.getElementById('loading-message').classList.add('hidden');
                     document.getElementById('order-status-summary').classList.remove('hidden');
@@ -236,7 +234,6 @@
                 document.getElementById('loading-message').textContent = 'Firebase-konfiguration saknas.';
             }
 
-            // Flyttat eventlyssnare hit så de alltid är tillgängliga
             document.getElementById('close-order-modal').addEventListener('click', () => {
                 document.getElementById('orderModal').classList.remove('active');
             });
