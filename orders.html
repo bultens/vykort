@@ -137,7 +137,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.28</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.30</div>
 
     <main class="container">
         <h1 class="text-4xl font-bold mb-6 text-center">Beställningshantering</h1>
@@ -179,7 +179,7 @@
     <div id="messageModal" class="modal">
         <div class="modal-content text-center">
             <p id="modal-message"></p>
-            <button onclick="document.getElementById('messageModal').classList.remove('active')" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md">OK</button>
+            <button id="close-message-modal" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md">OK</button>
         </div>
     </div>
 
@@ -216,22 +216,18 @@
                     db = getFirestore(app);
                     auth = getAuth(app);
                     
-                    onAuthStateChanged(auth, async (user) => {
-                        if (user) {
-                            const adminsRef = collection(db, `artifacts/${appId}/public/data/admins`);
-                            const q = query(adminsRef, where('uid', '==', user.uid));
-                            const adminDoc = await getDocs(q);
-                            if (!adminDoc.empty) {
-                                startListeners();
-                                document.getElementById('loading-message').classList.add('hidden');
-                                document.getElementById('order-status-summary').classList.remove('hidden');
-                            } else {
-                                window.location.href = 'admin.html';
-                            }
-                        } else {
-                            window.location.href = 'admin.html';
-                        }
-                    });
+                    // Kontrollera om admin är inloggad via localStorage
+                    const adminLoggedIn = localStorage.getItem('adminLoggedIn');
+                    if (!adminLoggedIn) {
+                        window.location.href = 'admin.html';
+                        return;
+                    }
+
+                    // Fortsätt med inloggad admin
+                    startListeners();
+                    document.getElementById('loading-message').classList.add('hidden');
+                    document.getElementById('order-status-summary').classList.remove('hidden');
+
                 } catch (e) {
                     console.error("Firebase initieringsfel:", e);
                     document.getElementById('loading-message').textContent = 'Kunde inte ansluta till databasen.';
@@ -240,6 +236,7 @@
                 document.getElementById('loading-message').textContent = 'Firebase-konfiguration saknas.';
             }
 
+            // Flyttat eventlyssnare hit så de alltid är tillgängliga
             document.getElementById('close-order-modal').addEventListener('click', () => {
                 document.getElementById('orderModal').classList.remove('active');
             });
