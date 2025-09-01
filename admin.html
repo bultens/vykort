@@ -329,23 +329,15 @@
     </footer>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, onSnapshot, collection, addDoc, deleteDoc, doc, updateDoc, query, where, getDocs, writeBatch, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, onSnapshot, collection, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    
+    // Importera din konfiguration från den nya filen
+    import { firebaseConfig } from "./firebase-config.js";
 
-        // Firebase-konfiguration från din 'kumlaskytte'-fil
-        const firebaseConfig = {
-            apiKey: "AIzaSyB52hRH8vfCKFLCAzPCEaQM05lKHgYq-hE",
-            authDomain: "kumlaskytte.firebaseapp.com",
-            projectId: "kumlaskytte",
-            storageBucket: "kumlaskytte.firebasestorage.app",
-            messagingSenderId: "571676149705",
-            appId: "1:571676149705:web:a0ace868f4680298a78a18",
-            measurementId: "G-KSJ9NLNDBX"
-        };
-        
-        // Här används projectId från din konfiguration som appId
-        const appId = firebaseConfig.projectId;
+    // Nu kan du använda firebaseConfig direkt här
+    const appId = firebaseConfig.projectId;
 
         let db;
         let auth;
