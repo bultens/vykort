@@ -155,7 +155,7 @@
         </div>
     </header>
     
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.27</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.28</div>
 
     <main class="container">
         <section id="admin-login-panel" class="card max-w-md mx-auto">
@@ -341,7 +341,7 @@
 
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     
     // Importera din konfiguration från den nya filen
@@ -362,7 +362,6 @@
         let adminsData = [];
         let salesData = [];
         let newsData = [];
-        let ordersData = [];
         let unsubscribePriceGroups = null;
         let unsubscribeGroups = null;
         let unsubscribePostcards = null;
@@ -542,7 +541,7 @@
             });
         }
         
-        function updateOrderStatusCounts(orders) {
+        function updateStatusBar(orders) {
             const statusCounts = {
                 'Ny': 0, 'Väntar': 0, 'Avakta Betalning': 0, 'Betald': 0, 'Skickad': 0, 'Klar': 0
             };
@@ -560,6 +559,7 @@
             document.getElementById('status-Skickad').textContent = `Skickad: ${statusCounts['Skickad']}`;
             document.getElementById('status-Klar').textContent = `Klar: ${statusCounts['Klar']}`;
             document.getElementById('order-status-summary').classList.remove('hidden');
+            document.getElementById('orders-link-container').classList.remove('hidden');
         }
 
         // CRUD-funktioner för prisgrupper
@@ -819,7 +819,7 @@
             });
         }
 
-        function updateStatusBar(orders) {
+        function updateAdminStatusBar(orders) {
             const statusCounts = {
                 'Ny': 0, 'Väntar': 0, 'Avakta Betalning': 0, 'Betald': 0, 'Skickad': 0, 'Klar': 0
             };
@@ -836,13 +836,11 @@
             document.getElementById('status-Betald').textContent = `Betald: ${statusCounts['Betald']}`;
             document.getElementById('status-Skickad').textContent = `Skickad: ${statusCounts['Skickad']}`;
             document.getElementById('status-Klar').textContent = `Klar: ${statusCounts['Klar']}`;
-            document.getElementById('order-status-summary').classList.remove('hidden');
-            document.getElementById('orders-link-container').classList.remove('hidden');
         }
 
 
         function startAdminListeners() {
-            if (!db) return; // Säkerställ att db är initierad
+            if (!db) return;
             
             const priceGroupsRef = collection(db, `artifacts/${appId}/public/data/priceGroups`);
             unsubscribePriceGroups = onSnapshot(priceGroupsRef, (snapshot) => {
@@ -862,7 +860,7 @@
             unsubscribePostcards = onSnapshot(postcardsRef, (snapshot) => {
                 postcardsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderAdminLists();
-                renderGroupsAndPrices(); // Uppdatera filter-listorna när vykort läggs till/tas bort
+                renderGroupsAndPrices();
             });
             
             const adminsRef = collection(db, `artifacts/${appId}/public/data/admins`);
@@ -892,11 +890,10 @@
                 renderAdminLists();
             });
             
-            // Listener för orderstatus i nav-fältet
             const ordersRef = collection(db, `artifacts/${appId}/public/data/orders`);
             unsubscribeOrders = onSnapshot(ordersRef, (snapshot) => {
                 const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                updateStatusBar(orders);
+                updateAdminStatusBar(orders);
             });
         }
 
@@ -910,7 +907,6 @@
             if (unsubscribeOrders) unsubscribeOrders();
         }
 
-        // Globala funktioner för att anropa från HTML
         window.editPriceGroup = editPriceGroup;
         window.deletePriceGroup = deletePriceGroup;
         window.editGroup = editGroup;
@@ -923,7 +919,6 @@
         window.editNews = editNews;
         window.deleteNews = deleteNews;
         
-        // Logik för inloggning
         async function handleLogin() {
             const username = document.getElementById('admin-username').value;
             const password = document.getElementById('admin-password').value;
@@ -934,7 +929,6 @@
             }
 
             try {
-                // Sök i databasen efter administratörer
                 const adminsRef = collection(db, `artifacts/${appId}/public/data/admins`);
                 const q = query(adminsRef, where('username', '==', username));
                 const querySnapshot = await getDocs(q);
@@ -947,8 +941,8 @@
                 const adminDoc = querySnapshot.docs[0];
                 const adminData = adminDoc.data();
                 
-                // Jämför lösenordet i koden
                 if (adminData.password === password) {
+                    await signInWithEmailAndPassword(auth, adminData.username + '@' + adminData.id, adminData.password); // Logga in med Firebase Auth
                     isAdminLoggedIn = true;
                     document.getElementById('admin-login-panel').classList.add('hidden');
                     document.getElementById('admin-panel').classList.remove('hidden');
@@ -967,19 +961,23 @@
         }
 
         function handleLogout() {
-            isAdminLoggedIn = false;
-            document.getElementById('admin-login-panel').classList.remove('hidden');
-            document.getElementById('admin-panel').classList.add('hidden');
-            document.getElementById('admin-management-section').classList.add('hidden');
-            document.getElementById('admin-indicator').classList.add('hidden');
-            document.getElementById('admin-username').value = '';
-            document.getElementById('admin-password').value = '';
-            currentEditingPostcardId = null;
-            document.getElementById('add-postcard-btn').textContent = 'Lägg till vykort';
-            document.getElementById('add-postcard-form').reset();
-            stopAdminListeners();
-            document.getElementById('order-status-summary').classList.add('hidden');
-            document.getElementById('orders-link-container').classList.add('hidden');
+            signOut(auth).then(() => {
+                isAdminLoggedIn = false;
+                document.getElementById('admin-login-panel').classList.remove('hidden');
+                document.getElementById('admin-panel').classList.add('hidden');
+                document.getElementById('admin-management-section').classList.add('hidden');
+                document.getElementById('admin-indicator').classList.add('hidden');
+                document.getElementById('admin-username').value = '';
+                document.getElementById('admin-password').value = '';
+                currentEditingPostcardId = null;
+                document.getElementById('add-postcard-btn').textContent = 'Lägg till vykort';
+                document.getElementById('add-postcard-form').reset();
+                stopAdminListeners();
+                document.getElementById('order-status-summary').classList.add('hidden');
+                document.getElementById('orders-link-container').classList.add('hidden');
+            }).catch((error) => {
+                console.error("Utloggning misslyckades:", error);
+            });
         }
 
         window.onload = function () {
@@ -990,15 +988,27 @@
                     auth = getAuth(app);
                     
                     onAuthStateChanged(auth, async (user) => {
-                        if (!user) {
-                            try {
-                                await signInAnonymously(auth);
-                            } catch (e) {
-                                console.error("Anonym inloggning misslyckades:", e);
+                        if (user) {
+                            const adminsRef = collection(db, `artifacts/${appId}/public/data/admins`);
+                            const q = query(adminsRef, where('uid', '==', user.uid));
+                            const querySnapshot = await getDocs(q);
+
+                            if (!querySnapshot.empty) {
+                                isAdminLoggedIn = true;
+                                document.getElementById('admin-login-panel').classList.add('hidden');
+                                document.getElementById('admin-panel').classList.remove('hidden');
+                                document.getElementById('admin-management-section').classList.remove('hidden');
+                                document.getElementById('admin-indicator').classList.remove('hidden');
+                                document.getElementById('admin-user-info').textContent = `Du är inloggad som ${querySnapshot.docs[0].data().username}.`;
+                                startAdminListeners();
+                            } else {
+                                handleLogout();
                             }
+                        } else {
+                             document.getElementById('admin-login-panel').classList.remove('hidden');
+                             document.getElementById('admin-panel').classList.add('hidden');
                         }
                     });
-
                 } catch (e) {
                     console.error("Firebase initieringsfel:", e);
                     showMessage("Databasen kunde inte anslutas. Kontakta webbplatsadministratören.");
@@ -1007,7 +1017,6 @@
                 showMessage("Firebase-konfiguration saknas.");
             }
 
-            // Eventlyssnare för formulär och knappar
             document.getElementById('login-btn').addEventListener('click', handleLogin);
             document.getElementById('admin-password').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
@@ -1037,11 +1046,11 @@
                 e.preventDefault();
                 addOrUpdatePostcard();
             });
-            document.getElementById('add-admin-form').addEventListener('submit', (e) => {
+            document.getElementById('add-admin-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const username = document.getElementById('new-admin-username').value;
                 const password = document.getElementById('new-admin-password').value;
-                addAdmin(username, password);
+                await addAdmin(username, password);
                 e.target.reset();
             });
             
@@ -1061,7 +1070,7 @@
             saleTargetTypeSelect.addEventListener('change', (e) => {
                 if (e.target.value === 'group' || e.target.value === 'product') {
                     saleTargetSelectContainer.classList.remove('hidden');
-                    renderGroupsAndPrices(); // Uppdatera dropdownlistan
+                    renderGroupsAndPrices();
                 } else {
                     saleTargetSelectContainer.classList.add('hidden');
                 }
@@ -1091,8 +1100,8 @@
                 
                 addSale(name, value, type, targetType, targetId, noTimeLimit, startDate, endDate, timezone);
                 e.target.reset();
-                noTimeLimitCheckbox.checked = true; // Återställ
-                saleDateFields.classList.add('hidden'); // Dölj datumfälten igen
+                noTimeLimitCheckbox.checked = true;
+                saleDateFields.classList.add('hidden');
             });
             
             const newsDateFields = document.getElementById('news-date-fields');

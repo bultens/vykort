@@ -137,7 +137,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.27</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.28</div>
 
     <main class="container">
         <h1 class="text-4xl font-bold mb-6 text-center">Beställningshantering</h1>
@@ -195,8 +195,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, onSnapshot, collection, query, orderBy, getDocs, writeBatch, updateDoc, doc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, onSnapshot, collection, query, orderBy, getDocs, updateDoc, doc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { firebaseConfig } from "./firebase-config.js";
 
         const appId = firebaseConfig.projectId;
@@ -207,6 +207,7 @@
         let postcardsData = [];
         let currentOrder = null;
         let unsubscribeOrders = null;
+        let unsubscribePostcards = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             if (firebaseConfig.projectId) {
@@ -217,15 +218,14 @@
                     
                     onAuthStateChanged(auth, async (user) => {
                         if (user) {
-                            // Check if user is an admin
                             const adminsRef = collection(db, `artifacts/${appId}/public/data/admins`);
                             const q = query(adminsRef, where('uid', '==', user.uid));
                             const adminDoc = await getDocs(q);
                             if (!adminDoc.empty) {
                                 startListeners();
                                 document.getElementById('loading-message').classList.add('hidden');
+                                document.getElementById('order-status-summary').classList.remove('hidden');
                             } else {
-                                // Not an admin, redirect or show error
                                 window.location.href = 'admin.html';
                             }
                         } else {
@@ -243,6 +243,12 @@
             document.getElementById('close-order-modal').addEventListener('click', () => {
                 document.getElementById('orderModal').classList.remove('active');
             });
+            document.getElementById('close-message-modal').addEventListener('click', () => {
+                document.getElementById('messageModal').classList.remove('active');
+            });
+            document.getElementById('confirm-no-btn').addEventListener('click', () => {
+                document.getElementById('confirmationModal').classList.remove('active');
+            });
         });
 
         function showMessage(message) {
@@ -255,13 +261,9 @@
             document.getElementById('confirmationModal').classList.add('active');
             
             const confirmBtn = document.getElementById('confirm-yes-btn');
-            const cancelBtn = document.getElementById('confirm-no-btn');
 
             confirmBtn.onclick = () => {
                 onConfirm();
-                document.getElementById('confirmationModal').classList.remove('active');
-            };
-            cancelBtn.onclick = () => {
                 document.getElementById('confirmationModal').classList.remove('active');
             };
         }
@@ -275,9 +277,9 @@
             });
 
             const postcardsRef = collection(db, `artifacts/${appId}/public/data/postcards`);
-            onSnapshot(postcardsRef, (snapshot) => {
+            unsubscribePostcards = onSnapshot(postcardsRef, (snapshot) => {
                 postcardsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderOrders(); // Re-render orders if postcard data changes
+                renderOrders();
             });
         }
 
@@ -300,7 +302,6 @@
             document.getElementById('status-Betald').textContent = `Betald: ${statusCounts['Betald']}`;
             document.getElementById('status-Skickad').textContent = `Skickad: ${statusCounts['Skickad']}`;
             document.getElementById('status-Klar').textContent = `Klar: ${statusCounts['Klar']}`;
-            document.getElementById('order-status-summary').classList.remove('hidden');
         }
         
         async function renderOrders() {
@@ -491,7 +492,6 @@
         window.updateItemStatus = updateItemStatus;
         window.deleteOrder = deleteOrder;
         window.openOrderModal = openOrderModal;
-
     </script>
 </body>
 </html>
