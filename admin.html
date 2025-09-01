@@ -155,7 +155,7 @@
         </div>
     </header>
     
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.28</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.29</div>
 
     <main class="container">
         <section id="admin-login-panel" class="card max-w-md mx-auto">
@@ -341,7 +341,7 @@
 
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     
     // Importera din konfiguration från den nya filen
@@ -541,7 +541,7 @@
             });
         }
         
-        function updateStatusBar(orders) {
+        function updateAdminStatusBar(orders) {
             const statusCounts = {
                 'Ny': 0, 'Väntar': 0, 'Avakta Betalning': 0, 'Betald': 0, 'Skickad': 0, 'Klar': 0
             };
@@ -942,7 +942,9 @@
                 const adminData = adminDoc.data();
                 
                 if (adminData.password === password) {
-                    await signInWithEmailAndPassword(auth, adminData.username + '@' + adminData.id, adminData.password); // Logga in med Firebase Auth
+                     // Logga in med Firebase Auth
+                    await signInWithEmailAndPassword(auth, adminData.username + '@bultens.net', adminData.password);
+                    
                     isAdminLoggedIn = true;
                     document.getElementById('admin-login-panel').classList.add('hidden');
                     document.getElementById('admin-panel').classList.remove('hidden');
@@ -956,7 +958,7 @@
                 
             } catch (e) {
                 console.error("Inloggningsfel:", e);
-                showMessage('Ett fel uppstod vid inloggning.');
+                showMessage('Ett fel uppstod vid inloggning. Kontrollera att Firebase Auth är aktiverat.');
             }
         }
 
@@ -1001,12 +1003,18 @@
                                 document.getElementById('admin-indicator').classList.remove('hidden');
                                 document.getElementById('admin-user-info').textContent = `Du är inloggad som ${querySnapshot.docs[0].data().username}.`;
                                 startAdminListeners();
+                                document.getElementById('order-status-summary').classList.remove('hidden');
+                                document.getElementById('orders-link-container').classList.remove('hidden');
                             } else {
                                 handleLogout();
                             }
                         } else {
                              document.getElementById('admin-login-panel').classList.remove('hidden');
                              document.getElementById('admin-panel').classList.add('hidden');
+                             document.getElementById('admin-management-section').classList.add('hidden');
+                             document.getElementById('admin-indicator').classList.add('hidden');
+                             document.getElementById('order-status-summary').classList.add('hidden');
+                             document.getElementById('orders-link-container').classList.add('hidden');
                         }
                     });
                 } catch (e) {
