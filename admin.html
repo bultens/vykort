@@ -21,7 +21,7 @@
         .card {
             background-color: #ffffff;
             border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1-px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             padding: 2rem;
             margin-bottom: 1.5rem;
         }
@@ -136,15 +136,26 @@
                     </div>
                 </div>
             </div>
-            <nav>
-                <ul class="flex space-x-4 font-medium">
+            <nav class="mt-4 sm:mt-0">
+                <ul class="flex space-x-4 font-medium items-center">
+                    <li>
+                        <div id="order-status-summary" class="flex flex-wrap justify-center sm:justify-start gap-2 text-xs">
+                            <span id="status-Ny" class="bg-blue-500 text-white px-2 py-1 rounded-full">Ny: 0</span>
+                            <span id="status-Väntar" class="bg-yellow-500 text-white px-2 py-1 rounded-full">Väntar: 0</span>
+                            <span id="status-Avakta-Betalning" class="bg-orange-500 text-white px-2 py-1 rounded-full">Avvakta: 0</span>
+                            <span id="status-Betald" class="bg-green-500 text-white px-2 py-1 rounded-full">Betald: 0</span>
+                            <span id="status-Skickad" class="bg-cyan-500 text-white px-2 py-1 rounded-full">Skickad: 0</span>
+                            <span id="status-Klar" class="bg-gray-500 text-white px-2 py-1 rounded-full">Klar: 0</span>
+                        </div>
+                    </li>
                     <li><a href="index.html" class="hover:text-gray-300 transition duration-300">Till Butik</a></li>
+                    <li><a href="orders.html" class="hover:text-gray-300 transition duration-300">Beställningar</a></li>
                 </ul>
             </nav>
         </div>
     </header>
     
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.25</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.26</div>
 
     <main class="container">
         <section id="admin-login-panel" class="card max-w-md mx-auto">
@@ -252,13 +263,6 @@
                     </div>
                     <button type="submit" class="w-full bg-orange-600 text-white py-2 rounded-md hover:bg-orange-700">Lägg till nyhet</button>
                 </form>
-            </div>
-
-            <div class="card">
-                <h2 class="text-2xl font-bold mb-4">Beställningar</h2>
-                <div id="orders-list" class="space-y-4 mb-4">
-                    <p class="text-gray-500">Laddar beställningar...</p>
-                </div>
             </div>
         </section>
         
@@ -434,8 +438,7 @@
             const adminsList = document.getElementById('admin-list');
             const salesList = document.getElementById('sales-list');
             const newsList = document.getElementById('news-list');
-            const ordersList = document.getElementById('orders-list'); // Get orders list element
-
+            
             priceGroupsList.innerHTML = '';
             priceGroupsData.forEach(pg => {
                 const div = document.createElement('div');
@@ -537,44 +540,28 @@
                 `;
                 newsList.appendChild(div);
             });
+        }
 
-            // Render orders list
-            ordersList.innerHTML = '';
-            if (ordersData.length === 0) {
-                ordersList.innerHTML = '<p class="text-gray-500">Inga beställningar hittades.</p>';
-            } else {
-                ordersData.forEach(o => {
-                    const div = document.createElement('div');
-                    div.className = "p-4 bg-gray-100 rounded-md shadow-sm";
-                    
-                    const timestamp = o.timestamp?.toDate ? o.timestamp.toDate().toLocaleString('sv-SE') : 'Okänt datum';
-                    const customerInfo = o.isGuest ? `Gäst` : `Inloggad användare`;
-                    const customerEmail = o.billingInfo?.email || 'Ingen e-post';
+        function updateStatusBar() {
+            const statusCounts = {
+                'Ny': 0, 'Väntar': 0, 'Avakta Betalning': 0, 'Betald': 0, 'Skickad': 0, 'Klar': 0
+            };
+            ordersData.forEach(order => {
+                const status = order.status || 'Ny';
+                if (statusCounts[status] !== undefined) {
+                    statusCounts[status]++;
+                } else {
+                    // Fallback for unexpected statuses, if any
+                    statusCounts['Ny']++; 
+                }
+            });
 
-                    let itemsHtml = o.items.map(item => `
-                        <p class="text-sm">- ${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)}), ${item.price.toFixed(2)} kr</p>
-                    `).join('');
-
-                    div.innerHTML = `
-                        <div class="flex justify-between items-center mb-2">
-                            <h3 class="font-bold">Beställning #${o.id.substring(0, 8)}</h3>
-                            <span class="text-sm text-gray-500">${timestamp}</span>
-                        </div>
-                        <p class="text-sm"><strong>Kund:</strong> ${o.billingInfo?.name || 'Ej angivet'}</p>
-                        <p class="text-sm"><strong>E-post:</strong> ${customerEmail}</p>
-                        <p class="text-sm"><strong>Status:</strong> Obehandlad</p>
-                        <p class="text-sm"><strong>Summa:</strong> ${o.total.toFixed(2)} kr</p>
-                        <div class="mt-2">
-                            <h4 class="font-semibold text-sm">Produkter:</h4>
-                            ${itemsHtml}
-                        </div>
-                        <div class="mt-2 text-sm text-gray-600">
-                            <p><strong>Fakturering:</strong> ${o.billingInfo?.address}, ${o.billingInfo?.zip} ${o.billingInfo?.city}</p>
-                        </div>
-                    `;
-                    ordersList.appendChild(div);
-                });
-            }
+            document.getElementById('status-Ny').textContent = `Ny: ${statusCounts['Ny']}`;
+            document.getElementById('status-Väntar').textContent = `Väntar: ${statusCounts['Väntar']}`;
+            document.getElementById('status-Avakta-Betalning').textContent = `Avvakta: ${statusCounts['Avakta Betalning']}`;
+            document.getElementById('status-Betald').textContent = `Betald: ${statusCounts['Betald']}`;
+            document.getElementById('status-Skickad').textContent = `Skickad: ${statusCounts['Skickad']}`;
+            document.getElementById('status-Klar').textContent = `Klar: ${statusCounts['Klar']}`;
         }
         
         // CRUD-funktioner för prisgrupper
@@ -834,6 +821,26 @@
             });
         }
 
+        function updateStatusBar() {
+            if (!isAdminLoggedIn) return;
+            const statusCounts = {
+                'Ny': 0, 'Väntar': 0, 'Avakta Betalning': 0, 'Betald': 0, 'Skickad': 0, 'Klar': 0
+            };
+            ordersData.forEach(order => {
+                const status = order.status || 'Ny';
+                if (statusCounts[status] !== undefined) {
+                    statusCounts[status]++;
+                }
+            });
+
+            document.getElementById('status-Ny').textContent = `Ny: ${statusCounts['Ny']}`;
+            document.getElementById('status-Väntar').textContent = `Väntar: ${statusCounts['Väntar']}`;
+            document.getElementById('status-Avakta-Betalning').textContent = `Avvakta: ${statusCounts['Avakta Betalning']}`;
+            document.getElementById('status-Betald').textContent = `Betald: ${statusCounts['Betald']}`;
+            document.getElementById('status-Skickad').textContent = `Skickad: ${statusCounts['Skickad']}`;
+            document.getElementById('status-Klar').textContent = `Klar: ${statusCounts['Klar']}`;
+        }
+
 
         function startAdminListeners() {
             if (!db) return; // Säkerställ att db är initierad
@@ -887,11 +894,10 @@
                 renderAdminLists();
             });
 
-            // New listener for orders
-            const ordersRef = query(collection(db, `artifacts/${appId}/public/data/orders`), orderBy('timestamp', 'desc'));
+            const ordersRef = collection(db, `artifacts/${appId}/public/data/orders`);
             unsubscribeOrders = onSnapshot(ordersRef, (snapshot) => {
                 ordersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderAdminLists();
+                updateStatusBar();
             });
         }
 
@@ -939,7 +945,8 @@
                     return;
                 }
 
-                const adminData = querySnapshot.docs[0].data();
+                const adminDoc = querySnapshot.docs[0];
+                const adminData = adminDoc.data();
                 
                 // Jämför lösenordet i koden
                 if (adminData.password === password) {
