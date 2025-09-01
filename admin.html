@@ -144,7 +144,7 @@
         </div>
     </header>
     
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.21</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.23</div>
 
     <main class="container">
         <section id="admin-login-panel" class="card max-w-md mx-auto">
@@ -829,7 +829,7 @@
                 renderAdminLists();
             });
             
-            const newsRef = query(collection(db, `artifacts/${appId}/public/data/news`), orderBy('order'), orderBy('startDate', 'desc'));
+            const newsRef = query(collection(db, `artifacts/${appId}/public/data/news`), orderBy('order'));
             unsubscribeNews = onSnapshot(newsRef, (snapshot) => {
                 newsData = snapshot.docs.map(doc => {
                     const data = doc.data();
