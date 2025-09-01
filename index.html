@@ -147,7 +147,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.72</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.75</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -255,7 +255,7 @@
             <h2 class="text-2xl font-bold mb-4 text-center" id="user-modal-title">Logga in</h2>
             <div id="user-form-container">
                 <form id="login-form" class="space-y-4">
-                    <input type="text" id="login-email" placeholder="E-postadress" class="w-full p-3 rounded-lg border border-gray-300">
+                    <input type="email" id="login-email" placeholder="E-postadress" class="w-full p-3 rounded-lg border border-gray-300">
                     <input type="password" id="login-password" placeholder="Lösenord" class="w-full p-3 rounded-lg border border-gray-300">
                     <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700">Logga in</button>
                 </form>
@@ -276,27 +276,58 @@
             <span id="close-checkout-modal" class="modal-close-btn">&times;</span>
             <h2 class="text-2xl font-bold mb-4">Kassa</h2>
             <div id="checkout-content">
-                <div id="checkout-user-section" class="mb-6 card">
-                    <h3 class="text-xl font-bold mb-4">Steg 1: Användare</h3>
-                    <div id="checkout-user-status">
-                        <p id="checkout-login-message">Du måste logga in eller skapa ett konto för att fortsätta.</p>
-                        <div id="checkout-login-forms" class="mt-4">
-                            <form id="checkout-login-form" class="space-y-2">
-                                <h4 class="font-semibold">Logga in</h4>
-                                <input type="email" id="checkout-login-email" placeholder="E-postadress" class="w-full p-2 border rounded-md">
-                                <input type="password" id="checkout-login-password" placeholder="Lösenord" class="w-full p-2 border rounded-md">
-                                <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700">Logga in</button>
-                            </form>
-                            <hr class="my-4">
-                            <form id="checkout-register-form" class="space-y-2">
-                                <h4 class="font-semibold">Skapa konto</h4>
-                                <input type="text" id="checkout-register-username" placeholder="Användarnamn" class="w-full p-2 border rounded-md">
-                                <input type="email" id="checkout-register-email" placeholder="E-postadress" class="w-full p-2 border rounded-md">
-                                <input type="password" id="checkout-register-password" placeholder="Lösenord" class="w-full p-2 border rounded-md">
-                                <button type="submit" class="bg-green-600 text-white font-bold py-2 px-4 rounded-md hover:bg-green-700">Skapa konto</button>
-                            </form>
-                        </div>
+                <div id="checkout-start-section" class="mb-6 card text-center">
+                    <h3 class="text-xl font-bold mb-4">Fortsätt till kassan</h3>
+                    <p class="mb-4">Vill du logga in för att spara din orderhistorik, eller fortsätta som gäst?</p>
+                    <div class="space-y-4">
+                        <button id="guest-checkout-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300">Fortsätt som gäst</button>
+                        <button id="login-checkout-btn" class="w-full bg-gray-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-700 transition duration-300">Logga in / Skapa konto</button>
                     </div>
+                </div>
+
+                <div id="checkout-login-section" class="mb-6 card hidden">
+                    <h3 class="text-xl font-bold mb-4">Steg 1: Logga in / Skapa konto</h3>
+                    <form id="checkout-login-form" class="space-y-2">
+                        <h4 class="font-semibold">Logga in</h4>
+                        <input type="email" id="checkout-login-email" placeholder="E-postadress" class="w-full p-2 border rounded-md">
+                        <input type="password" id="checkout-login-password" placeholder="Lösenord" class="w-full p-2 border rounded-md">
+                        <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700">Logga in</button>
+                    </form>
+                    <hr class="my-4">
+                    <form id="checkout-register-form" class="space-y-2">
+                        <h4 class="font-semibold">Skapa konto</h4>
+                        <input type="text" id="checkout-register-username" placeholder="Användarnamn" class="w-full p-2 border rounded-md">
+                        <input type="email" id="checkout-register-email" placeholder="E-postadress" class="w-full p-2 border rounded-md">
+                        <input type="password" id="checkout-register-password" placeholder="Lösenord" class="w-full p-2 border rounded-md">
+                        <button type="submit" class="bg-green-600 text-white font-bold py-2 px-4 rounded-md hover:bg-green-700">Skapa konto</button>
+                    </form>
+                </div>
+
+                <div id="billing-info-section" class="mb-6 card hidden">
+                    <h3 class="text-xl font-bold mb-4">Steg 2: Fakturering & leverans</h3>
+                    <form id="billing-info-form" class="space-y-4">
+                        <div class="form-group">
+                            <label for="billing-name" class="block font-bold">Namn:</label>
+                            <input type="text" id="billing-name" placeholder="Fullständigt namn" class="w-full p-2 border rounded-md" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="billing-address" class="block font-bold">Adress:</label>
+                            <input type="text" id="billing-address" placeholder="Gatuadress" class="w-full p-2 border rounded-md" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="billing-zip" class="block font-bold">Postnummer:</label>
+                            <input type="text" id="billing-zip" placeholder="Postnummer" class="w-full p-2 border rounded-md" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="billing-city" class="block font-bold">Stad:</label>
+                            <input type="text" id="billing-city" placeholder="Stad" class="w-full p-2 border rounded-md" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="billing-email" class="block font-bold">E-post:</label>
+                            <input type="email" id="billing-email" placeholder="E-postadress för bekräftelse" class="w-full p-2 border rounded-md" required>
+                        </div>
+                        <button type="submit" id="place-order-btn" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300">Bekräfta beställning</button>
+                    </form>
                 </div>
 
                 <div id="order-history-section" class="mb-6 card hidden">
@@ -305,10 +336,24 @@
                         <p class="text-gray-500">Inga tidigare ordrar hittades.</p>
                     </div>
                 </div>
+
+                <div id="order-confirmation-section" class="mb-6 card hidden">
+                    <h3 class="text-xl font-bold mb-4 text-center text-green-600">Tack för din beställning!</h3>
+                    <p class="text-center mb-4">Din beställning är nu skickad. Vi kommer att kontakta dig via e-post med betalningsinformation för att slutföra ditt köp.</p>
+                    <p class="text-center">**Beställnings-ID:** <span id="order-id"></span></p>
+                </div>
             </div>
         </div>
     </div>
 
+    <div id="errorModal" class="modal">
+        <div class="modal-content max-w-sm mx-auto p-6 bg-white rounded-lg shadow-xl text-center">
+            <h3 id="error-modal-title" class="text-xl font-bold text-red-600 mb-4">Ett fel uppstod</h3>
+            <p id="error-modal-message" class="text-gray-700 mb-6"></p>
+            <button id="close-error-modal" class="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition duration-300">OK</button>
+        </div>
+    </div>
+    
 
     <footer class="bg-gray-800 text-white text-center py-4 mt-8">
         <div class="container text-sm">
@@ -319,13 +364,10 @@
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    // ... resten av din kod
+    import { getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     
-    // Importera din konfiguration från den nya filen
     import { firebaseConfig } from "./firebase-config.js";
 
-    // Nu kan du använda firebaseConfig direkt här
     const appId = firebaseConfig.projectId;
         
 
@@ -459,7 +501,17 @@
                 renderCheckout();
             });
             
-            // Hantera inloggnings- och registreringsformulär
+            // Handle new checkout flow buttons
+            document.getElementById('guest-checkout-btn').addEventListener('click', () => {
+                document.getElementById('checkout-start-section').classList.add('hidden');
+                document.getElementById('billing-info-section').classList.remove('hidden');
+            });
+            document.getElementById('login-checkout-btn').addEventListener('click', () => {
+                document.getElementById('checkout-start-section').classList.add('hidden');
+                document.getElementById('checkout-login-section').classList.remove('hidden');
+            });
+
+            // Handle user-related modals and forms
             document.getElementById('login-link').addEventListener('click', (e) => {
                 e.preventDefault();
                 document.getElementById('userModal').classList.add('active');
@@ -484,7 +536,7 @@
             document.getElementById('login-form').addEventListener('submit', handleLogin);
             document.getElementById('register-form').addEventListener('submit', handleRegister);
             
-            // Hantera utloggning från header
+            // Handle header logout link
             document.getElementById('user-status').addEventListener('click', async (e) => {
                 if (e.target.id === 'logout-link') {
                     e.preventDefault();
@@ -494,13 +546,30 @@
                 }
             });
 
-            // Hantera kassan
+            // Handle checkout forms
             document.getElementById('checkout-login-form').addEventListener('submit', handleCheckoutLogin);
             document.getElementById('checkout-register-form').addEventListener('submit', handleCheckoutRegister);
+            document.getElementById('billing-info-form').addEventListener('submit', handlePlaceOrder);
             document.getElementById('close-checkout-modal').addEventListener('click', () => {
                 document.getElementById('checkoutModal').classList.remove('active');
             });
+
+            // Handle closing the error modal
+            document.getElementById('close-error-modal').addEventListener('click', () => {
+                document.getElementById('errorModal').classList.remove('active');
+            });
+            window.addEventListener('click', (event) => {
+                if (event.target === document.getElementById('errorModal')) {
+                    document.getElementById('errorModal').classList.remove('active');
+                }
+            });
         });
+
+        function showErrorModal(title, message) {
+            document.getElementById('error-modal-title').textContent = title;
+            document.getElementById('error-modal-message').textContent = message;
+            document.getElementById('errorModal').classList.add('active');
+        }
 
         async function handleLogin(e) {
             e.preventDefault();
@@ -512,7 +581,30 @@
                 showConfirmationToast("Inloggad!");
             } catch (error) {
                 console.error("Login error:", error.code, error.message);
-                alert("Inloggningen misslyckades: " + error.message);
+                let title = "Inloggningen misslyckades";
+                let message = "Ett okänt fel uppstod.";
+
+                switch (error.code) {
+                    case 'auth/missing-password':
+                        title = "Lösenord saknas";
+                        message = "Vänligen ange ditt lösenord för att logga in.";
+                        break;
+                    case 'auth/invalid-credential':
+                    case 'auth/wrong-password':
+                    case 'auth/user-not-found':
+                    case 'auth/invalid-email':
+                        title = "Felaktiga inloggningsuppgifter";
+                        message = "Kontrollera din e-postadress och ditt lösenord och försök igen.";
+                        break;
+                    case 'auth/user-disabled':
+                        title = "Användarkonto inaktiverat";
+                        message = "Ditt användarkonto har blivit inaktiverat. Kontakta support för hjälp.";
+                        break;
+                    default:
+                        message = error.message;
+                        break;
+                }
+                showErrorModal(title, message);
             }
         }
 
@@ -523,7 +615,7 @@
             const password = document.getElementById('register-password').value;
             
             if (password.length < 6) {
-                alert("Lösenordet måste vara minst 6 tecken.");
+                showErrorModal("Lösenordet är för svagt", "Lösenordet måste vara minst 6 tecken långt.");
                 return;
             }
 
@@ -541,7 +633,31 @@
                 showConfirmationToast("Konto skapat och inloggad!");
             } catch (error) {
                 console.error("Registration error:", error.code, error.message);
-                alert("Registrering misslyckades: " + error.message);
+                let title = "Registreringen misslyckades";
+                let message = "Ett okänt fel uppstod.";
+
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        title = "E-postadressen används redan";
+                        message = "Den angivna e-postadressen används redan av ett annat konto.";
+                        break;
+                    case 'auth/invalid-email':
+                        title = "Ogiltig e-postadress";
+                        message = "Vänligen ange en giltig e-postadress.";
+                        break;
+                    case 'auth/operation-not-allowed':
+                        title = "Registrering ej tillåten";
+                        message = "E-post-/lösenordsinloggning är inte aktiverat. Kontakta administratören.";
+                        break;
+                    case 'auth/weak-password':
+                        title = "Lösenordet är för svagt";
+                        message = "Lösenordet måste vara minst 6 tecken långt.";
+                        break;
+                    default:
+                        message = error.message;
+                        break;
+                }
+                showErrorModal(title, message);
             }
         }
 
@@ -555,7 +671,30 @@
                 renderCheckout();
             } catch (error) {
                 console.error("Login error:", error.code, error.message);
-                alert("Inloggningen misslyckades: " + error.message);
+                let title = "Inloggningen misslyckades";
+                let message = "Ett okänt fel uppstod.";
+
+                switch (error.code) {
+                    case 'auth/missing-password':
+                        title = "Lösenord saknas";
+                        message = "Vänligen ange ditt lösenord för att logga in.";
+                        break;
+                    case 'auth/invalid-credential': 
+                    case 'auth/wrong-password':
+                    case 'auth/user-not-found':
+                    case 'auth/invalid-email':
+                        title = "Felaktiga inloggningsuppgifter";
+                        message = "Kontrollera din e-postadress och ditt lösenord och försök igen.";
+                        break;
+                    case 'auth/user-disabled':
+                        title = "Användarkonto inaktiverat";
+                        message = "Ditt användarkonto har blivit inaktiverat. Kontakta support för hjälp.";
+                        break;
+                    default:
+                        message = error.message;
+                        break;
+                }
+                showErrorModal(title, message);
             }
         }
         
@@ -566,7 +705,7 @@
             const password = document.getElementById('checkout-register-password').value;
             
             if (password.length < 6) {
-                alert("Lösenordet måste vara minst 6 tecken.");
+                showErrorModal("Lösenordet är för svagt", "Lösenordet måste vara minst 6 tecken långt.");
                 return;
             }
             
@@ -580,9 +719,97 @@
                 renderCheckout();
             } catch (error) {
                 console.error("Registration error:", error.code, error.message);
-                alert("Registrering misslyckades: " + error.message);
+                let title = "Registreringen misslyckades";
+                let message = "Ett okänt fel uppstod.";
+
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        title = "E-postadressen används redan";
+                        message = "Den angivna e-postadressen används redan av ett annat konto.";
+                        break;
+                    case 'auth/invalid-email':
+                        title = "Ogiltig e-postadress";
+                        message = "Vänligen ange en giltig e-postadress.";
+                        break;
+                    case 'auth/operation-not-allowed':
+                        title = "Registrering ej tillåten";
+                        message = "E-post-/lösenordsinloggning är inte aktiverat. Kontakta administratören.";
+                        break;
+                    case 'auth/weak-password':
+                        title = "Lösenordet är för svagt";
+                        message = "Lösenordet måste vara minst 6 tecken långt.";
+                        break;
+                    default:
+                        message = error.message;
+                        break;
+                }
+                showErrorModal(title, message);
             }
         }
+        
+        async function handlePlaceOrder(e) {
+            e.preventDefault();
+            
+            const billingInfo = {
+                name: document.getElementById('billing-name').value,
+                address: document.getElementById('billing-address').value,
+                zip: document.getElementById('billing-zip').value,
+                city: document.getElementById('billing-city').value,
+                email: document.getElementById('billing-email').value
+            };
+            
+            const cartItemsForOrder = cart.map(item => ({
+                id: item.id,
+                title: item.title,
+                size: item.size,
+                price: getDiscountedPrice(item),
+                message: item.message,
+                recipient: item.recipient
+            }));
+            
+            const { finalTotal } = calculateCartTotal();
+            
+            // Order data for the general orders collection
+            const orderData = {
+                items: cartItemsForOrder,
+                total: finalTotal,
+                billingInfo: billingInfo,
+                timestamp: serverTimestamp(),
+                userId: currentUser ? currentUser.uid : null,
+                isGuest: !currentUser
+            };
+            
+            try {
+                // Add to general orders collection for admin to see
+                const newOrderRef = await addDoc(collection(db, `artifacts/${appId}/public/data/orders`), orderData);
+                
+                // If user is logged in, also save to their personal order history (without PII)
+                if (currentUser) {
+                    const privateOrderData = {
+                        items: cartItemsForOrder.map(item => ({
+                            id: item.id,
+                            title: item.title,
+                            size: item.size,
+                            price: item.price
+                        })),
+                        total: finalTotal,
+                        timestamp: serverTimestamp()
+                    };
+                    await addDoc(collection(db, `artifacts/public/users/${currentUser.uid}/orders`), privateOrderData);
+                }
+                
+                // Show confirmation message
+                document.getElementById('billing-info-section').classList.add('hidden');
+                document.getElementById('order-confirmation-section').classList.remove('hidden');
+                document.getElementById('order-id').textContent = newOrderRef.id;
+
+                clearCart();
+            } catch (e) {
+                console.error("Fel vid beställning:", e);
+                showErrorModal("Beställningen misslyckades", "Ett fel uppstod när din beställning skulle sparas. Vänligen försök igen.");
+            }
+        }
+
 
         function updateUserStatus(isLoggedIn) {
             const userStatusEl = document.getElementById('user-status');
@@ -593,7 +820,7 @@
                     e.preventDefault();
                     document.getElementById('main-content').classList.add('hidden');
                     document.getElementById('checkoutModal').classList.add('active');
-                    renderCheckout();
+                    renderCheckout(true);
                 });
             } else {
                 userStatusEl.innerHTML = `<a href="#" id="login-link" class="hover:text-gray-300 transition duration-300">Logga in</a>`;
@@ -604,24 +831,24 @@
             }
         }
         
-        function renderCheckout() {
-            const userSection = document.getElementById('checkout-user-section');
-            const userStatusText = document.getElementById('checkout-login-message');
-            const loginForms = document.getElementById('checkout-login-forms');
-            const orderHistorySection = document.getElementById('order-history-section');
-            const mainContent = document.getElementById('main-content');
+        function renderCheckout(showOrders = false) {
+            // Reset all checkout sections
+            document.getElementById('checkout-start-section').classList.add('hidden');
+            document.getElementById('checkout-login-section').classList.add('hidden');
+            document.getElementById('billing-info-section').classList.add('hidden');
+            document.getElementById('order-history-section').classList.add('hidden');
+            document.getElementById('order-confirmation-section').classList.add('hidden');
+            document.getElementById('main-content').classList.add('hidden');
 
-            mainContent.classList.add('hidden');
 
-            if (currentUser) {
-                userStatusText.textContent = `Du är inloggad som ${currentUser.email}.`;
-                loginForms.classList.add('hidden');
-                orderHistorySection.classList.remove('hidden');
+            if (showOrders && currentUser) {
+                document.getElementById('order-history-section').classList.remove('hidden');
                 renderOrderHistory();
+            } else if (currentUser) {
+                document.getElementById('billing-info-section').classList.remove('hidden');
+                document.getElementById('billing-email').value = currentUser.email;
             } else {
-                userStatusText.textContent = `Du måste logga in eller skapa ett konto för att fortsätta.`;
-                loginForms.classList.remove('hidden');
-                orderHistorySection.classList.add('hidden');
+                document.getElementById('checkout-start-section').classList.remove('hidden');
             }
         }
 
