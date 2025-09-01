@@ -139,7 +139,7 @@
             <nav class="mt-4 sm:mt-0">
                 <ul class="flex space-x-4 font-medium items-center">
                     <li>
-                        <div id="order-status-summary" class="flex flex-wrap justify-center sm:justify-start gap-2 text-xs">
+                        <div id="order-status-summary" class="hidden flex flex-wrap justify-center sm:justify-start gap-2 text-xs">
                             <span id="status-Ny" class="bg-blue-500 text-white px-2 py-1 rounded-full">Ny: 0</span>
                             <span id="status-Väntar" class="bg-yellow-500 text-white px-2 py-1 rounded-full">Väntar: 0</span>
                             <span id="status-Avakta-Betalning" class="bg-orange-500 text-white px-2 py-1 rounded-full">Avvakta: 0</span>
@@ -149,13 +149,13 @@
                         </div>
                     </li>
                     <li><a href="index.html" class="hover:text-gray-300 transition duration-300">Till Butik</a></li>
-                    <li><a href="orders.html" class="hover:text-gray-300 transition duration-300">Beställningar</a></li>
+                    <li id="orders-link-container" class="hidden"><a href="orders.html" class="hover:text-gray-300 transition duration-300">Beställningar</a></li>
                 </ul>
             </nav>
         </div>
     </header>
     
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.26</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.27</div>
 
     <main class="container">
         <section id="admin-login-panel" class="card max-w-md mx-auto">
@@ -362,14 +362,14 @@
         let adminsData = [];
         let salesData = [];
         let newsData = [];
-        let ordersData = []; // New data array for orders
+        let ordersData = [];
         let unsubscribePriceGroups = null;
         let unsubscribeGroups = null;
         let unsubscribePostcards = null;
         let unsubscribeAdmins = null;
         let unsubscribeSales = null;
         let unsubscribeNews = null;
-        let unsubscribeOrders = null; // New listener for orders
+        let unsubscribeOrders = null;
 
         // Modala funktioner
         function showMessage(message) {
@@ -541,18 +541,15 @@
                 newsList.appendChild(div);
             });
         }
-
-        function updateStatusBar() {
+        
+        function updateOrderStatusCounts(orders) {
             const statusCounts = {
                 'Ny': 0, 'Väntar': 0, 'Avakta Betalning': 0, 'Betald': 0, 'Skickad': 0, 'Klar': 0
             };
-            ordersData.forEach(order => {
+            orders.forEach(order => {
                 const status = order.status || 'Ny';
                 if (statusCounts[status] !== undefined) {
                     statusCounts[status]++;
-                } else {
-                    // Fallback for unexpected statuses, if any
-                    statusCounts['Ny']++; 
                 }
             });
 
@@ -562,8 +559,9 @@
             document.getElementById('status-Betald').textContent = `Betald: ${statusCounts['Betald']}`;
             document.getElementById('status-Skickad').textContent = `Skickad: ${statusCounts['Skickad']}`;
             document.getElementById('status-Klar').textContent = `Klar: ${statusCounts['Klar']}`;
+            document.getElementById('order-status-summary').classList.remove('hidden');
         }
-        
+
         // CRUD-funktioner för prisgrupper
         async function addPriceGroup(name, prices) {
             if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
@@ -821,12 +819,11 @@
             });
         }
 
-        function updateStatusBar() {
-            if (!isAdminLoggedIn) return;
+        function updateStatusBar(orders) {
             const statusCounts = {
                 'Ny': 0, 'Väntar': 0, 'Avakta Betalning': 0, 'Betald': 0, 'Skickad': 0, 'Klar': 0
             };
-            ordersData.forEach(order => {
+            orders.forEach(order => {
                 const status = order.status || 'Ny';
                 if (statusCounts[status] !== undefined) {
                     statusCounts[status]++;
@@ -839,6 +836,8 @@
             document.getElementById('status-Betald').textContent = `Betald: ${statusCounts['Betald']}`;
             document.getElementById('status-Skickad').textContent = `Skickad: ${statusCounts['Skickad']}`;
             document.getElementById('status-Klar').textContent = `Klar: ${statusCounts['Klar']}`;
+            document.getElementById('order-status-summary').classList.remove('hidden');
+            document.getElementById('orders-link-container').classList.remove('hidden');
         }
 
 
@@ -882,7 +881,6 @@
             unsubscribeNews = onSnapshot(newsRef, (snapshot) => {
                 newsData = snapshot.docs.map(doc => {
                     const data = doc.data();
-                    // Handle Timestamp objects from Firestore
                     if (data.startDate && data.startDate.toDate) {
                         data.startDate = data.startDate.toDate().toISOString().substring(0, 16);
                     }
@@ -893,11 +891,12 @@
                 });
                 renderAdminLists();
             });
-
+            
+            // Listener för orderstatus i nav-fältet
             const ordersRef = collection(db, `artifacts/${appId}/public/data/orders`);
             unsubscribeOrders = onSnapshot(ordersRef, (snapshot) => {
-                ordersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                updateStatusBar();
+                const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                updateStatusBar(orders);
             });
         }
 
@@ -979,6 +978,8 @@
             document.getElementById('add-postcard-btn').textContent = 'Lägg till vykort';
             document.getElementById('add-postcard-form').reset();
             stopAdminListeners();
+            document.getElementById('order-status-summary').classList.add('hidden');
+            document.getElementById('orders-link-container').classList.add('hidden');
         }
 
         window.onload = function () {

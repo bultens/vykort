@@ -122,7 +122,7 @@
                 <span class="text-3xl font-bold tracking-tight">Beställningar</span>
             </div>
             <nav class="mt-4 sm:mt-0 flex flex-col sm:flex-row items-center sm:space-x-4 space-y-2 sm:space-y-0 text-sm">
-                <div id="order-status-summary" class="flex flex-wrap justify-center sm:justify-start gap-2 text-xs">
+                <div id="order-status-summary" class="hidden flex flex-wrap justify-center sm:justify-start gap-2 text-xs">
                     <span id="status-Ny" class="bg-blue-500 text-white px-2 py-1 rounded-full">Ny: 0</span>
                     <span id="status-Väntar" class="bg-yellow-500 text-white px-2 py-1 rounded-full">Väntar: 0</span>
                     <span id="status-Avakta-Betalning" class="bg-orange-500 text-white px-2 py-1 rounded-full">Avvakta: 0</span>
@@ -137,7 +137,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.26</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.27</div>
 
     <main class="container">
         <h1 class="text-4xl font-bold mb-6 text-center">Beställningshantering</h1>
@@ -277,6 +277,7 @@
             const postcardsRef = collection(db, `artifacts/${appId}/public/data/postcards`);
             onSnapshot(postcardsRef, (snapshot) => {
                 postcardsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderOrders(); // Re-render orders if postcard data changes
             });
         }
 
@@ -285,10 +286,11 @@
                 'Ny': 0, 'Väntar': 0, 'Avakta Betalning': 0, 'Betald': 0, 'Skickad': 0, 'Klar': 0
             };
             ordersData.forEach(order => {
-                if (statusCounts[order.status] !== undefined) {
-                    statusCounts[order.status]++;
+                const status = order.status || 'Ny';
+                if (statusCounts[status] !== undefined) {
+                    statusCounts[status]++;
                 } else {
-                    statusCounts['Ny']++; // Default to New if status is missing
+                    statusCounts['Ny']++;
                 }
             });
 
@@ -298,6 +300,7 @@
             document.getElementById('status-Betald').textContent = `Betald: ${statusCounts['Betald']}`;
             document.getElementById('status-Skickad').textContent = `Skickad: ${statusCounts['Skickad']}`;
             document.getElementById('status-Klar').textContent = `Klar: ${statusCounts['Klar']}`;
+            document.getElementById('order-status-summary').classList.remove('hidden');
         }
         
         async function renderOrders() {
@@ -321,22 +324,26 @@
                         
                         const timestamp = order.timestamp?.toDate ? order.timestamp.toDate().toLocaleString('sv-SE') : 'Okänt datum';
                         const customerEmail = order.billingInfo?.email || 'Ingen e-post';
+                        const billingName = order.billingInfo?.name || 'Ej angivet';
 
                         let itemsHtml = order.items.map((item, itemIndex) => {
                             const postcard = postcardsData.find(p => p.id === item.id);
                             const thumbnailUrl = postcard ? postcard.imageURL : '';
                             const itemStatus = item.status || 'obehandlad';
+                            const recipientInfo = item.recipient ? 
+                                `${item.recipient.name}, ${item.recipient.address}, ${item.recipient.zip} ${item.recipient.city}` : 
+                                'Ej angiven';
+                            
                             return `
-                                <li class="order-item-list-item">
-                                    <img src="${thumbnailUrl}" alt="${item.title}" class="w-16 h-16 object-cover rounded-md">
-                                    <div class="order-item-details flex-grow">
+                                <li class="p-2 bg-gray-100 rounded-md flex items-center space-x-4 mb-2">
+                                    <img src="${thumbnailUrl}" alt="${item.title}" class="w-12 h-12 object-cover rounded-md">
+                                    <div class="flex-grow">
                                         <p class="font-semibold">${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)})</p>
-                                        <p class="text-sm">Mottagare: ${item.recipient?.name || 'Ej angiven'}</p>
-                                        <p class="text-sm">Adress: ${item.recipient?.address || 'Ej angiven'}, ${item.recipient?.city || ''}</p>
+                                        <p class="text-sm">Mottagare: ${recipientInfo}</p>
                                         <p class="text-sm">Status: ${itemStatus}</p>
                                     </div>
-                                    <div class="order-item-actions flex flex-col items-end">
-                                        <select onchange="updateItemStatus('${order.id}', ${itemIndex}, this.value)" class="p-1 rounded-md text-sm mb-2">
+                                    <div>
+                                        <select onchange="updateItemStatus('${order.id}', ${itemIndex}, this.value)" class="p-1 rounded-md text-sm">
                                             <option value="obehandlad" ${itemStatus === 'obehandlad' ? 'selected' : ''}>Obehandlad</option>
                                             <option value="klar" ${itemStatus === 'klar' ? 'selected' : ''}>Klar</option>
                                         </select>
@@ -357,6 +364,7 @@
                                 </div>
                             </div>
                             <div class="order-body">
+                                <p class="text-sm"><strong>Kund:</strong> ${billingName}</p>
                                 <p class="text-sm"><strong>E-post:</strong> ${customerEmail}</p>
                                 <p class="text-sm"><strong>Total:</strong> ${order.total.toFixed(2)} kr</p>
                                 <h4 class="font-bold text-lg mt-4">Vykort i ordern:</h4>
@@ -395,7 +403,9 @@
             modalItemsList.innerHTML = order.items.map(item => {
                 const postcard = postcardsData.find(p => p.id === item.id);
                 const thumbnailUrl = postcard ? postcard.imageURL : '';
-                const recipientText = item.billingInfo?.name ? `${item.billingInfo.name}, ${item.billingInfo.address}, ${item.billingInfo.zip} ${item.billingInfo.city}` : (item.recipient ? `${item.recipient.name}, ${item.recipient.address}, ${item.recipient.zip} ${item.recipient.city}` : 'Ej angiven');
+                const recipientInfo = item.recipient ? 
+                    `${item.recipient.name}, ${item.recipient.address}, ${item.recipient.zip} ${item.recipient.city}` : 
+                    'Ej angiven';
                 
                 return `
                     <li class="p-2 bg-gray-200 rounded-md">
@@ -405,7 +415,7 @@
                                 <p class="font-bold">${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)})</p>
                                 <p class="text-sm">Pris: ${item.price.toFixed(2)} kr</p>
                                 <p class="text-sm">Text: ${item.message || 'Ingen text'}</p>
-                                <p class="text-sm">Mottagare: ${recipientText}</p>
+                                <p class="text-sm">Mottagare: ${recipientInfo}</p>
                             </div>
                         </div>
                     </li>
@@ -419,30 +429,33 @@
             const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
             const updateData = { status: newStatus };
 
-            // When status is "Klar", remove all addresses
             if (newStatus === 'Klar') {
                 showConfirmation("Är du säker på att du vill markera ordern som 'Klar'? Detta kommer att ta bort alla adresser permanent.", async () => {
                     const orderToUpdate = ordersData.find(o => o.id === orderId);
                     if (orderToUpdate) {
                         const sanitizedItems = orderToUpdate.items.map(item => {
-                            const sanitizedItem = { ...item };
-                            delete sanitizedItem.recipient; // Remove recipient info
+                            const sanitizedItem = {
+                                id: item.id,
+                                title: item.title,
+                                size: item.size,
+                                price: item.price,
+                                group: item.group,
+                                message: item.message,
+                                status: item.status
+                            };
                             return sanitizedItem;
                         });
 
-                        const sanitizedOrder = {
-                            ...orderToUpdate,
-                            items: sanitizedItems,
-                            billingInfo: { 
-                                name: orderToUpdate.billingInfo?.name || 'Ej angivet',
-                                email: orderToUpdate.billingInfo?.email || 'Ej angivet'
-                            }
+                        const sanitizedBillingInfo = {
+                            name: orderToUpdate.billingInfo?.name || 'Ej angivet',
+                            email: orderToUpdate.billingInfo?.email || 'Ej angivet'
                         };
-                        delete sanitizedOrder.billingInfo.address;
-                        delete sanitizedOrder.billingInfo.zip;
-                        delete sanitizedOrder.billingInfo.city;
 
-                        await updateDoc(orderRef, { ...updateData, ...sanitizedOrder });
+                        await updateDoc(orderRef, { 
+                            status: newStatus,
+                            items: sanitizedItems,
+                            billingInfo: sanitizedBillingInfo
+                        });
                         showMessage(`Order #${orderId.substring(0, 8)} är nu markerad som 'Klar' och adresser har raderats.`);
                         document.getElementById('orderModal').classList.remove('active');
                     }
