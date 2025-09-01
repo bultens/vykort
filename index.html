@@ -147,7 +147,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.71</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.72</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -255,7 +255,7 @@
             <h2 class="text-2xl font-bold mb-4 text-center" id="user-modal-title">Logga in</h2>
             <div id="user-form-container">
                 <form id="login-form" class="space-y-4">
-                    <input type="text" id="login-username" placeholder="Användarnamn" class="w-full p-3 rounded-lg border border-gray-300">
+                    <input type="text" id="login-email" placeholder="E-postadress" class="w-full p-3 rounded-lg border border-gray-300">
                     <input type="password" id="login-password" placeholder="Lösenord" class="w-full p-3 rounded-lg border border-gray-300">
                     <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700">Logga in</button>
                 </form>
@@ -263,7 +263,7 @@
                 <form id="register-form" class="space-y-4 hidden">
                     <input type="text" id="register-username" placeholder="Användarnamn" class="w-full p-3 rounded-lg border border-gray-300">
                     <input type="email" id="register-email" placeholder="E-postadress" class="w-full p-3 rounded-lg border border-gray-300">
-                    <input type="password" id="register-password" placeholder="Lösenord" class="w-full p-3 rounded-lg border border-gray-300">
+                    <input type="password" id="register-password" placeholder="Lösenord (minst 6 tecken)" class="w-full p-3 rounded-lg border border-gray-300">
                     <button type="submit" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700">Skapa konto</button>
                 </form>
                 <button id="login-switch" class="mt-4 w-full text-blue-600 font-bold hover:underline hidden">Har du redan ett konto? Logga in här!</button>
@@ -283,7 +283,7 @@
                         <div id="checkout-login-forms" class="mt-4">
                             <form id="checkout-login-form" class="space-y-2">
                                 <h4 class="font-semibold">Logga in</h4>
-                                <input type="text" id="checkout-login-username" placeholder="Användarnamn" class="w-full p-2 border rounded-md">
+                                <input type="email" id="checkout-login-email" placeholder="E-postadress" class="w-full p-2 border rounded-md">
                                 <input type="password" id="checkout-login-password" placeholder="Lösenord" class="w-full p-2 border rounded-md">
                                 <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700">Logga in</button>
                             </form>
@@ -504,11 +504,10 @@
 
         async function handleLogin(e) {
             e.preventDefault();
-            const username = document.getElementById('login-username').value;
+            const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             try {
-                // Notera: Firebase Authentication använder e-post, men vi kan använda username som e-post för att det ska fungera.
-                await signInWithEmailAndPassword(auth, `${username}@dummy.com`, password);
+                await signInWithEmailAndPassword(auth, email, password);
                 document.getElementById('userModal').classList.remove('active');
                 showConfirmationToast("Inloggad!");
             } catch (error) {
@@ -522,6 +521,12 @@
             const username = document.getElementById('register-username').value;
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
+            
+            if (password.length < 6) {
+                alert("Lösenordet måste vara minst 6 tecken.");
+                return;
+            }
+
             try {
                 // Skapa användare
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -542,10 +547,10 @@
 
         async function handleCheckoutLogin(e) {
             e.preventDefault();
-            const username = document.getElementById('checkout-login-username').value;
+            const email = document.getElementById('checkout-login-email').value;
             const password = document.getElementById('checkout-login-password').value;
             try {
-                await signInWithEmailAndPassword(auth, `${username}@dummy.com`, password);
+                await signInWithEmailAndPassword(auth, email, password);
                 showConfirmationToast("Inloggad i kassan!");
                 renderCheckout();
             } catch (error) {
@@ -559,6 +564,12 @@
             const username = document.getElementById('checkout-register-username').value;
             const email = document.getElementById('checkout-register-email').value;
             const password = document.getElementById('checkout-register-password').value;
+            
+            if (password.length < 6) {
+                alert("Lösenordet måste vara minst 6 tecken.");
+                return;
+            }
+            
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 await addDoc(collection(db, `artifacts/${appId}/public/data/users`), {
@@ -623,7 +634,7 @@
             const orderHistoryList = document.getElementById('order-history-list');
             orderHistoryList.innerHTML = '';
             
-            const ordersRef = collection(db, `artifacts/${appId}/private/users/${currentUser.uid}/orders`);
+            const ordersRef = collection(db, `artifacts/public/users/${currentUser.uid}/orders`);
             const q = query(ordersRef, orderBy('timestamp', 'desc'));
             const querySnapshot = await getDocs(q);
 
