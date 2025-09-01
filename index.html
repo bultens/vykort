@@ -139,12 +139,15 @@
                     </svg>
                     <span id="cart-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">0</span>
                 </button>
+                <div id="user-status" class="text-sm font-medium">
+                    <a href="#" id="login-link" class="hover:text-gray-300 transition duration-300">Logga in</a>
+                </div>
                 <a href="admin.html" class="hover:text-gray-300 transition duration-300">Adminpanel</a>
             </div>
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.70</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.71</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -168,7 +171,7 @@
         <hr class="my-6">
     </div>
 
-    <main class="container">
+    <main id="main-content" class="container">
         <h1 class="text-4xl font-bold mb-6 text-center">Vykort</h1>
         <div id="filter-section" class="mb-6 flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
             <div>
@@ -246,6 +249,66 @@
         Vara tillagd i varukorgen!
     </div>
 
+    <div id="userModal" class="modal">
+        <div class="modal-content max-w-md mx-auto">
+            <span id="close-user-modal" class="modal-close-btn">&times;</span>
+            <h2 class="text-2xl font-bold mb-4 text-center" id="user-modal-title">Logga in</h2>
+            <div id="user-form-container">
+                <form id="login-form" class="space-y-4">
+                    <input type="text" id="login-username" placeholder="Användarnamn" class="w-full p-3 rounded-lg border border-gray-300">
+                    <input type="password" id="login-password" placeholder="Lösenord" class="w-full p-3 rounded-lg border border-gray-300">
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700">Logga in</button>
+                </form>
+                <button id="register-switch" class="mt-4 w-full text-blue-600 font-bold hover:underline">Har du inget konto? Skapa ett här!</button>
+                <form id="register-form" class="space-y-4 hidden">
+                    <input type="text" id="register-username" placeholder="Användarnamn" class="w-full p-3 rounded-lg border border-gray-300">
+                    <input type="email" id="register-email" placeholder="E-postadress" class="w-full p-3 rounded-lg border border-gray-300">
+                    <input type="password" id="register-password" placeholder="Lösenord" class="w-full p-3 rounded-lg border border-gray-300">
+                    <button type="submit" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700">Skapa konto</button>
+                </form>
+                <button id="login-switch" class="mt-4 w-full text-blue-600 font-bold hover:underline hidden">Har du redan ett konto? Logga in här!</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="checkoutModal" class="modal">
+        <div class="modal-content max-w-3xl mx-auto">
+            <span id="close-checkout-modal" class="modal-close-btn">&times;</span>
+            <h2 class="text-2xl font-bold mb-4">Kassa</h2>
+            <div id="checkout-content">
+                <div id="checkout-user-section" class="mb-6 card">
+                    <h3 class="text-xl font-bold mb-4">Steg 1: Användare</h3>
+                    <div id="checkout-user-status">
+                        <p id="checkout-login-message">Du måste logga in eller skapa ett konto för att fortsätta.</p>
+                        <div id="checkout-login-forms" class="mt-4">
+                            <form id="checkout-login-form" class="space-y-2">
+                                <h4 class="font-semibold">Logga in</h4>
+                                <input type="text" id="checkout-login-username" placeholder="Användarnamn" class="w-full p-2 border rounded-md">
+                                <input type="password" id="checkout-login-password" placeholder="Lösenord" class="w-full p-2 border rounded-md">
+                                <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700">Logga in</button>
+                            </form>
+                            <hr class="my-4">
+                            <form id="checkout-register-form" class="space-y-2">
+                                <h4 class="font-semibold">Skapa konto</h4>
+                                <input type="text" id="checkout-register-username" placeholder="Användarnamn" class="w-full p-2 border rounded-md">
+                                <input type="email" id="checkout-register-email" placeholder="E-postadress" class="w-full p-2 border rounded-md">
+                                <input type="password" id="checkout-register-password" placeholder="Lösenord" class="w-full p-2 border rounded-md">
+                                <button type="submit" class="bg-green-600 text-white font-bold py-2 px-4 rounded-md hover:bg-green-700">Skapa konto</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="order-history-section" class="mb-6 card hidden">
+                    <h3 class="text-xl font-bold mb-4">Dina tidigare ordrar</h3>
+                    <div id="order-history-list" class="space-y-4">
+                        <p class="text-gray-500">Inga tidigare ordrar hittades.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <footer class="bg-gray-800 text-white text-center py-4 mt-8">
         <div class="container text-sm">
@@ -255,7 +318,7 @@
 
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     // ... resten av din kod
     
@@ -273,6 +336,7 @@
         let groupsData = [];
         let salesData = [];
         let cart = [];
+        let currentUser = null;
 
         let initialDataLoaded = {
             postcards: false,
@@ -289,7 +353,19 @@
                     const app = initializeApp(firebaseConfig);
                     db = getFirestore(app);
                     auth = getAuth(app);
-                    signInAnonymously(auth);
+                    
+                    onAuthStateChanged(auth, (user) => {
+                        if (user) {
+                            currentUser = user;
+                            console.log("Användare inloggad:", user.email || user.uid);
+                            updateUserStatus(true);
+                            renderOrderHistory();
+                        } else {
+                            currentUser = null;
+                            console.log("Användare utloggad.");
+                            updateUserStatus(false);
+                        }
+                    });
 
                     startListeners();
                 } catch (e) {
@@ -377,7 +453,209 @@
             });
 
             document.getElementById('clear-cart-btn').addEventListener('click', clearCart);
+            document.getElementById('checkout-btn').addEventListener('click', () => {
+                document.getElementById('cartModal').classList.remove('active');
+                document.getElementById('checkoutModal').classList.add('active');
+                renderCheckout();
+            });
+            
+            // Hantera inloggnings- och registreringsformulär
+            document.getElementById('login-link').addEventListener('click', (e) => {
+                e.preventDefault();
+                document.getElementById('userModal').classList.add('active');
+            });
+            document.getElementById('close-user-modal').addEventListener('click', () => {
+                document.getElementById('userModal').classList.remove('active');
+            });
+            document.getElementById('register-switch').addEventListener('click', () => {
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('register-form').classList.remove('hidden');
+                document.getElementById('register-switch').classList.add('hidden');
+                document.getElementById('login-switch').classList.remove('hidden');
+                document.getElementById('user-modal-title').textContent = "Skapa konto";
+            });
+            document.getElementById('login-switch').addEventListener('click', () => {
+                document.getElementById('login-form').classList.remove('hidden');
+                document.getElementById('register-form').classList.add('hidden');
+                document.getElementById('register-switch').classList.remove('hidden');
+                document.getElementById('login-switch').classList.add('hidden');
+                document.getElementById('user-modal-title').textContent = "Logga in";
+            });
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            document.getElementById('register-form').addEventListener('submit', handleRegister);
+            
+            // Hantera utloggning från header
+            document.getElementById('user-status').addEventListener('click', async (e) => {
+                if (e.target.id === 'logout-link') {
+                    e.preventDefault();
+                    await signOut(auth);
+                    document.getElementById('main-content').classList.remove('hidden');
+                    document.getElementById('checkoutModal').classList.remove('active');
+                }
+            });
+
+            // Hantera kassan
+            document.getElementById('checkout-login-form').addEventListener('submit', handleCheckoutLogin);
+            document.getElementById('checkout-register-form').addEventListener('submit', handleCheckoutRegister);
+            document.getElementById('close-checkout-modal').addEventListener('click', () => {
+                document.getElementById('checkoutModal').classList.remove('active');
+            });
         });
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            try {
+                // Notera: Firebase Authentication använder e-post, men vi kan använda username som e-post för att det ska fungera.
+                await signInWithEmailAndPassword(auth, `${username}@dummy.com`, password);
+                document.getElementById('userModal').classList.remove('active');
+                showConfirmationToast("Inloggad!");
+            } catch (error) {
+                console.error("Login error:", error.code, error.message);
+                alert("Inloggningen misslyckades: " + error.message);
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            try {
+                // Skapa användare
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                
+                // Spara användardata (utan lösenord) i Firestore
+                await addDoc(collection(db, `artifacts/${appId}/public/data/users`), {
+                    uid: userCredential.user.uid,
+                    username: username
+                });
+                
+                document.getElementById('userModal').classList.remove('active');
+                showConfirmationToast("Konto skapat och inloggad!");
+            } catch (error) {
+                console.error("Registration error:", error.code, error.message);
+                alert("Registrering misslyckades: " + error.message);
+            }
+        }
+
+        async function handleCheckoutLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('checkout-login-username').value;
+            const password = document.getElementById('checkout-login-password').value;
+            try {
+                await signInWithEmailAndPassword(auth, `${username}@dummy.com`, password);
+                showConfirmationToast("Inloggad i kassan!");
+                renderCheckout();
+            } catch (error) {
+                console.error("Login error:", error.code, error.message);
+                alert("Inloggningen misslyckades: " + error.message);
+            }
+        }
+        
+        async function handleCheckoutRegister(e) {
+            e.preventDefault();
+            const username = document.getElementById('checkout-register-username').value;
+            const email = document.getElementById('checkout-register-email').value;
+            const password = document.getElementById('checkout-register-password').value;
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                await addDoc(collection(db, `artifacts/${appId}/public/data/users`), {
+                    uid: userCredential.user.uid,
+                    username: username
+                });
+                showConfirmationToast("Konto skapat och inloggad i kassan!");
+                renderCheckout();
+            } catch (error) {
+                console.error("Registration error:", error.code, error.message);
+                alert("Registrering misslyckades: " + error.message);
+            }
+        }
+
+        function updateUserStatus(isLoggedIn) {
+            const userStatusEl = document.getElementById('user-status');
+            if (isLoggedIn) {
+                const userEmail = auth.currentUser.email;
+                userStatusEl.innerHTML = `<span class="font-bold">Hej, ${userEmail}!</span> | <a href="#" id="logout-link" class="hover:text-gray-300 transition duration-300">Logga ut</a> | <a href="#" id="orders-link" class="hover:text-gray-300 transition duration-300">Mina ordrar</a>`;
+                document.getElementById('orders-link').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('main-content').classList.add('hidden');
+                    document.getElementById('checkoutModal').classList.add('active');
+                    renderCheckout();
+                });
+            } else {
+                userStatusEl.innerHTML = `<a href="#" id="login-link" class="hover:text-gray-300 transition duration-300">Logga in</a>`;
+                document.getElementById('login-link').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('userModal').classList.add('active');
+                });
+            }
+        }
+        
+        function renderCheckout() {
+            const userSection = document.getElementById('checkout-user-section');
+            const userStatusText = document.getElementById('checkout-login-message');
+            const loginForms = document.getElementById('checkout-login-forms');
+            const orderHistorySection = document.getElementById('order-history-section');
+            const mainContent = document.getElementById('main-content');
+
+            mainContent.classList.add('hidden');
+
+            if (currentUser) {
+                userStatusText.textContent = `Du är inloggad som ${currentUser.email}.`;
+                loginForms.classList.add('hidden');
+                orderHistorySection.classList.remove('hidden');
+                renderOrderHistory();
+            } else {
+                userStatusText.textContent = `Du måste logga in eller skapa ett konto för att fortsätta.`;
+                loginForms.classList.remove('hidden');
+                orderHistorySection.classList.add('hidden');
+            }
+        }
+
+        async function renderOrderHistory() {
+            if (!currentUser) {
+                console.log("Ingen användare inloggad, kan inte visa orderhistorik.");
+                return;
+            }
+
+            const orderHistoryList = document.getElementById('order-history-list');
+            orderHistoryList.innerHTML = '';
+            
+            const ordersRef = collection(db, `artifacts/${appId}/private/users/${currentUser.uid}/orders`);
+            const q = query(ordersRef, orderBy('timestamp', 'desc'));
+            const querySnapshot = await getDocs(q);
+
+            if (querySnapshot.empty) {
+                orderHistoryList.innerHTML = '<p class="text-gray-500">Inga tidigare ordrar hittades.</p>';
+                return;
+            }
+            
+            querySnapshot.forEach(doc => {
+                const order = doc.data();
+                const orderDiv = document.createElement('div');
+                orderDiv.className = 'p-4 bg-gray-100 rounded-lg shadow-sm';
+                
+                let total = 0;
+                let itemsHtml = order.items.map(item => {
+                    total += item.price;
+                    return `
+                        <p class="text-sm">- ${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)}): ${item.price.toFixed(2)} kr</p>
+                    `;
+                }).join('');
+                
+                const timestamp = order.timestamp?.toDate ? order.timestamp.toDate().toLocaleString('sv-SE') : 'Okänt datum';
+
+                orderDiv.innerHTML = `
+                    <h4 class="font-bold text-lg">Order ${timestamp}</h4>
+                    <div class="mt-2 space-y-1">${itemsHtml}</div>
+                    <p class="mt-2 font-bold text-right">Summa: ${total.toFixed(2)} kr</p>
+                `;
+                orderHistoryList.appendChild(orderDiv);
+            });
+        }
+
 
         function loadCart() {
             try {
