@@ -21,7 +21,7 @@
         .card {
             background-color: #ffffff;
             border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1-px rgba(0, 0, 0, 0.06);
             padding: 2rem;
             margin-bottom: 1.5rem;
         }
@@ -144,7 +144,7 @@
         </div>
     </header>
     
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.24</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.25</div>
 
     <main class="container">
         <section id="admin-login-panel" class="card max-w-md mx-auto">
@@ -253,6 +253,13 @@
                     <button type="submit" class="w-full bg-orange-600 text-white py-2 rounded-md hover:bg-orange-700">Lägg till nyhet</button>
                 </form>
             </div>
+
+            <div class="card">
+                <h2 class="text-2xl font-bold mb-4">Beställningar</h2>
+                <div id="orders-list" class="space-y-4 mb-4">
+                    <p class="text-gray-500">Laddar beställningar...</p>
+                </div>
+            </div>
         </section>
         
         <div class="card mt-6 hidden" id="admin-management-section">
@@ -332,7 +339,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    // ... resten av din kod
     
     // Importera din konfiguration från den nya filen
     import { firebaseConfig } from "./firebase-config.js";
@@ -352,12 +358,14 @@
         let adminsData = [];
         let salesData = [];
         let newsData = [];
+        let ordersData = []; // New data array for orders
         let unsubscribePriceGroups = null;
         let unsubscribeGroups = null;
         let unsubscribePostcards = null;
         let unsubscribeAdmins = null;
         let unsubscribeSales = null;
         let unsubscribeNews = null;
+        let unsubscribeOrders = null; // New listener for orders
 
         // Modala funktioner
         function showMessage(message) {
@@ -426,6 +434,7 @@
             const adminsList = document.getElementById('admin-list');
             const salesList = document.getElementById('sales-list');
             const newsList = document.getElementById('news-list');
+            const ordersList = document.getElementById('orders-list'); // Get orders list element
 
             priceGroupsList.innerHTML = '';
             priceGroupsData.forEach(pg => {
@@ -528,6 +537,44 @@
                 `;
                 newsList.appendChild(div);
             });
+
+            // Render orders list
+            ordersList.innerHTML = '';
+            if (ordersData.length === 0) {
+                ordersList.innerHTML = '<p class="text-gray-500">Inga beställningar hittades.</p>';
+            } else {
+                ordersData.forEach(o => {
+                    const div = document.createElement('div');
+                    div.className = "p-4 bg-gray-100 rounded-md shadow-sm";
+                    
+                    const timestamp = o.timestamp?.toDate ? o.timestamp.toDate().toLocaleString('sv-SE') : 'Okänt datum';
+                    const customerInfo = o.isGuest ? `Gäst` : `Inloggad användare`;
+                    const customerEmail = o.billingInfo?.email || 'Ingen e-post';
+
+                    let itemsHtml = o.items.map(item => `
+                        <p class="text-sm">- ${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)}), ${item.price.toFixed(2)} kr</p>
+                    `).join('');
+
+                    div.innerHTML = `
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold">Beställning #${o.id.substring(0, 8)}</h3>
+                            <span class="text-sm text-gray-500">${timestamp}</span>
+                        </div>
+                        <p class="text-sm"><strong>Kund:</strong> ${o.billingInfo?.name || 'Ej angivet'}</p>
+                        <p class="text-sm"><strong>E-post:</strong> ${customerEmail}</p>
+                        <p class="text-sm"><strong>Status:</strong> Obehandlad</p>
+                        <p class="text-sm"><strong>Summa:</strong> ${o.total.toFixed(2)} kr</p>
+                        <div class="mt-2">
+                            <h4 class="font-semibold text-sm">Produkter:</h4>
+                            ${itemsHtml}
+                        </div>
+                        <div class="mt-2 text-sm text-gray-600">
+                            <p><strong>Fakturering:</strong> ${o.billingInfo?.address}, ${o.billingInfo?.zip} ${o.billingInfo?.city}</p>
+                        </div>
+                    `;
+                    ordersList.appendChild(div);
+                });
+            }
         }
         
         // CRUD-funktioner för prisgrupper
@@ -839,6 +886,13 @@
                 });
                 renderAdminLists();
             });
+
+            // New listener for orders
+            const ordersRef = query(collection(db, `artifacts/${appId}/public/data/orders`), orderBy('timestamp', 'desc'));
+            unsubscribeOrders = onSnapshot(ordersRef, (snapshot) => {
+                ordersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderAdminLists();
+            });
         }
 
         function stopAdminListeners() {
@@ -848,6 +902,7 @@
             if (unsubscribeAdmins) unsubscribeAdmins();
             if (unsubscribeSales) unsubscribeSales();
             if (unsubscribeNews) unsubscribeNews();
+            if (unsubscribeOrders) unsubscribeOrders();
         }
 
         // Globala funktioner för att anropa från HTML
