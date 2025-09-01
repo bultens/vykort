@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beställningar - Adminpanel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 0.75rem;
+            width: 80%;
+            max-width: 600px;
+            text-align: left;
+        }
+        .modal-close-btn {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .modal-close-btn:hover,
+        .modal-close-btn:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .order-item-list {
+            list-style: none;
+            padding: 0;
+        }
+        .order-item-list li {
+            background-color: #e5e7eb;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .order-item-list li img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 0.25rem;
+        }
+        .order-item-details {
+            flex-grow: 1;
+        }
+        .order-item-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .order-card {
+            border: 1px solid #d1d5db;
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+        .order-header {
+            background-color: #f3f4f6;
+            padding: 1rem;
+            border-bottom: 1px solid #d1d5db;
+        }
+        .order-body {
+            padding: 1rem;
+        }
+        .status-header {
+            background-color: #4b5563;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header class="bg-gray-800 text-white shadow-lg">
+        <div class="container py-4 flex flex-col sm:flex-row justify-between items-center">
+            <div class="flex flex-col items-start space-x-2">
+                <span class="text-3xl font-bold tracking-tight">Beställningar</span>
+            </div>
+            <nav class="mt-4 sm:mt-0 flex flex-col sm:flex-row items-center sm:space-x-4 space-y-2 sm:space-y-0 text-sm">
+                <div id="order-status-summary" class="flex flex-wrap justify-center sm:justify-start gap-2 text-xs">
+                    <span id="status-Ny" class="bg-blue-500 text-white px-2 py-1 rounded-full">Ny: 0</span>
+                    <span id="status-Väntar" class="bg-yellow-500 text-white px-2 py-1 rounded-full">Väntar: 0</span>
+                    <span id="status-Avakta-Betalning" class="bg-orange-500 text-white px-2 py-1 rounded-full">Avvakta: 0</span>
+                    <span id="status-Betald" class="bg-green-500 text-white px-2 py-1 rounded-full">Betald: 0</span>
+                    <span id="status-Skickad" class="bg-cyan-500 text-white px-2 py-1 rounded-full">Skickad: 0</span>
+                    <span id="status-Klar" class="bg-gray-500 text-white px-2 py-1 rounded-full">Klar: 0</span>
+                </div>
+                <div class="flex space-x-4 font-medium">
+                    <a href="admin.html" class="hover:text-gray-300 transition duration-300">Tillbaka till Admin</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.26</div>
+
+    <main class="container">
+        <h1 class="text-4xl font-bold mb-6 text-center">Beställningshantering</h1>
+        <div id="orders-container" class="space-y-8">
+            <div id="loading-message" class="text-center text-gray-500">Laddar beställningar...</div>
+        </div>
+    </main>
+
+    <div id="orderModal" class="modal">
+        <div class="modal-content max-w-lg mx-auto p-6">
+            <span id="close-order-modal" class="modal-close-btn">&times;</span>
+            <h3 id="modal-order-title" class="text-2xl font-bold mb-4">Beställningsdetaljer</h3>
+            <div id="modal-order-content" class="space-y-4">
+                <div class="order-header rounded-lg">
+                    <p><strong>Order-ID:</strong> <span id="modal-order-id"></span></p>
+                    <p><strong>E-post:</strong> <span id="modal-order-email"></span></p>
+                    <p><strong>Datum:</strong> <span id="modal-order-date"></span></p>
+                    <p><strong>Status:</strong> <span id="modal-order-status"></span></p>
+                </div>
+                <div class="order-body">
+                    <h4 class="font-bold text-lg mb-2">Artiklar</h4>
+                    <ul id="modal-order-items" class="space-y-2"></ul>
+                    <div class="mt-4 border-t pt-2">
+                        <p class="font-bold text-right">Totalt: <span id="modal-order-total"></span></p>
+                    </div>
+                </div>
+            </div>
+            <div id="modal-order-actions" class="mt-4 flex flex-wrap gap-2 justify-center">
+                <button onclick="updateOrderStatus(currentOrder.id, 'Väntar')" class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600">Väntar</button>
+                <button onclick="updateOrderStatus(currentOrder.id, 'Avakta Betalning')" class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600">Avvakta</button>
+                <button onclick="updateOrderStatus(currentOrder.id, 'Betald')" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">Betald</button>
+                <button onclick="updateOrderStatus(currentOrder.id, 'Skickad')" class="px-4 py-2 bg-cyan-500 text-white rounded-md hover:bg-cyan-600">Skickad</button>
+                <button onclick="updateOrderStatus(currentOrder.id, 'Klar')" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">Klar</button>
+                <button onclick="deleteOrder(currentOrder.id)" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">Ta bort</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="messageModal" class="modal">
+        <div class="modal-content text-center">
+            <p id="modal-message"></p>
+            <button onclick="document.getElementById('messageModal').classList.remove('active')" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md">OK</button>
+        </div>
+    </div>
+
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content text-center">
+            <p id="confirm-message"></p>
+            <div class="flex justify-center space-x-4 mt-4">
+                <button id="confirm-yes-btn" class="px-4 py-2 bg-green-600 text-white rounded-md">Ja</button>
+                <button id="confirm-no-btn" class="px-4 py-2 bg-gray-600 text-white rounded-md">Nej</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, onSnapshot, collection, query, orderBy, getDocs, writeBatch, updateDoc, doc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { firebaseConfig } from "./firebase-config.js";
+
+        const appId = firebaseConfig.projectId;
+
+        let db;
+        let auth;
+        let ordersData = [];
+        let postcardsData = [];
+        let currentOrder = null;
+        let unsubscribeOrders = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (firebaseConfig.projectId) {
+                try {
+                    const app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+                    
+                    onAuthStateChanged(auth, async (user) => {
+                        if (user) {
+                            // Check if user is an admin
+                            const adminsRef = collection(db, `artifacts/${appId}/public/data/admins`);
+                            const q = query(adminsRef, where('uid', '==', user.uid));
+                            const adminDoc = await getDocs(q);
+                            if (!adminDoc.empty) {
+                                startListeners();
+                                document.getElementById('loading-message').classList.add('hidden');
+                            } else {
+                                // Not an admin, redirect or show error
+                                window.location.href = 'admin.html';
+                            }
+                        } else {
+                            window.location.href = 'admin.html';
+                        }
+                    });
+                } catch (e) {
+                    console.error("Firebase initieringsfel:", e);
+                    document.getElementById('loading-message').textContent = 'Kunde inte ansluta till databasen.';
+                }
+            } else {
+                document.getElementById('loading-message').textContent = 'Firebase-konfiguration saknas.';
+            }
+
+            document.getElementById('close-order-modal').addEventListener('click', () => {
+                document.getElementById('orderModal').classList.remove('active');
+            });
+        });
+
+        function showMessage(message) {
+            document.getElementById('modal-message').textContent = message;
+            document.getElementById('messageModal').classList.add('active');
+        }
+
+        function showConfirmation(message, onConfirm) {
+            document.getElementById('confirm-message').textContent = message;
+            document.getElementById('confirmationModal').classList.add('active');
+            
+            const confirmBtn = document.getElementById('confirm-yes-btn');
+            const cancelBtn = document.getElementById('confirm-no-btn');
+
+            confirmBtn.onclick = () => {
+                onConfirm();
+                document.getElementById('confirmationModal').classList.remove('active');
+            };
+            cancelBtn.onclick = () => {
+                document.getElementById('confirmationModal').classList.remove('active');
+            };
+        }
+
+        function startListeners() {
+            const ordersRef = query(collection(db, `artifacts/${appId}/public/data/orders`), orderBy('timestamp', 'desc'));
+            unsubscribeOrders = onSnapshot(ordersRef, (snapshot) => {
+                ordersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderOrders();
+                updateStatusBar();
+            });
+
+            const postcardsRef = collection(db, `artifacts/${appId}/public/data/postcards`);
+            onSnapshot(postcardsRef, (snapshot) => {
+                postcardsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            });
+        }
+
+        function updateStatusBar() {
+            const statusCounts = {
+                'Ny': 0, 'Väntar': 0, 'Avakta Betalning': 0, 'Betald': 0, 'Skickad': 0, 'Klar': 0
+            };
+            ordersData.forEach(order => {
+                if (statusCounts[order.status] !== undefined) {
+                    statusCounts[order.status]++;
+                } else {
+                    statusCounts['Ny']++; // Default to New if status is missing
+                }
+            });
+
+            document.getElementById('status-Ny').textContent = `Ny: ${statusCounts['Ny']}`;
+            document.getElementById('status-Väntar').textContent = `Väntar: ${statusCounts['Väntar']}`;
+            document.getElementById('status-Avakta-Betalning').textContent = `Avvakta: ${statusCounts['Avakta Betalning']}`;
+            document.getElementById('status-Betald').textContent = `Betald: ${statusCounts['Betald']}`;
+            document.getElementById('status-Skickad').textContent = `Skickad: ${statusCounts['Skickad']}`;
+            document.getElementById('status-Klar').textContent = `Klar: ${statusCounts['Klar']}`;
+        }
+        
+        async function renderOrders() {
+            const ordersContainer = document.getElementById('orders-container');
+            ordersContainer.innerHTML = '';
+            
+            const statusOrder = ['Ny', 'Väntar', 'Avakta Betalning', 'Betald', 'Skickad', 'Klar'];
+            
+            statusOrder.forEach(status => {
+                const ordersInStatus = ordersData.filter(o => (o.status || 'Ny') === status);
+
+                if (ordersInStatus.length > 0) {
+                    const sectionTitle = document.createElement('h2');
+                    sectionTitle.className = "text-3xl font-bold mt-8 mb-4";
+                    sectionTitle.textContent = status;
+                    ordersContainer.appendChild(sectionTitle);
+
+                    ordersInStatus.forEach(order => {
+                        const orderCard = document.createElement('div');
+                        orderCard.className = "card";
+                        
+                        const timestamp = order.timestamp?.toDate ? order.timestamp.toDate().toLocaleString('sv-SE') : 'Okänt datum';
+                        const customerEmail = order.billingInfo?.email || 'Ingen e-post';
+
+                        let itemsHtml = order.items.map((item, itemIndex) => {
+                            const postcard = postcardsData.find(p => p.id === item.id);
+                            const thumbnailUrl = postcard ? postcard.imageURL : '';
+                            const itemStatus = item.status || 'obehandlad';
+                            return `
+                                <li class="order-item-list-item">
+                                    <img src="${thumbnailUrl}" alt="${item.title}" class="w-16 h-16 object-cover rounded-md">
+                                    <div class="order-item-details flex-grow">
+                                        <p class="font-semibold">${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)})</p>
+                                        <p class="text-sm">Mottagare: ${item.recipient?.name || 'Ej angiven'}</p>
+                                        <p class="text-sm">Adress: ${item.recipient?.address || 'Ej angiven'}, ${item.recipient?.city || ''}</p>
+                                        <p class="text-sm">Status: ${itemStatus}</p>
+                                    </div>
+                                    <div class="order-item-actions flex flex-col items-end">
+                                        <select onchange="updateItemStatus('${order.id}', ${itemIndex}, this.value)" class="p-1 rounded-md text-sm mb-2">
+                                            <option value="obehandlad" ${itemStatus === 'obehandlad' ? 'selected' : ''}>Obehandlad</option>
+                                            <option value="klar" ${itemStatus === 'klar' ? 'selected' : ''}>Klar</option>
+                                        </select>
+                                    </div>
+                                </li>
+                            `;
+                        }).join('');
+
+                        orderCard.innerHTML = `
+                            <div class="order-header flex justify-between items-center">
+                                <div>
+                                    <h3 class="font-bold text-xl">Beställning #${order.id.substring(0, 8)}</h3>
+                                    <p class="text-sm text-gray-600">${timestamp}</p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="status-header">${status}</span>
+                                    <button onclick="openOrderModal('${order.id}')" class="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600">Detaljer</button>
+                                </div>
+                            </div>
+                            <div class="order-body">
+                                <p class="text-sm"><strong>E-post:</strong> ${customerEmail}</p>
+                                <p class="text-sm"><strong>Total:</strong> ${order.total.toFixed(2)} kr</p>
+                                <h4 class="font-bold text-lg mt-4">Vykort i ordern:</h4>
+                                <ul class="order-item-list mt-2">
+                                    ${itemsHtml}
+                                </ul>
+                            </div>
+                        `;
+                        ordersContainer.appendChild(orderCard);
+                    });
+                }
+            });
+        }
+
+        function openOrderModal(orderId) {
+            const order = ordersData.find(o => o.id === orderId);
+            if (!order) return;
+
+            currentOrder = order;
+
+            const modalTitle = document.getElementById('modal-order-title');
+            const modalId = document.getElementById('modal-order-id');
+            const modalEmail = document.getElementById('modal-order-email');
+            const modalDate = document.getElementById('modal-order-date');
+            const modalStatus = document.getElementById('modal-order-status');
+            const modalItemsList = document.getElementById('modal-order-items');
+            const modalTotal = document.getElementById('modal-order-total');
+
+            modalTitle.textContent = `Beställningsdetaljer (#${order.id.substring(0, 8)})`;
+            modalId.textContent = order.id;
+            modalEmail.textContent = order.billingInfo?.email || 'Ingen e-post';
+            modalDate.textContent = order.timestamp?.toDate ? order.timestamp.toDate().toLocaleString('sv-SE') : 'Okänt datum';
+            modalStatus.textContent = order.status || 'Ny';
+            modalTotal.textContent = `${order.total.toFixed(2)} kr`;
+
+            modalItemsList.innerHTML = order.items.map(item => {
+                const postcard = postcardsData.find(p => p.id === item.id);
+                const thumbnailUrl = postcard ? postcard.imageURL : '';
+                const recipientText = item.billingInfo?.name ? `${item.billingInfo.name}, ${item.billingInfo.address}, ${item.billingInfo.zip} ${item.billingInfo.city}` : (item.recipient ? `${item.recipient.name}, ${item.recipient.address}, ${item.recipient.zip} ${item.recipient.city}` : 'Ej angiven');
+                
+                return `
+                    <li class="p-2 bg-gray-200 rounded-md">
+                        <div class="flex items-center">
+                            <img src="${thumbnailUrl}" alt="${item.title}" class="w-12 h-12 rounded-md mr-4">
+                            <div>
+                                <p class="font-bold">${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)})</p>
+                                <p class="text-sm">Pris: ${item.price.toFixed(2)} kr</p>
+                                <p class="text-sm">Text: ${item.message || 'Ingen text'}</p>
+                                <p class="text-sm">Mottagare: ${recipientText}</p>
+                            </div>
+                        </div>
+                    </li>
+                `;
+            }).join('');
+            
+            document.getElementById('orderModal').classList.add('active');
+        }
+
+        async function updateOrderStatus(orderId, newStatus) {
+            const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
+            const updateData = { status: newStatus };
+
+            // When status is "Klar", remove all addresses
+            if (newStatus === 'Klar') {
+                showConfirmation("Är du säker på att du vill markera ordern som 'Klar'? Detta kommer att ta bort alla adresser permanent.", async () => {
+                    const orderToUpdate = ordersData.find(o => o.id === orderId);
+                    if (orderToUpdate) {
+                        const sanitizedItems = orderToUpdate.items.map(item => {
+                            const sanitizedItem = { ...item };
+                            delete sanitizedItem.recipient; // Remove recipient info
+                            return sanitizedItem;
+                        });
+
+                        const sanitizedOrder = {
+                            ...orderToUpdate,
+                            items: sanitizedItems,
+                            billingInfo: { 
+                                name: orderToUpdate.billingInfo?.name || 'Ej angivet',
+                                email: orderToUpdate.billingInfo?.email || 'Ej angivet'
+                            }
+                        };
+                        delete sanitizedOrder.billingInfo.address;
+                        delete sanitizedOrder.billingInfo.zip;
+                        delete sanitizedOrder.billingInfo.city;
+
+                        await updateDoc(orderRef, { ...updateData, ...sanitizedOrder });
+                        showMessage(`Order #${orderId.substring(0, 8)} är nu markerad som 'Klar' och adresser har raderats.`);
+                        document.getElementById('orderModal').classList.remove('active');
+                    }
+                });
+            } else {
+                await updateDoc(orderRef, updateData);
+                showMessage(`Order #${orderId.substring(0, 8)} uppdaterad till ${newStatus}.`);
+                document.getElementById('orderModal').classList.remove('active');
+            }
+        }
+        
+        async function updateItemStatus(orderId, itemIndex, newStatus) {
+            const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
+            const order = ordersData.find(o => o.id === orderId);
+            if (!order) return;
+
+            order.items[itemIndex].status = newStatus;
+
+            await updateDoc(orderRef, { items: order.items });
+            showMessage(`Vykort i order #${orderId.substring(0, 8)} uppdaterad.`);
+        }
+
+        async function deleteOrder(orderId) {
+            showConfirmation("Är du säker på att du vill ta bort denna order permanent?", async () => {
+                const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
+                await deleteDoc(orderRef);
+                showMessage(`Order #${orderId.substring(0, 8)} borttagen.`);
+                document.getElementById('orderModal').classList.remove('active');
+            });
+        }
+
+        window.updateOrderStatus = updateOrderStatus;
+        window.updateItemStatus = updateItemStatus;
+        window.deleteOrder = deleteOrder;
+        window.openOrderModal = openOrderModal;
+
+    </script>
+</body>
+</html>
