@@ -121,10 +121,15 @@
             justify-self: end;
             text-align: right;
         }
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 50; /* Adjust z-index as needed to ensure it's on top of other content */
+        }
     </style>
 </head>
 <body>
-    <header class="bg-gray-800 text-white shadow-lg">
+    <header class="bg-gray-800 text-white shadow-lg sticky-header">
         <div class="container py-4 flex justify-between items-center">
             <span class="text-3xl font-bold tracking-tight">Vykortsbutik</span>
             <div class="flex space-x-4 items-center">
@@ -139,7 +144,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.69</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.70</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -674,15 +679,16 @@
         }
 
         function addToCart(item) {
-            console.log("addToCart()", item);
             cart.push(item);
+            
+            showConfirmationToast();
             saveCart();
             renderCart();
         }
 
         function editCartItem(index, newItem) {
-            console.log("editCartItem()", index, newItem);
             cart[index] = newItem;
+            showConfirmationToast("Vara uppdaterad i varukorgen!");
             saveCart();
             renderCart();
         }
@@ -699,7 +705,6 @@
         }
 
         function saveCart() {
-            console.log("saveCart() →", cart);
             localStorage.setItem('cart', JSON.stringify(cart));
             updateCartCount();
         }
