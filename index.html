@@ -147,7 +147,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.75</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.76</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -304,7 +304,7 @@
                 </div>
 
                 <div id="billing-info-section" class="mb-6 card hidden">
-                    <h3 class="text-xl font-bold mb-4">Steg 2: Fakturering & leverans</h3>
+                    <h3 class="text-xl font-bold mb-4">Steg 2: Faktureringsuppgifter</h3>
                     <form id="billing-info-form" class="space-y-4">
                         <div class="form-group">
                             <label for="billing-name" class="block font-bold">Namn:</label>
@@ -323,6 +323,10 @@
                             <input type="text" id="billing-city" placeholder="Stad" class="w-full p-2 border rounded-md" required>
                         </div>
                         <div class="form-group">
+                            <label for="billing-mobile" class="block font-bold">Mobilnummer:</label>
+                            <input type="tel" id="billing-mobile" placeholder="Mobilnummer för Swish" class="w-full p-2 border rounded-md" required>
+                        </div>
+                        <div class="form-group">
                             <label for="billing-email" class="block font-bold">E-post:</label>
                             <input type="email" id="billing-email" placeholder="E-postadress för bekräftelse" class="w-full p-2 border rounded-md" required>
                         </div>
@@ -339,8 +343,9 @@
 
                 <div id="order-confirmation-section" class="mb-6 card hidden">
                     <h3 class="text-xl font-bold mb-4 text-center text-green-600">Tack för din beställning!</h3>
-                    <p class="text-center mb-4">Din beställning är nu skickad. Vi kommer att kontakta dig via e-post med betalningsinformation för att slutföra ditt köp.</p>
-                    <p class="text-center">**Beställnings-ID:** <span id="order-id"></span></p>
+                    <p class="text-center mb-2">Din beställning är nu skickad. Betalning kan ske via Swish till **070-2249015**. Vänligen ange ditt order-ID (<span id="order-id"></span>) som meddelande.</p>
+                    <p class="text-center">Du kan också invänta att vi kontaktar dig med betalningsinstruktioner via e-post.</p>
+                    <p class="text-center mt-4">Order-ID: <span id="order-id-display" class="font-bold"></span></p>
                 </div>
             </div>
         </div>
@@ -366,8 +371,10 @@
     import { getAuth, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     
+    // Importera din konfiguration från den nya filen
     import { firebaseConfig } from "./firebase-config.js";
 
+    // Nu kan du använda firebaseConfig direkt här
     const appId = firebaseConfig.projectId;
         
 
@@ -746,7 +753,7 @@
                 showErrorModal(title, message);
             }
         }
-        
+
         async function handlePlaceOrder(e) {
             e.preventDefault();
             
@@ -755,6 +762,7 @@
                 address: document.getElementById('billing-address').value,
                 zip: document.getElementById('billing-zip').value,
                 city: document.getElementById('billing-city').value,
+                mobile: document.getElementById('billing-mobile').value,
                 email: document.getElementById('billing-email').value
             };
             
@@ -769,7 +777,6 @@
             
             const { finalTotal } = calculateCartTotal();
             
-            // Order data for the general orders collection
             const orderData = {
                 items: cartItemsForOrder,
                 total: finalTotal,
@@ -780,17 +787,16 @@
             };
             
             try {
-                // Add to general orders collection for admin to see
                 const newOrderRef = await addDoc(collection(db, `artifacts/${appId}/public/data/orders`), orderData);
                 
-                // If user is logged in, also save to their personal order history (without PII)
                 if (currentUser) {
                     const privateOrderData = {
                         items: cartItemsForOrder.map(item => ({
                             id: item.id,
                             title: item.title,
                             size: item.size,
-                            price: item.price
+                            price: item.price,
+                            status: item.status || 'Ny'
                         })),
                         total: finalTotal,
                         timestamp: serverTimestamp()
@@ -798,10 +804,9 @@
                     await addDoc(collection(db, `artifacts/public/users/${currentUser.uid}/orders`), privateOrderData);
                 }
                 
-                // Show confirmation message
                 document.getElementById('billing-info-section').classList.add('hidden');
                 document.getElementById('order-confirmation-section').classList.remove('hidden');
-                document.getElementById('order-id').textContent = newOrderRef.id;
+                document.getElementById('order-id-display').textContent = newOrderRef.id;
 
                 clearCart();
             } catch (e) {
@@ -832,7 +837,6 @@
         }
         
         function renderCheckout(showOrders = false) {
-            // Reset all checkout sections
             document.getElementById('checkout-start-section').classList.add('hidden');
             document.getElementById('checkout-login-section').classList.add('hidden');
             document.getElementById('billing-info-section').classList.add('hidden');
@@ -1325,7 +1329,7 @@
             saveCart();
             renderCart();
         }
-        
+
         window.openPostcardModal = openPostcardModal;
         window.removeFromCart = removeFromCart;
         window.clearCart = clearCart;
