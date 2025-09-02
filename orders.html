@@ -172,6 +172,7 @@
                     <p><strong>Datum:</strong> <span id="modal-order-date"></span></p>
                     <p><strong>Status:</strong> <span id="modal-order-status"></span></p>
                     <p class="mt-2"><strong>Faktureringsadress:</strong> <span id="modal-billing-address"></span></p>
+                    <p class="mt-2"><strong>Mobilnummer:</strong> <span id="modal-billing-mobile"></span></p>
                 </div>
                 <div class="order-body">
                     <h4 class="font-bold text-lg mb-2">Artiklar</h4>
@@ -334,11 +335,11 @@
                         
                         let orderCardClass = "card";
                         const hasObehandlad = order.items.some(item => (item.status || 'obehandlad') === 'obehandlad');
-                        const hasKlar = order.items.some(item => (item.status || 'obehandlad') === 'klar');
+                        const allKlar = order.items.every(item => (item.status || 'obehandlad') === 'klar');
 
                         if (hasObehandlad) {
                             orderCardClass += " order-card-obehandlad";
-                        } else if (hasKlar) {
+                        } else if (allKlar) {
                             orderCardClass += " order-card-klar";
                         } else if (order.status === 'Ny') {
                             orderCardClass += " order-card-ny";
@@ -349,6 +350,7 @@
                         const timestamp = order.timestamp?.toDate ? order.timestamp.toDate().toLocaleString('sv-SE') : 'Okänt datum';
                         const customerEmail = order.billingInfo?.email || 'Ingen e-post';
                         const billingName = order.billingInfo?.name || 'Ej angivet';
+                        const billingMobile = order.billingInfo?.mobile || 'Ej angivet';
 
                         let itemsHtml = order.items.map((item, itemIndex) => {
                             const postcard = postcardsData.find(p => p.id === item.id);
@@ -392,6 +394,7 @@
                             <div class="order-body">
                                 <p class="text-sm"><strong>Kund:</strong> ${billingName}</p>
                                 <p class="text-sm"><strong>E-post:</strong> ${customerEmail}</p>
+                                <p class="text-sm"><strong>Mobil:</strong> ${billingMobile}</p>
                                 <p class="text-sm"><strong>Total:</strong> ${order.total.toFixed(2)} kr</p>
                                 <h4 class="font-bold text-lg mt-4">Vykort i ordern:</h4>
                                 <ul class="order-item-list mt-2">
@@ -419,6 +422,7 @@
             const modalItemsList = document.getElementById('modal-order-items');
             const modalTotal = document.getElementById('modal-order-total');
             const modalBillingAddress = document.getElementById('modal-billing-address');
+            const modalBillingMobile = document.getElementById('modal-billing-mobile');
 
             modalTitle.textContent = `Beställningsdetaljer (#${order.id.substring(0, 8)})`;
             modalId.textContent = order.id;
@@ -429,6 +433,7 @@
             modalBillingAddress.textContent = order.billingInfo?.address ? 
                 `${order.billingInfo.address}, ${order.billingInfo.zip} ${order.billingInfo.city}` : 
                 'Ej angiven';
+            modalBillingMobile.textContent = order.billingInfo?.mobile || 'Ej angivet';
 
 
             modalItemsList.innerHTML = order.items.map(item => {
@@ -483,6 +488,7 @@
                         const sanitizedBillingInfo = {
                             name: orderToUpdate.billingInfo?.name || null,
                             email: orderToUpdate.billingInfo?.email || null,
+                            mobile: orderToUpdate.billingInfo?.mobile || null,
                             address: null,
                             zip: null,
                             city: null
