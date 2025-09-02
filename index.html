@@ -147,7 +147,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.81</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.82</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -833,11 +833,11 @@
             document.getElementById('order-confirmation-section').classList.remove('hidden');
             document.getElementById('order-id-display').textContent = orderId;
             
-            // Rensa QR-kods containern innan ny kod genereras
-            document.getElementById('swish-qr-code').innerHTML = '';
-            
             const swishUrl = `C://payee=${swishNumber};amount=${finalTotal.toFixed(2)};message=${orderId}`;
-            new QRCode(document.getElementById('swish-qr-code'), {
+            
+            const qrCodeContainer = document.getElementById('swish-qr-code');
+            qrCodeContainer.innerHTML = ''; // Rensa tidigare QR-kod
+            new QRCode(qrCodeContainer, {
                 text: swishUrl,
                 width: 192,
                 height: 192,
