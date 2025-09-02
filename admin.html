@@ -155,7 +155,7 @@
         </div>
     </header>
     
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.34</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.35</div>
 
     <main class="container">
         <section id="admin-login-panel" class="card max-w-md mx-auto">
@@ -728,6 +728,26 @@
             }
         };
 
+        window.handleLogin = handleLogin;
+        window.handleLogout = handleLogout;
+        window.addPriceGroup = addPriceGroup;
+        window.editPriceGroup = editPriceGroup;
+        window.deletePriceGroup = deletePriceGroup;
+        window.addGroup = addGroup;
+        window.editGroup = editGroup;
+        window.deleteGroup = deleteGroup;
+        window.addOrUpdatePostcard = addOrUpdatePostcard;
+        window.editPostcard = editPostcard;
+        window.deletePostcard = deletePostcard;
+        window.addAdmin = addAdmin;
+        window.deleteAdmin = deleteAdmin;
+        window.addSale = addSale;
+        window.deleteSale = deleteSale;
+        window.addNews = addNews;
+        window.editNews = editNews;
+        window.deleteNews = deleteNews;
+        window.updateNews = updateNews;
+
         document.getElementById('login-btn').addEventListener('click', handleLogin);
         document.getElementById('admin-password').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -856,17 +876,6 @@
             e.preventDefault();
             updateNews();
         });
-        
-        window.editPriceGroup = editPriceGroup;
-        window.deletePriceGroup = deletePriceGroup;
-        window.editGroup = editGroup;
-        window.deleteGroup = deleteGroup;
-        window.editPostcard = editPostcard;
-        window.deletePostcard = deletePostcard;
-        window.deleteAdmin = deleteAdmin;
-        window.deleteSale = deleteSale;
-        window.editNews = editNews;
-        window.deleteNews = deleteNews;
     </script>
 </body>
 </html>
