@@ -1,26 +1,20 @@
 // qr.js
-// Kräver att qrcode.min.js är laddat i HTML-filen innan denna körs
-// <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+// Observera: Den här filen kräver att qrcode.js har laddats i din HTML-fil.
+// Du kan lägga till den med <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
 
 export function createSwishQrCode(amount, message) {
-    const swishNumber = "0702249015"; // Ditt Swish-nummer
+    const swishNumber = '0702249015'; // Ditt Swish-nummer
+    const payeeName = 'Vykort'; // Namn på betalningsmottagare
     
-    // Se till att amount är korrekt formatterat (ex: "100.00")
-    const formattedAmount = amount.toFixed(2).replace(",", ".");
+    // Swish-protokollet för QR-koder
+    const formattedAmount = amount.toFixed(2).replace('.', ',');
+    const swishUrl = `swish://payment?version=1&payee=${swishNumber}&amount=${formattedAmount}&message=${message}`;
     
-    // Swish officiella protokoll
-    const swishUrl = `swish://payment?version=1&payee=${swishNumber}&amount=${formattedAmount}&message=${encodeURIComponent(message)}`;
+    const qrCodeContainer = document.getElementById('swish-qr-code');
+    // Rensa tidigare QR-kod
+    qrCodeContainer.innerHTML = '';
     
-    const qrCodeContainer = document.getElementById("swish-qr-code");
-    if (!qrCodeContainer) {
-        console.error("Kunde inte hitta elementet #swish-qr-code");
-        return;
-    }
-
-    // Rensa eventuell tidigare QR-kod
-    qrCodeContainer.innerHTML = "";
-
-    // Generera en ny QR-kod
+    // Generera en ny QR-kod i containern
     new QRCode(qrCodeContainer, {
         text: swishUrl,
         width: 192,
