@@ -147,7 +147,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.88</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.89</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -330,7 +330,7 @@
                             <label for="billing-email" class="block font-bold">E-post:</label>
                             <input type="email" id="billing-email" placeholder="E-postadress för bekräftelse" class="w-full p-2 border rounded-md" required>
                         </div>
-                        <button type="submit" id="place-order-btn" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300">Bekräfta beställning</button>
+                        <button id="place-order-btn" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300">Bekräfta beställning</button>
                     </form>
                 </div>
 
@@ -393,8 +393,7 @@
     let salesData = [];
     let cart = [];
     let currentUser = null;
-    let qrCode = null;
-
+    
     let initialDataLoaded = {
         postcards: false,
         priceGroups: false,
@@ -1272,8 +1271,8 @@
                         <div class="flex items-center justify-between">
                             <p class="font-semibold">${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)})</p>
                             <div class="flex items-center space-x-2">
-                                <button onclick="openPostcardModal('${item.id}', ${index})" class="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600">Ändra</button>
-                                <button onclick="removeFromCart(${index})" class="px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600">Ta bort</button>
+                                <button data-postcard-id="${item.id}" data-index="${index}" class="edit-cart-item-btn px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600">Ändra</button>
+                                <button data-index="${index}" class="remove-cart-item-btn px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600">Ta bort</button>
                             </div>
                         </div>
                         <div class="mt-2 text-sm text-gray-600 cart-item-details">
@@ -1288,22 +1287,38 @@
                 `;
             });
         }
+        
+        document.querySelectorAll('.edit-cart-item-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const postcardId = e.target.dataset.postcardId;
+                const index = parseInt(e.target.dataset.index);
+                openPostcardModal(postcardId, index);
+            });
+        });
+        
+        document.querySelectorAll('.remove-cart-item-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                removeFromCart(index);
+            });
+        });
 
         function removeFromCart(index) {
             cart.splice(index, 1);
             saveCart();
             renderCart();
         }
+    }
         
-        function clearCart() {
-            cart = [];
-            saveCart();
-            renderCart();
-        }
+    function clearCart() {
+        cart = [];
+        saveCart();
+        renderCart();
+    }
 
-        window.openPostcardModal = openPostcardModal;
-        window.removeFromCart = removeFromCart;
-        window.clearCart = clearCart;
+    window.openPostcardModal = openPostcardModal;
+    window.removeFromCart = removeFromCart;
+    window.clearCart = clearCart;
     </script>
 </body>
 </html>
