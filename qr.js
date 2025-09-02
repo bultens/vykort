@@ -6,9 +6,9 @@ export function createSwishQrCode(amount, message) {
     const swishNumber = '0702249015'; // Ditt Swish-nummer
     const payeeName = 'Vykort'; // Namn på betalningsmottagare
     
-    // Swish-protokollet för QR-koder
-    const formattedAmount = amount.toFixed(2).replace('.', ',');
-    const swishUrl = `swish://payment?version=1&payee=${swishNumber}&amount=${formattedAmount}&message=${message}`;
+    // Swish-protokollet för QR-koder enligt det angivna formatet
+    const formattedAmount = amount.toFixed(2);
+    const swishUrl = `https://app.swish.nu/1/p/sw/?sw=${swishNumber}&amt=${formattedAmount}&cur=SEK&msg=${message}`;
     
     const qrCodeContainer = document.getElementById('swish-qr-code');
     // Rensa tidigare QR-kod
