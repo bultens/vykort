@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vykortsbutik</title>
+    <title>Beställningar - Adminpanel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
@@ -65,1284 +66,474 @@
             text-decoration: none;
             cursor: pointer;
         }
-        .confirmation-message {
-            position: fixed;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #10B981; /* Tailwind green-500 */
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 9999px; /* Tailwind rounded-full */
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 1001;
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out;
+        .order-item-list {
+            list-style: none;
+            padding: 0;
         }
-        .confirmation-message.active {
-            opacity: 1;
-        }
-        .news-item {
-            border-left: 4px solid #3b82f6;
-            background-color: #eff6ff;
-            padding: 1rem;
+        .order-item-list li {
+            background-color: #e5e7eb;
+            padding: 0.75rem;
             border-radius: 0.5rem;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
-        .postcard-image-wrapper {
-            position: relative;
-            width: 100%;
+        .order-item-list li img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 0.25rem;
+        }
+        .order-item-details {
+            flex-grow: 1;
+        }
+        .order-item-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .order-card {
+            border: 1px solid #d1d5db;
+            border-radius: 0.75rem;
             overflow: hidden;
         }
-        .postcard-image-wrapper.portrait {
-            padding-top: 141.42%; /* A4 portrait ratio: 1/sqrt(2) */
+        .order-header {
+            background-color: #f3f4f6;
+            padding: 1rem;
+            border-bottom: 1px solid #d1d5db;
         }
-        .postcard-image-wrapper.landscape {
-            padding-top: 70.71%; /* A4 landscape ratio: 1/sqrt(2) */
+        .order-body {
+            padding: 1rem;
         }
-        .postcard-image-wrapper img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
+        .status-header {
+            background-color: #4b5563;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: bold;
         }
-        .cart-item-details {
-            display: grid;
-            grid-template-columns: auto 1fr;
-            gap: 0.5rem 1rem;
+        .item-status-obehandlad {
+            background-color: #fee2e2; /* Red-100 */
         }
-        .cart-item-details strong {
-            justify-self: start;
+        .item-status-klar {
+            background-color: #d1fae5; /* Green-100 */
         }
-        .cart-item-details span {
-            justify-self: end;
-            text-align: right;
+        .order-card-obehandlad {
+            border-left: 5px solid #ef4444; /* Red-500 */
         }
-        .sticky-header {
-            position: sticky;
-            top: 0;
-            z-index: 50; /* Adjust z-index as needed to ensure it's on top of other content */
+        .order-card-klar {
+            border-left: 5px solid #10b981; /* Green-500 */
+        }
+        .order-card-ny {
+            border-left: 5px solid #3b82f6; /* Blue-500 */
         }
     </style>
 </head>
 <body>
-    <header class="bg-gray-800 text-white shadow-lg sticky-header">
-        <div class="container py-4 flex justify-between items-center">
-            <span class="text-3xl font-bold tracking-tight">Vykortsbutik</span>
-            <div class="flex space-x-4 items-center">
-                <button id="cart-btn" class="relative hover:text-gray-300 transition duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                    <span id="cart-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">0</span>
-                </button>
-                <div id="user-status" class="text-sm font-medium">
-                    <a href="#" id="login-link" class="hover:text-gray-300 transition duration-300">Logga in</a>
-                </div>
-                <a href="admin.html" class="hover:text-gray-300 transition duration-300">Adminpanel</a>
+    <header class="bg-gray-800 text-white shadow-lg">
+        <div class="container py-4 flex flex-col sm:flex-row justify-between items-center">
+            <div class="flex flex-col items-start space-x-2">
+                <span class="text-3xl font-bold tracking-tight">Beställningar</span>
             </div>
+            <nav class="mt-4 sm:mt-0 flex flex-col sm:flex-row items-center sm:space-x-4 space-y-2 sm:space-y-0 text-sm">
+                <div id="order-status-summary" class="hidden flex flex-wrap justify-center sm:justify-start gap-2 text-xs">
+                    <span id="status-Ny" class="bg-blue-500 text-white px-2 py-1 rounded-full">Ny: 0</span>
+                    <span id="status-Väntar" class="bg-yellow-500 text-white px-2 py-1 rounded-full">Väntar: 0</span>
+                    <span id="status-Avakta-Betalning" class="bg-orange-500 text-white px-2 py-1 rounded-full">Avvakta: 0</span>
+                    <span id="status-Betald" class="bg-green-500 text-white px-2 py-1 rounded-full">Betald: 0</span>
+                    <span id="status-Skickad" class="bg-cyan-500 text-white px-2 py-1 rounded-full">Skickad: 0</span>
+                    <span id="status-Klar" class="bg-gray-500 text-white px-2 py-1 rounded-full">Klar: 0</span>
+                </div>
+                <div class="flex space-x-4 font-medium">
+                    <a href="admin.html" class="hover:text-gray-300 transition duration-300">Tillbaka till Admin</a>
+                </div>
+            </nav>
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.83</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.37</div>
 
-    <div class="container text-center py-4 text-gray-700 leading-relaxed">
-        <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
-        <br>
-        <p class="font-bold">Storlekar:</p>
-        <ul class="list-disc list-inside mx-auto max-w-lg text-left">
-            <li>Liten (A6, 105 × 148 mm, 4.1 × 5.8 tum)</li>
-            <li>Mellan (A5, 148 × 210 mm, 5.8 × 8.3 tum)</li>
-            <li>Stor (A4, 210 × 297 mm, 8.3 × 11.7 tum)</li>
-        </ul>
-        <br>
-        <p class="font-bold">Leveranstid:</p>
-        <p>Leverans tar 3 till 15 dagar, beroende på destination. Vänligen kontakta mig för en mer exakt uppskattning.</p>
-    </div>
-
-    <div id="news-section" class="container py-4 hidden">
-        <hr class="my-6">
-        <h2 class="text-3xl font-bold mb-4 text-center">Nyheter</h2>
-        <div id="news-list">
-            </div>
-        <hr class="my-6">
-    </div>
-
-    <main id="main-content" class="container">
-        <h1 class="text-4xl font-bold mb-6 text-center">Vykort</h1>
-        <div id="filter-section" class="mb-6 flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-            <div>
-                <label for="group-filter" class="block text-sm font-medium text-gray-700">Filtrera efter grupp:</label>
-                <select id="group-filter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"></select>
-            </div>
+    <main class="container">
+        <h1 class="text-4xl font-bold mb-6 text-center">Beställningshantering</h1>
+        <div id="orders-container" class="space-y-8">
+            <div id="loading-message" class="text-center text-gray-500">Laddar beställningar...</div>
         </div>
-        <div id="postcards-list">
-            </div>
     </main>
-    
-    <div id="cartModal" class="modal">
-        <div class="modal-content">
-            <span id="close-cart-modal" class="modal-close-btn">&times;</span>
-            <h2 class="text-2xl font-bold mb-4">Varukorg</h2>
-            <div id="cart-items" class="space-y-4 mb-4"></div>
-            <div id="cart-summary" class="text-right font-bold text-lg border-t pt-4">
-                <div class="flex justify-between items-center mb-2">
-                    <span>Totalt (exkl. rea):</span>
-                    <span id="cart-subtotal">0 kr</span>
-                </div>
-                <div id="cart-total-discount-container" class="flex justify-between items-center mb-2 hidden">
-                    <span>Rabatt på hela korgen:</span>
-                    <span id="cart-total-discount">-0 kr</span>
-                </div>
-                <div class="flex justify-between items-center mb-2">
-                    <span>Att betala:</span>
-                    <span id="cart-total">0 kr</span>
-                </div>
-                <button id="clear-cart-btn" class="px-4 py-2 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 transition duration-300">Töm varukorg</button>
-            </div>
-            <button id="checkout-btn" class="mt-4 w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300">Gå till kassan</button>
-        </div>
-    </div>
-    
-    <div id="postcardModal" class="modal">
-        <div class="modal-content">
-            <span id="close-postcard-modal" class="modal-close-btn">&times;</span>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="flex flex-col items-center text-center">
-                    <div id="modal-image-wrapper" class="w-full mb-4">
-                        <img id="modal-image" src="" alt="" class="w-full h-auto rounded-lg">
-                    </div>
-                    <h3 id="modal-title" class="text-xl font-bold mb-2"></h3>
-                </div>
-                <div id="modal-form-section" class="space-y-4">
-                    <form id="add-to-cart-form">
-                        <input type="hidden" id="modal-postcard-id">
-                        <input type="hidden" id="modal-cart-item-index"> 
-                        <div class="form-group">
-                            <label class="block font-bold">Välj storlek:</label>
-                            <div id="modal-size-options" class="flex flex-col space-y-2"></div>
-                        </div>
-                        <div class="form-group">
-                            <label for="modal-recipient-name" class="block font-bold">Skickas till:</label>
-                            <input type="text" id="modal-recipient-name" name="recipientName" placeholder="Namn" class="w-full p-2 border rounded-md" required>
-                            <input type="text" id="modal-recipient-address" name="recipientAddress" placeholder="Adress" class="w-full p-2 mt-2 border rounded-md" required>
-                            <input type="text" id="modal-recipient-address2" name="recipientAddress2" placeholder="Adress 2 (valfritt)" class="w-full p-2 mt-2 border rounded-md">
-                            <input type="text" id="modal-recipient-zip" name="recipientZip" placeholder="Postadress" class="w-full p-2 mt-2 border rounded-md" required>
-                            <input type="text" id="modal-recipient-city" name="recipientCity" placeholder="Ort" class="w-full p-2 mt-2 border rounded-md" required>
-                            <input type="text" id="modal-recipient-country" name="recipientCountry" placeholder="Land" class="w-full p-2 mt-2 border rounded-md" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="modal-message-text" class="block font-bold">Text på kort:</label>
-                            <textarea id="modal-message-text" name="messageText" rows="4" placeholder="Skriv din text här..." class="w-full p-2 border rounded-md"></textarea>
-                        </div>
-                        <button type="submit" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300">Lägg i varukorgen</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div id="confirmation-toast" class="confirmation-message">
-        Vara tillagd i varukorgen!
-    </div>
 
-    <div id="userModal" class="modal">
-        <div class="modal-content max-w-md mx-auto">
-            <span id="close-user-modal" class="modal-close-btn">&times;</span>
-            <h2 class="text-2xl font-bold mb-4 text-center" id="user-modal-title">Logga in</h2>
-            <div id="user-form-container">
-                <form id="login-form" class="space-y-4">
-                    <input type="email" id="login-email" placeholder="E-postadress" class="w-full p-3 rounded-lg border border-gray-300">
-                    <input type="password" id="login-password" placeholder="Lösenord" class="w-full p-3 rounded-lg border border-gray-300">
-                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700">Logga in</button>
-                </form>
-                <button id="register-switch" class="mt-4 w-full text-blue-600 font-bold hover:underline">Har du inget konto? Skapa ett här!</button>
-                <form id="register-form" class="space-y-4 hidden">
-                    <input type="text" id="register-username" placeholder="Användarnamn" class="w-full p-3 rounded-lg border border-gray-300">
-                    <input type="email" id="register-email" placeholder="E-postadress" class="w-full p-3 rounded-lg border border-gray-300">
-                    <input type="password" id="register-password" placeholder="Lösenord (minst 6 tecken)" class="w-full p-3 rounded-lg border border-gray-300">
-                    <button type="submit" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700">Skapa konto</button>
-                </form>
-                <button id="login-switch" class="mt-4 w-full text-blue-600 font-bold hover:underline hidden">Har du redan ett konto? Logga in här!</button>
+    <div id="orderModal" class="modal">
+        <div class="modal-content max-w-lg mx-auto p-6">
+            <span id="close-order-modal" class="modal-close-btn">&times;</span>
+            <h3 id="modal-order-title" class="text-2xl font-bold mb-4">Beställningsdetaljer</h3>
+            <div id="modal-order-content" class="space-y-4">
+                <div class="order-header rounded-lg">
+                    <p><strong>Order-ID:</strong> <span id="modal-order-id"></span></p>
+                    <p><strong>E-post:</strong> <span id="modal-order-email"></span></p>
+                    <p><strong>Datum:</strong> <span id="modal-order-date"></span></p>
+                    <p><strong>Status:</strong> <span id="modal-order-status"></span></p>
+                    <p class="mt-2"><strong>Faktureringsadress:</strong> <span id="modal-billing-address"></span></p>
+                    <p class="mt-2"><strong>Mobilnummer:</strong> <span id="modal-billing-mobile"></span></p>
+                </div>
+                <div class="order-body">
+                    <h4 class="font-bold text-lg mb-2">Artiklar</h4>
+                    <ul id="modal-order-items" class="space-y-2"></ul>
+                    <div class="mt-4 border-t pt-2">
+                        <p class="font-bold text-right">Totalt: <span id="modal-order-total"></span></p>
+                    </div>
+                </div>
+            </div>
+            <div id="modal-order-actions" class="mt-4 flex flex-wrap gap-2 justify-center">
+                <button onclick="updateOrderStatus(currentOrder.id, 'Väntar')" class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600">Väntar</button>
+                <button onclick="updateOrderStatus(currentOrder.id, 'Avakta Betalning')" class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600">Avvakta</button>
+                <button onclick="updateOrderStatus(currentOrder.id, 'Betald')" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">Betald</button>
+                <button onclick="updateOrderStatus(currentOrder.id, 'Skickad')" class="px-4 py-2 bg-cyan-500 text-white rounded-md hover:bg-cyan-600">Skickad</button>
+                <button onclick="updateOrderStatus(currentOrder.id, 'Klar')" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">Klar</button>
+                <button onclick="deleteOrder(currentOrder.id)" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">Ta bort</button>
             </div>
         </div>
     </div>
 
-    <div id="checkoutModal" class="modal">
-        <div class="modal-content max-w-3xl mx-auto">
-            <span id="close-checkout-modal" class="modal-close-btn">&times;</span>
-            <h2 class="text-2xl font-bold mb-4">Kassa</h2>
-            <div id="checkout-content">
-                <div id="checkout-start-section" class="mb-6 card text-center">
-                    <h3 class="text-xl font-bold mb-4">Fortsätt till kassan</h3>
-                    <p class="mb-4">Vill du logga in för att spara din orderhistorik, eller fortsätta som gäst?</p>
-                    <div class="space-y-4">
-                        <button id="guest-checkout-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300">Fortsätt som gäst</button>
-                        <button id="login-checkout-btn" class="w-full bg-gray-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-700 transition duration-300">Logga in / Skapa konto</button>
-                    </div>
-                </div>
+    <div id="messageModal" class="modal">
+        <div class="modal-content text-center">
+            <p id="modal-message"></p>
+            <button id="close-message-modal" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md">OK</button>
+        </div>
+    </div>
 
-                <div id="checkout-login-section" class="mb-6 card hidden">
-                    <h3 class="text-xl font-bold mb-4">Steg 1: Logga in / Skapa konto</h3>
-                    <form id="checkout-login-form" class="space-y-2">
-                        <h4 class="font-semibold">Logga in</h4>
-                        <input type="email" id="checkout-login-email" placeholder="E-postadress" class="w-full p-2 border rounded-md">
-                        <input type="password" id="checkout-login-password" placeholder="Lösenord" class="w-full p-2 border rounded-md">
-                        <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700">Logga in</button>
-                    </form>
-                    <hr class="my-4">
-                    <form id="checkout-register-form" class="space-y-2">
-                        <h4 class="font-semibold">Skapa konto</h4>
-                        <input type="text" id="checkout-register-username" placeholder="Användarnamn" class="w-full p-2 border rounded-md">
-                        <input type="email" id="checkout-register-email" placeholder="E-postadress" class="w-full p-2 border rounded-md">
-                        <input type="password" id="checkout-register-password" placeholder="Lösenord" class="w-full p-2 border rounded-md">
-                        <button type="submit" class="bg-green-600 text-white font-bold py-2 px-4 rounded-md hover:bg-green-700">Skapa konto</button>
-                    </form>
-                </div>
-
-                <div id="billing-info-section" class="mb-6 card hidden">
-                    <h3 class="text-xl font-bold mb-4">Steg 2: Faktureringsuppgifter</h3>
-                    <form id="billing-info-form" class="space-y-4">
-                        <div class="form-group">
-                            <label for="billing-name" class="block font-bold">Namn:</label>
-                            <input type="text" id="billing-name" placeholder="Fullständigt namn" class="w-full p-2 border rounded-md" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="billing-address" class="block font-bold">Adress:</label>
-                            <input type="text" id="billing-address" placeholder="Gatuadress" class="w-full p-2 border rounded-md" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="billing-zip" class="block font-bold">Postnummer:</label>
-                            <input type="text" id="billing-zip" placeholder="Postnummer" class="w-full p-2 border rounded-md" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="billing-city" class="block font-bold">Stad:</label>
-                            <input type="text" id="billing-city" placeholder="Stad" class="w-full p-2 border rounded-md" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="billing-mobile" class="block font-bold">Mobilnummer:</label>
-                            <input type="tel" id="billing-mobile" placeholder="Mobilnummer för Swish" class="w-full p-2 border rounded-md" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="billing-email" class="block font-bold">E-post:</label>
-                            <input type="email" id="billing-email" placeholder="E-postadress för bekräftelse" class="w-full p-2 border rounded-md" required>
-                        </div>
-                        <button type="submit" id="place-order-btn" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300">Bekräfta beställning</button>
-                    </form>
-                </div>
-
-                <div id="order-history-section" class="mb-6 card hidden">
-                    <h3 class="text-xl font-bold mb-4">Dina tidigare ordrar</h3>
-                    <div id="order-history-list" class="space-y-4">
-                        <p class="text-gray-500">Inga tidigare ordrar hittades.</p>
-                    </div>
-                </div>
-
-                <div id="order-confirmation-section" class="mb-6 card hidden">
-                    <h3 class="text-xl font-bold mb-4 text-center text-green-600">Tack för din beställning!</h3>
-                    <p class="text-center mb-2">Din beställning är nu skickad. Betalning kan ske via Swish till **070-2249015**. Vänligen ange ditt order-ID (<span id="order-id-display"></span>) som meddelande.</p>
-                    <div id="swish-qr-container" class="mt-4 flex flex-col items-center">
-                        <p class="mb-2 font-bold">Skanna QR-koden för att betala direkt:</p>
-                        <div id="swish-qr-code" class="w-48 h-48 border rounded-lg"></div>
-                    </div>
-                    <p class="text-center mt-4">Du kan också invänta att vi kontaktar dig med betalningsinstruktioner via e-post.</p>
-                </div>
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content text-center">
+            <p id="confirm-message"></p>
+            <div class="flex justify-center space-x-4 mt-4">
+                <button id="confirm-yes-btn" class="px-4 py-2 bg-green-600 text-white rounded-md">Ja</button>
+                <button id="confirm-no-btn" class="px-4 py-2 bg-gray-600 text-white rounded-md">Nej</button>
             </div>
         </div>
     </div>
 
-    <div id="errorModal" class="modal">
-        <div class="modal-content max-w-sm mx-auto p-6 bg-white rounded-lg shadow-xl text-center">
-            <h3 id="error-modal-title" class="text-xl font-bold text-red-600 mb-4">Ett fel uppstod</h3>
-            <p id="error-modal-message" class="text-gray-700 mb-6"></p>
-            <button id="close-error-modal" class="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition duration-300">OK</button>
-        </div>
-    </div>
-    
-
-    <footer class="bg-gray-800 text-white text-center py-4 mt-8">
-        <div class="container text-sm">
-            <p>&copy; 2025 Vykortsbutik</p>
-        </div>
-    </footer>
-
-    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
     <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    
-    // Importera din konfiguration från den nya filen
-    import { firebaseConfig } from "./firebase-config.js";
-    
-    // Hårdkodat Swish-nummer
-    const swishNumber = '0702249015';
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, onSnapshot, collection, query, orderBy, getDocs, updateDoc, doc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { firebaseConfig } from "./firebase-config.js";
 
-    // Nu kan du använda firebaseConfig direkt här
-    const appId = firebaseConfig.projectId;
-        
-    let db;
-    let auth;
-    let postcardsData = [];
-    let priceGroupsData = [];
-    let groupsData = [];
-    let salesData = [];
-    let cart = [];
-    let currentUser = null;
-    let qrCode = null;
+        const appId = firebaseConfig.projectId;
 
-    let initialDataLoaded = {
-        postcards: false,
-        priceGroups: false,
-        groups: false,
-        sales: false,
-        news: false
-    };
-    let allDataLoaded = false;
-    
-    document.addEventListener('DOMContentLoaded', () => {
-        if (firebaseConfig.projectId) {
-            try {
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        currentUser = user;
-                        console.log("Användare inloggad:", user.email || user.uid);
-                        updateUserStatus(true);
-                        renderOrderHistory();
-                    } else {
-                        currentUser = null;
-                        console.log("Användare utloggad.");
-                        updateUserStatus(false);
+        let db;
+        let auth;
+        let ordersData = [];
+        let postcardsData = [];
+        let currentOrder = null;
+        let unsubscribeOrders = null;
+        let unsubscribePostcards = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (firebaseConfig.projectId) {
+                try {
+                    const app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+                    
+                    const adminLoggedIn = localStorage.getItem('adminLoggedIn');
+                    if (!adminLoggedIn) {
+                        window.location.href = 'admin.html';
+                        return;
                     }
-                });
 
-                startListeners();
-            } catch (e) {
-                console.error("Firebase initieringsfel:", e);
-                document.getElementById('postcards-list').innerHTML = '<p class="text-center text-red-500">Kunde inte ansluta till databasen.</p>';
-            }
-        } else {
-            document.getElementById('postcards-list').innerHTML = '<p class="text-center text-red-500">Firebase-konfiguration saknas.</p>';
-        }
+                    startListeners();
+                    document.getElementById('loading-message').classList.add('hidden');
+                    document.getElementById('order-status-summary').classList.remove('hidden');
 
-        loadCart();
-        
-        document.getElementById('group-filter').addEventListener('change', renderPostcards);
-        
-        document.getElementById('cart-btn').addEventListener('click', () => {
-            renderCart();
-            document.getElementById('cartModal').classList.add('active');
-        });
-        document.getElementById('close-cart-modal').addEventListener('click', () => {
-            document.getElementById('cartModal').classList.remove('active');
-        } );
-        window.addEventListener('click', (event) => {
-            if (event.target === document.getElementById('cartModal')) {
-                document.getElementById('cartModal').classList.remove('active');
-            }
-        });
-        
-        document.getElementById('close-postcard-modal').addEventListener('click', () => {
-            document.getElementById('postcardModal').classList.remove('active');
-        });
-        window.addEventListener('click', (event) => {
-            if (event.target === document.getElementById('postcardModal')) {
-                document.getElementById('postcardModal').classList.remove('active');
-            }
-        });
-
-        document.getElementById('add-to-cart-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const form = e.target;
-            const postcardId = form.querySelector('#modal-postcard-id').value;
-            const cartItemIndex = form.querySelector('#modal-cart-item-index').value;
-            const size = form.querySelector('input[name="size"]:checked').value;
-            const recipientName = form.querySelector('#modal-recipient-name').value;
-            const recipientAddress = form.querySelector('#modal-recipient-address').value;
-            const recipientAddress2 = form.querySelector('#modal-recipient-address2').value;
-            const recipientZip = form.querySelector('#modal-recipient-zip').value;
-            const recipientCity = form.querySelector('#modal-recipient-city').value;
-            const recipientCountry = form.querySelector('#modal-recipient-country').value;
-            const messageText = form.querySelector('#modal-message-text').value;
-
-            const postcard = postcardsData.find(p => p.id === postcardId);
-            if (!postcard) {
-                console.error("Kunde inte lägga till i varukorgen, vykortet hittades inte.");
-                return;
-            }
-
-            const prices = calculatePrice(postcard);
-            const price = prices[size];
-            
-            const newItem = {
-                id: postcardId,
-                title: postcard.title,
-                size: size,
-                price: price,
-                group: postcard.group,
-                recipient: {
-                    name: recipientName,
-                    address: recipientAddress,
-                    address2: recipientAddress2,
-                    zip: recipientZip,
-                    city: recipientCity,
-                    country: recipientCountry
-                },
-                message: messageText
-            };
-
-            if (cartItemIndex !== "" && parseInt(cartItemIndex) !== -1) {
-                editCartItem(parseInt(cartItemIndex), newItem);
+                } catch (e) {
+                    console.error("Firebase initieringsfel:", e);
+                    document.getElementById('loading-message').textContent = 'Kunde inte ansluta till databasen.';
+                }
             } else {
-                addToCart(newItem);
+                document.getElementById('loading-message').textContent = 'Firebase-konfiguration saknas.';
             }
-            
-            document.getElementById('postcardModal').classList.remove('active');
-            form.reset();
-        });
 
-        document.getElementById('clear-cart-btn').addEventListener('click', clearCart);
-        document.getElementById('checkout-btn').addEventListener('click', () => {
-            document.getElementById('cartModal').classList.remove('active');
-            document.getElementById('checkoutModal').classList.add('active');
-            renderCheckout();
-        });
-        
-        // Handle new checkout flow buttons
-        document.getElementById('guest-checkout-btn').addEventListener('click', () => {
-            document.getElementById('checkout-start-section').classList.add('hidden');
-            document.getElementById('billing-info-section').classList.remove('hidden');
-        });
-        document.getElementById('login-checkout-btn').addEventListener('click', () => {
-            document.getElementById('checkout-start-section').classList.add('hidden');
-            document.getElementById('checkout-login-section').classList.remove('hidden');
-        });
-
-        // Handle user-related modals and forms
-        document.getElementById('login-link').addEventListener('click', (e) => {
-            e.preventDefault();
-            document.getElementById('userModal').classList.add('active');
-        });
-        document.getElementById('close-user-modal').addEventListener('click', () => {
-            document.getElementById('userModal').classList.remove('active');
-        });
-        document.getElementById('register-switch').addEventListener('click', () => {
-            document.getElementById('login-form').classList.add('hidden');
-            document.getElementById('register-form').classList.remove('hidden');
-            document.getElementById('register-switch').classList.add('hidden');
-            document.getElementById('login-switch').classList.remove('hidden');
-            document.getElementById('user-modal-title').textContent = "Skapa konto";
-        });
-        document.getElementById('login-switch').addEventListener('click', () => {
-            document.getElementById('login-form').classList.remove('hidden');
-            document.getElementById('register-form').classList.add('hidden');
-            document.getElementById('register-switch').classList.remove('hidden');
-            document.getElementById('login-switch').classList.add('hidden');
-            document.getElementById('user-modal-title').textContent = "Logga in";
-        });
-        document.getElementById('login-form').addEventListener('submit', handleLogin);
-        document.getElementById('register-form').addEventListener('submit', handleRegister);
-        
-        // Handle header logout link
-        document.getElementById('user-status').addEventListener('click', async (e) => {
-            if (e.target.id === 'logout-link') {
-                e.preventDefault();
-                await signOut(auth);
-                document.getElementById('main-content').classList.remove('hidden');
-                document.getElementById('checkoutModal').classList.remove('active');
-            }
-        });
-
-        // Handle checkout forms
-        document.getElementById('checkout-login-form').addEventListener('submit', handleCheckoutLogin);
-        document.getElementById('checkout-register-form').addEventListener('submit', handleCheckoutRegister);
-        document.getElementById('billing-info-form').addEventListener('submit', handlePlaceOrder);
-        document.getElementById('close-checkout-modal').addEventListener('click', () => {
-            document.getElementById('checkoutModal').classList.remove('active');
-        });
-
-        // Handle closing the error modal
-        document.getElementById('close-error-modal').addEventListener('click', () => {
-            document.getElementById('errorModal').classList.remove('active');
-        });
-        window.addEventListener('click', (event) => {
-            if (event.target === document.getElementById('errorModal')) {
-                document.getElementById('errorModal').classList.remove('active');
-            }
-        });
-    });
-
-    function showErrorModal(title, message) {
-        document.getElementById('error-modal-title').textContent = title;
-        document.getElementById('error-modal-message').textContent = message;
-        document.getElementById('errorModal').classList.add('active');
-    }
-
-    async function handleLogin(e) {
-        e.preventDefault();
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-        try {
-            await signInWithEmailAndPassword(auth, email, password);
-            document.getElementById('userModal').classList.remove('active');
-            showConfirmationToast("Inloggad!");
-        } catch (error) {
-            console.error("Login error:", error.code, error.message);
-            let title = "Inloggningen misslyckades";
-            let message = "Ett okänt fel uppstod.";
-
-            switch (error.code) {
-                case 'auth/missing-password':
-                    title = "Lösenord saknas";
-                    message = "Vänligen ange ditt lösenord för att logga in.";
-                    break;
-                case 'auth/invalid-credential':
-                case 'auth/wrong-password':
-                case 'auth/user-not-found':
-                case 'auth/invalid-email':
-                    title = "Felaktiga inloggningsuppgifter";
-                    message = "Kontrollera din e-postadress och ditt lösenord och försök igen.";
-                    break;
-                case 'auth/user-disabled':
-                    title = "Användarkonto inaktiverat";
-                    message = "Ditt användarkonto har blivit inaktiverat. Kontakta support för hjälp.";
-                    break;
-                default:
-                    message = error.message;
-                    break;
-            }
-            showErrorModal(title, message);
-        }
-    }
-
-    async function handleRegister(e) {
-        e.preventDefault();
-        const username = document.getElementById('register-username').value;
-        const email = document.getElementById('register-email').value;
-        const password = document.getElementById('register-password').value;
-        
-        if (password.length < 6) {
-            showErrorModal("Lösenordet är för svagt", "Lösenordet måste vara minst 6 tecken långt.");
-            return;
-        }
-
-        try {
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            
-            await addDoc(collection(db, `artifacts/${appId}/public/data/users`), {
-                uid: userCredential.user.uid,
-                username: username
+            document.getElementById('close-order-modal').addEventListener('click', () => {
+                document.getElementById('orderModal').classList.remove('active');
             });
-            
-            document.getElementById('userModal').classList.remove('active');
-            showConfirmationToast("Konto skapat och inloggad!");
-        } catch (error) {
-            console.error("Registration error:", error.code, error.message);
-            let title = "Registreringen misslyckades";
-            let message = "Ett okänt fel uppstod.";
-
-            switch (error.code) {
-                case 'auth/email-already-in-use':
-                    title = "E-postadressen används redan";
-                    message = "Den angivna e-postadressen används redan av ett annat konto.";
-                    break;
-                case 'auth/invalid-email':
-                    title = "Ogiltig e-postadress";
-                    message = "Vänligen ange en giltig e-postadress.";
-                    break;
-                case 'auth/operation-not-allowed':
-                    title = "Registrering ej tillåten";
-                    message = "E-post-/lösenordsinloggning är inte aktiverat. Kontakta administratören.";
-                    break;
-                case 'auth/weak-password':
-                    title = "Lösenordet är för svagt";
-                    message = "Lösenordet måste vara minst 6 tecken långt.";
-                    break;
-                default:
-                    message = error.message;
-                    break;
-            }
-            showErrorModal(title, message);
-        }
-    }
-
-    async function handleCheckoutLogin(e) {
-        e.preventDefault();
-        const email = document.getElementById('checkout-login-email').value;
-        const password = document.getElementById('checkout-login-password').value;
-        try {
-            await signInWithEmailAndPassword(auth, email, password);
-            showConfirmationToast("Inloggad i kassan!");
-            renderCheckout();
-        } catch (error) {
-            console.error("Login error:", error.code, error.message);
-            let title = "Inloggningen misslyckades";
-            let message = "Ett okänt fel uppstod.";
-
-            switch (error.code) {
-                case 'auth/missing-password':
-                    title = "Lösenord saknas";
-                    message = "Vänligen ange ditt lösenord för att logga in.";
-                    break;
-                case 'auth/invalid-credential': 
-                case 'auth/wrong-password':
-                case 'auth/user-not-found':
-                case 'auth/invalid-email':
-                    title = "Felaktiga inloggningsuppgifter";
-                    message = "Kontrollera din e-postadress och ditt lösenord och försök igen.";
-                    break;
-                case 'auth/user-disabled':
-                    title = "Användarkonto inaktiverat";
-                    message = "Ditt användarkonto har blivit inaktiverat. Kontakta support för hjälp.";
-                    break;
-                default:
-                    message = error.message;
-                    break;
-            }
-            showErrorModal(title, message);
-        }
-    }
-    
-    async function handleCheckoutRegister(e) {
-        e.preventDefault();
-        const username = document.getElementById('checkout-register-username').value;
-        const email = document.getElementById('checkout-register-email').value;
-        const password = document.getElementById('checkout-register-password').value;
-        
-        if (password.length < 6) {
-            showErrorModal("Lösenordet är för svagt", "Lösenordet måste vara minst 6 tecken långt.");
-            return;
-        }
-        
-        try {
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            await addDoc(collection(db, `artifacts/${appId}/public/data/users`), {
-                uid: userCredential.user.uid,
-                username: username
+            document.getElementById('close-message-modal').addEventListener('click', () => {
+                document.getElementById('messageModal').classList.remove('active');
             });
-            showConfirmationToast("Konto skapat och inloggad i kassan!");
-            renderCheckout();
-        } catch (error) {
-            console.error("Registration error:", error.code, error.message);
-            let title = "Registreringen misslyckades";
-            let message = "Ett okänt fel uppstod.";
-
-            switch (error.code) {
-                case 'auth/email-already-in-use':
-                    title = "E-postadressen används redan";
-                    message = "Den angivna e-postadressen används redan av ett annat konto.";
-                    break;
-                case 'auth/invalid-email':
-                    title = "Ogiltig e-postadress";
-                    message = "Vänligen ange en giltig e-postadress.";
-                    break;
-                case 'auth/operation-not-allowed':
-                    title = "Registrering ej tillåten";
-                    message = "E-post-/lösenordsinloggning är inte aktiverat. Kontakta administratören.";
-                    break;
-                case 'auth/weak-password':
-                    title = "Lösenordet är för svagt";
-                    message = "Lösenordet måste vara minst 6 tecken långt.";
-                    break;
-                default:
-                    message = error.message;
-                    break;
-            }
-            showErrorModal(title, message);
-        }
-    }
-
-    async function handlePlaceOrder(e) {
-        e.preventDefault();
-        
-        const billingInfo = {
-            name: document.getElementById('billing-name').value,
-            address: document.getElementById('billing-address').value,
-            zip: document.getElementById('billing-zip').value,
-            city: document.getElementById('billing-city').value,
-            mobile: document.getElementById('billing-mobile').value,
-            email: document.getElementById('billing-email').value
-        };
-        
-        const cartItemsForOrder = cart.map(item => ({
-            id: item.id,
-            title: item.title,
-            size: item.size,
-            price: getDiscountedPrice(item),
-            message: item.message,
-            recipient: item.recipient,
-            status: 'obehandlad'
-        }));
-        
-        const { finalTotal } = calculateCartTotal();
-        
-        const orderId = Math.floor(1000 + Math.random() * 9000).toString();
-        
-        const orderData = {
-            id: orderId,
-            items: cartItemsForOrder,
-            total: finalTotal,
-            billingInfo: billingInfo,
-            timestamp: serverTimestamp(),
-            userId: currentUser ? currentUser.uid : null,
-            isGuest: !currentUser,
-            status: 'Ny'
-        };
-        
-        try {
-            await addDoc(collection(db, `artifacts/${appId}/public/data/orders`), orderData);
-            
-            if (currentUser) {
-                const privateOrderData = {
-                    items: cartItemsForOrder.map(item => ({
-                        id: item.id,
-                        title: item.title,
-                        size: item.size,
-                        price: item.price,
-                        status: item.status
-                    })),
-                    total: finalTotal,
-                    timestamp: serverTimestamp(),
-                    orderId: orderId
-                };
-                await addDoc(collection(db, `artifacts/public/users/${currentUser.uid}/orders`), privateOrderData);
-            }
-            
-            document.getElementById('billing-info-section').classList.add('hidden');
-            document.getElementById('order-confirmation-section').classList.remove('hidden');
-            document.getElementById('order-id-display').textContent = orderId;
-            
-            const swishUrl = `C://payee=${swishNumber};amount=${finalTotal.toFixed(2)};message=${orderId}`;
-            
-            const qrCodeContainer = document.getElementById('swish-qr-code');
-            qrCodeContainer.innerHTML = ''; // Rensa tidigare QR-kod
-            new QRCode(qrCodeContainer, {
-                text: swishUrl,
-                width: 192,
-                height: 192,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
+            document.getElementById('confirm-no-btn').addEventListener('click', () => {
+                document.getElementById('confirmationModal').classList.remove('active');
             });
-            
-            clearCart();
-        } catch (e) {
-            console.error("Fel vid beställning:", e);
-            showErrorModal("Beställningen misslyckades", "Ett fel uppstod när din beställning skulle sparas. Vänligen försök igen.");
+        });
+
+        function showMessage(message) {
+            document.getElementById('modal-message').textContent = message;
+            document.getElementById('messageModal').classList.add('active');
         }
-    }
 
+        function showConfirmation(message, onConfirm) {
+            document.getElementById('confirm-message').textContent = message;
+            document.getElementById('confirmationModal').classList.add('active');
+            
+            const confirmBtn = document.getElementById('confirm-yes-btn');
 
-    function updateUserStatus(isLoggedIn) {
-        const userStatusEl = document.getElementById('user-status');
-        if (isLoggedIn) {
-            const userEmail = auth.currentUser.email;
-            userStatusEl.innerHTML = `<span class="font-bold">Hej, ${userEmail}!</span> | <a href="#" id="logout-link" class="hover:text-gray-300 transition duration-300">Logga ut</a> | <a href="#" id="orders-link" class="hover:text-gray-300 transition duration-300">Mina ordrar</a>`;
-            document.getElementById('orders-link').addEventListener('click', (e) => {
-                e.preventDefault();
-                document.getElementById('main-content').classList.add('hidden');
-                document.getElementById('checkoutModal').classList.add('active');
-                renderCheckout(true);
+            confirmBtn.onclick = () => {
+                onConfirm();
+                document.getElementById('confirmationModal').classList.remove('active');
+            };
+        }
+
+        function startListeners() {
+            const ordersRef = query(collection(db, `artifacts/${appId}/public/data/orders`), orderBy('timestamp', 'desc'));
+            unsubscribeOrders = onSnapshot(ordersRef, (snapshot) => {
+                ordersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderOrders();
+                updateStatusBar();
             });
-        } else {
-            userStatusEl.innerHTML = `<a href="#" id="login-link" class="hover:text-gray-300 transition duration-300">Logga in</a>`;
-            document.getElementById('login-link').addEventListener('click', (e) => {
-                e.preventDefault();
-                document.getElementById('userModal').classList.add('active');
+
+            const postcardsRef = collection(db, `artifacts/${appId}/public/data/postcards`);
+            unsubscribePostcards = onSnapshot(postcardsRef, (snapshot) => {
+                postcardsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderOrders();
             });
         }
-    }
-    
-    function renderCheckout(showOrders = false) {
-        document.getElementById('checkout-start-section').classList.add('hidden');
-        document.getElementById('checkout-login-section').classList.add('hidden');
-        document.getElementById('billing-info-section').classList.add('hidden');
-        document.getElementById('order-history-section').classList.add('hidden');
-        document.getElementById('order-confirmation-section').classList.add('hidden');
-        document.getElementById('main-content').classList.add('hidden');
 
+        function updateStatusBar() {
+            const statusCounts = {
+                'Ny': 0, 'Väntar': 0, 'Avakta Betalning': 0, 'Betald': 0, 'Skickad': 0, 'Klar': 0
+            };
+            ordersData.forEach(order => {
+                const status = order.status || 'Ny';
+                if (statusCounts[status] !== undefined) {
+                    statusCounts[status]++;
+                } else {
+                    statusCounts['Ny']++;
+                }
+            });
 
-        if (showOrders && currentUser) {
-            document.getElementById('order-history-section').classList.remove('hidden');
-            renderOrderHistory();
-        } else if (currentUser) {
-            document.getElementById('billing-info-section').classList.remove('hidden');
-            document.getElementById('billing-email').value = currentUser.email;
-        } else {
-            document.getElementById('checkout-start-section').classList.remove('hidden');
-        }
-    }
-
-    async function renderOrderHistory() {
-        if (!currentUser) {
-            console.log("Ingen användare inloggad, kan inte visa orderhistorik.");
-            return;
-        }
-
-        const orderHistoryList = document.getElementById('order-history-list');
-        orderHistoryList.innerHTML = '';
-        
-        const ordersRef = collection(db, `artifacts/public/users/${currentUser.uid}/orders`);
-        const q = query(ordersRef, orderBy('timestamp', 'desc'));
-        const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) {
-            orderHistoryList.innerHTML = '<p class="text-gray-500">Inga tidigare ordrar hittades.</p>';
-            return;
+            document.getElementById('status-Ny').textContent = `Ny: ${statusCounts['Ny']}`;
+            document.getElementById('status-Väntar').textContent = `Väntar: ${statusCounts['Väntar']}`;
+            document.getElementById('status-Avakta-Betalning').textContent = `Avvakta: ${statusCounts['Avakta Betalning']}`;
+            document.getElementById('status-Betald').textContent = `Betald: ${statusCounts['Betald']}`;
+            document.getElementById('status-Skickad').textContent = `Skickad: ${statusCounts['Skickad']}`;
+            document.getElementById('status-Klar').textContent = `Klar: ${statusCounts['Klar']}`;
         }
         
-        querySnapshot.forEach(doc => {
-            const order = doc.data();
-            const orderDiv = document.createElement('div');
-            orderDiv.className = 'p-4 bg-gray-100 rounded-lg shadow-sm';
+        async function renderOrders() {
+            const ordersContainer = document.getElementById('orders-container');
+            ordersContainer.innerHTML = '';
             
-            let total = 0;
-            let itemsHtml = order.items.map(item => {
-                total += item.price;
+            const statusOrder = ['Ny', 'Väntar', 'Avakta Betalning', 'Betald', 'Skickad', 'Klar'];
+            
+            statusOrder.forEach(status => {
+                const ordersInStatus = ordersData.filter(o => (o.status || 'Ny') === status);
+
+                if (ordersInStatus.length > 0) {
+                    const sectionTitle = document.createElement('h2');
+                    sectionTitle.className = "text-3xl font-bold mt-8 mb-4";
+                    sectionTitle.textContent = status;
+                    ordersContainer.appendChild(sectionTitle);
+
+                    ordersInStatus.forEach(order => {
+                        const orderCard = document.createElement('div');
+                        
+                        let orderCardClass = "card";
+                        const hasObehandlad = order.items.some(item => (item.status || 'obehandlad') === 'obehandlad');
+                        const allKlar = order.items.every(item => (item.status || 'obehandlad') === 'klar');
+
+                        if (hasObehandlad) {
+                            orderCardClass += " order-card-obehandlad";
+                        } else if (allKlar) {
+                            orderCardClass += " order-card-klar";
+                        } else if (order.status === 'Ny') {
+                            orderCardClass += " order-card-ny";
+                        }
+                        
+                        orderCard.className = orderCardClass;
+                        
+                        const timestamp = order.timestamp?.toDate ? order.timestamp.toDate().toLocaleString('sv-SE') : 'Okänt datum';
+                        const customerEmail = order.billingInfo?.email || 'Ingen e-post';
+                        const billingName = order.billingInfo?.name || 'Ej angivet';
+                        const billingMobile = order.billingInfo?.mobile || 'Ej angivet';
+
+                        let itemsHtml = order.items.map((item, itemIndex) => {
+                            const postcard = postcardsData.find(p => p.id === item.id);
+                            const thumbnailUrl = postcard ? postcard.imageURL : '';
+                            const itemStatus = item.status || 'obehandlad';
+                            const recipientInfo = item.recipient ? 
+                                `${item.recipient.name || 'Ej angiven'}, ${item.recipient.address || 'Ej angiven'}, ${item.recipient.zip || ''} ${item.recipient.city || ''}` : 
+                                'Ej angiven';
+                            
+                            const itemStatusClass = itemStatus === 'klar' ? 'item-status-klar' : 'item-status-obehandlad';
+                            
+                            return `
+                                <li class="p-2 ${itemStatusClass} rounded-md flex items-center space-x-4 mb-2">
+                                    <img src="${thumbnailUrl}" alt="${item.title}" class="w-12 h-12 object-cover rounded-md">
+                                    <div class="flex-grow">
+                                        <p class="font-semibold">${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)})</p>
+                                        <p class="text-sm">Mottagare: ${recipientInfo}</p>
+                                        <p class="text-sm">Status: ${itemStatus}</p>
+                                    </div>
+                                    <div>
+                                        <select onchange="updateItemStatus('${order.id}', ${itemIndex}, this.value)" class="p-1 rounded-md text-sm">
+                                            <option value="obehandlad" ${itemStatus === 'obehandlad' ? 'selected' : ''}>Obehandlad</option>
+                                            <option value="klar" ${itemStatus === 'klar' ? 'selected' : ''}>Klar</option>
+                                        </select>
+                                    </div>
+                                </li>
+                            `;
+                        }).join('');
+
+                        orderCard.innerHTML = `
+                            <div class="order-header flex justify-between items-center">
+                                <div>
+                                    <h3 class="font-bold text-xl">Beställning #${order.id.substring(0, 8)}</h3>
+                                    <p class="text-sm text-gray-600">${timestamp}</p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="status-header">${status}</span>
+                                    <button onclick="openOrderModal('${order.id}')" class="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600">Detaljer</button>
+                                </div>
+                            </div>
+                            <div class="order-body">
+                                <p class="text-sm"><strong>Kund:</strong> ${billingName}</p>
+                                <p class="text-sm"><strong>E-post:</strong> ${customerEmail}</p>
+                                <p class="text-sm"><strong>Mobil:</strong> ${billingMobile}</p>
+                                <p class="text-sm"><strong>Total:</strong> ${order.total.toFixed(2)} kr</p>
+                                <h4 class="font-bold text-lg mt-4">Vykort i ordern:</h4>
+                                <ul class="order-item-list mt-2">
+                                    ${itemsHtml}
+                                </ul>
+                            </div>
+                        `;
+                        ordersContainer.appendChild(orderCard);
+                    });
+                }
+            });
+        }
+
+        function openOrderModal(orderId) {
+            const order = ordersData.find(o => o.id === orderId);
+            if (!order) return;
+
+            window.currentOrder = order;
+
+            const modalTitle = document.getElementById('modal-order-title');
+            const modalId = document.getElementById('modal-order-id');
+            const modalEmail = document.getElementById('modal-order-email');
+            const modalDate = document.getElementById('modal-order-date');
+            const modalStatus = document.getElementById('modal-order-status');
+            const modalItemsList = document.getElementById('modal-order-items');
+            const modalTotal = document.getElementById('modal-order-total');
+            const modalBillingAddress = document.getElementById('modal-billing-address');
+            const modalBillingMobile = document.getElementById('modal-billing-mobile');
+
+            modalTitle.textContent = `Beställningsdetaljer (#${order.id.substring(0, 8)})`;
+            modalId.textContent = order.id;
+            modalEmail.textContent = order.billingInfo?.email || 'Ingen e-post';
+            modalDate.textContent = order.timestamp?.toDate ? order.timestamp.toDate().toLocaleString('sv-SE') : 'Okänt datum';
+            modalStatus.textContent = order.status || 'Ny';
+            modalTotal.textContent = `${order.total.toFixed(2)} kr`;
+            modalBillingAddress.textContent = order.billingInfo?.address ? 
+                `${order.billingInfo.address}, ${order.billingInfo.zip} ${order.billingInfo.city}` : 
+                'Ej angiven';
+            modalBillingMobile.textContent = order.billingInfo?.mobile || 'Ej angivet';
+
+
+            modalItemsList.innerHTML = order.items.map(item => {
+                const postcard = postcardsData.find(p => p.id === item.id);
+                const thumbnailUrl = postcard ? postcard.imageURL : '';
+                const recipientInfo = item.recipient ? 
+                    `${item.recipient.name}, ${item.recipient.address}, ${item.recipient.zip} ${item.recipient.city}` : 
+                    'Ej angiven';
+                const itemStatus = item.status || 'obehandlad';
+                const itemStatusClass = itemStatus === 'klar' ? 'item-status-klar' : 'item-status-obehandlad';
+
                 return `
-                    <p class="text-sm">- ${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)}): ${item.price.toFixed(2)} kr</p>
+                    <li class="p-2 ${itemStatusClass} rounded-md">
+                        <div class="flex items-center">
+                            <img src="${thumbnailUrl}" alt="${item.title}" class="w-12 h-12 rounded-md mr-4">
+                            <div>
+                                <p class="font-bold">${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)})</p>
+                                <p class="text-sm">Pris: ${item.price.toFixed(2)} kr</p>
+                                <p class="text-sm">Text: ${item.message || 'Ingen text'}</p>
+                                <p class="text-sm">Mottagare: ${recipientInfo}</p>
+                                <p class="text-sm font-semibold">Status: ${itemStatus}</p>
+                            </div>
+                        </div>
+                    </li>
                 `;
             }).join('');
             
-            const timestamp = order.timestamp?.toDate ? order.timestamp.toDate().toLocaleString('sv-SE') : 'Okänt datum';
+            document.getElementById('orderModal').classList.add('active');
+        }
 
-            orderDiv.innerHTML = `
-                <h4 class="font-bold text-lg">Order ${timestamp}</h4>
-                <div class="mt-2 space-y-1">${itemsHtml}</div>
-                <p class="mt-2 font-bold text-right">Summa: ${total.toFixed(2)} kr</p>
-            `;
-            orderHistoryList.appendChild(orderDiv);
-        });
-    }
+        async function updateOrderStatus(orderId, newStatus) {
+            const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
+            
+            if (newStatus === 'Klar') {
+                showConfirmation("Är du säker på att du vill markera ordern som 'Klar'? Detta kommer att ta bort alla adresser permanent.", async () => {
+                    const orderToUpdate = ordersData.find(o => o.id === orderId);
+                    if (orderToUpdate) {
+                        const sanitizedItems = orderToUpdate.items.map(item => {
+                            const sanitizedItem = {
+                                id: item.id || null,
+                                title: item.title || null,
+                                size: item.size || null,
+                                price: item.price || null,
+                                group: item.group || null,
+                                message: item.message || null,
+                                status: item.status || 'obehandlad',
+                                recipient: null
+                            };
+                            return sanitizedItem;
+                        });
+                        
+                        const sanitizedBillingInfo = {
+                            name: orderToUpdate.billingInfo?.name || null,
+                            email: orderToUpdate.billingInfo?.email || null,
+                            mobile: orderToUpdate.billingInfo?.mobile || null,
+                            address: null,
+                            zip: null,
+                            city: null
+                        };
 
-
-    function loadCart() {
-        try {
-            const storedCart = localStorage.getItem('cart');
-            if (storedCart) {
-                cart = JSON.parse(storedCart);
+                        await updateDoc(orderRef, { 
+                            status: newStatus,
+                            items: sanitizedItems,
+                            billingInfo: sanitizedBillingInfo
+                        });
+                        showMessage(`Order #${orderId.substring(0, 8)} är nu markerad som 'Klar' och adresser har raderats.`);
+                        document.getElementById('orderModal').classList.remove('active');
+                    }
+                });
             } else {
-                cart = [];
-            }
-        } catch (e) {
-            console.error("Kunde inte ladda varukorgen från localStorage:", e);
-            cart = [];
-        }
-        updateCartCount();
-    }
-
-    function checkAndRender() {
-        if (initialDataLoaded.postcards && initialDataLoaded.priceGroups && initialDataLoaded.groups && initialDataLoaded.sales && initialDataLoaded.news) {
-            if (!allDataLoaded) {
-                renderPostcards();
-                renderCart();
-                allDataLoaded = true;
-            }
-        }
-    }
-
-    function startListeners() {
-        onSnapshot(collection(db, `artifacts/${appId}/public/data/postcards`), (snapshot) => {
-            postcardsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            initialDataLoaded.postcards = true;
-            checkAndRender();
-        });
-        onSnapshot(collection(db, `artifacts/${appId}/public/data/priceGroups`), (snapshot) => {
-            priceGroupsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            initialDataLoaded.priceGroups = true;
-            checkAndRender();
-        });
-        onSnapshot(query(collection(db, `artifacts/${appId}/public/data/groups`), orderBy('order')), (snapshot) => {
-            groupsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            populateFilters(); 
-            initialDataLoaded.groups = true;
-            checkAndRender();
-        });
-        onSnapshot(collection(db, `artifacts/${appId}/public/data/sales`), (snapshot) => {
-            salesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            initialDataLoaded.sales = true;
-            checkAndRender();
-        });
-        onSnapshot(query(collection(db, `artifacts/${appId}/public/data/news`), orderBy('order')), (snapshot) => {
-            const newsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderNews(newsData);
-            initialDataLoaded.news = true;
-            checkAndRender();
-        });
-    }
-    
-    function renderNews(news) {
-        const newsList = document.getElementById('news-list');
-        newsList.innerHTML = '';
-        
-        const now = new Date();
-        const activeNews = news.filter(item => 
-            item.noTimeLimit || (item.startDate && item.endDate && now >= new Date(item.startDate) && now <= new Date(item.endDate))
-        );
-
-        if (activeNews.length === 0) {
-            document.getElementById('news-section').classList.add('hidden');
-            return;
-        } else {
-            document.getElementById('news-section').classList.remove('hidden');
-        }
-
-        activeNews.forEach(item => {
-            const newsItem = document.createElement('div');
-            newsItem.className = 'news-item';
-            newsItem.innerHTML = `
-                <h3 class="font-bold text-lg mb-1">${item.title}</h3>
-                <p class="text-sm">${item.text}</p>
-            `;
-            newsList.appendChild(newsItem);
-        });
-    }
-
-
-    function populateFilters() {
-        const groupFilter = document.getElementById('group-filter');
-
-        groupFilter.innerHTML = '<option value="all">Alla Grupper</option>';
-        groupsData.forEach(g => {
-            const option = document.createElement('option');
-            option.value = g.id;
-            option.textContent = g.name;
-            groupFilter.appendChild(option);
-        });
-    }
-
-    function calculatePrice(postcard) {
-        const prices = priceGroupsData.find(pg => pg.id === postcard.priceGroup)?.prices;
-        return prices || { liten: 0, mellan: 0, stor: 0 };
-    }
-
-    function getDiscountedPrice(item) {
-        const postcard = postcardsData.find(p => p.id === item.id);
-        if (!postcard) return item.price;
-        
-        const originalPrice = calculatePrice(postcard)[item.size];
-        let finalPrice = originalPrice;
-
-        const productSale = salesData.find(s => s.targetType === 'product' && s.targetId === item.id);
-        const groupSale = salesData.find(s => s.targetType === 'group' && s.targetId === postcard.group);
-        
-        let appliedSale = null;
-        if (productSale) {
-            appliedSale = productSale;
-        } else if (groupSale) {
-            appliedSale = groupSale;
-        }
-
-        if (appliedSale) {
-            if (appliedSale.type === 'percent') {
-                finalPrice = originalPrice - (originalPrice * (appliedSale.value / 100));
-            } else if (appliedSale.type === 'summa') {
-                finalPrice = originalPrice - appliedSale.value;
-                if (finalPrice < 0) finalPrice = 0;
-            }
-        }
-        return finalPrice;
-    }
-
-    async function renderPostcards() {
-        const postcardsList = document.getElementById('postcards-list');
-        postcardsList.innerHTML = '';
-        
-        const groupsToRender = document.getElementById('group-filter').value === 'all'
-            ? groupsData
-            : groupsData.filter(g => g.id === document.getElementById('group-filter').value);
-        
-        const renderedGroups = new Set();
-        let allGroupsHtml = '';
-
-        for (const group of groupsToRender) {
-            if (renderedGroups.has(group.id)) continue;
-            renderedGroups.add(group.id);
-
-            const postcardsInGroup = postcardsData.filter(p => p.group === group.id);
-            
-            if (postcardsInGroup.length > 0) {
-                const postcardHtmlPromises = postcardsInGroup.map(p => createPostcardHtml(p));
-                const postcardHtmls = await Promise.all(postcardHtmlPromises);
-
-                let groupSectionHtml = `<h2 class="text-3xl font-bold mt-8 mb-4">${group.name}</h2>`;
-                groupSectionHtml += `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">`;
-                groupSectionHtml += postcardHtmls.join('');
-                groupSectionHtml += `</div>`;
-                
-                allGroupsHtml += groupSectionHtml;
+                await updateDoc(orderRef, { status: newStatus });
+                showMessage(`Order #${orderId.substring(0, 8)} uppdaterad till ${newStatus}.`);
+                document.getElementById('orderModal').classList.remove('active');
             }
         }
         
-        postcardsList.innerHTML = allGroupsHtml;
-        document.querySelectorAll('.postcard-card').forEach(card => {
-            card.addEventListener('click', (e) => {
-                const postcardId = e.currentTarget.dataset.id;
-                openPostcardModal(postcardId);
-            });
-        });
-    }
-    
-    async function createPostcardHtml(p) {
-        const priceGroup = priceGroupsData.find(pg => pg.id === p.priceGroup);
-        
-        let priceHtml = '';
-        let hasSale = false;
-        
-        const applicableSales = salesData.filter(s => {
-            const now = new Date();
-            const isTimeValid = s.noTimeLimit || (s.startDate && s.endDate && now >= new Date(s.startDate) && now <= new Date(s.endDate));
-            
-            const isTargetValid = (s.targetType === 'group' && s.targetId === p.group) || 
-                                  (s.targetType === 'product' && s.targetId === p.id);
-                          
-            return isTimeValid && isTargetValid;
-        });
-        
-        if(applicableSales.length > 0) hasSale = true;
+        async function updateItemStatus(orderId, itemIndex, newStatus) {
+            const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
+            const order = ordersData.find(o => o.id === orderId);
+            if (!order) return;
 
-        if (priceGroup) {
-            const sizes = ['liten', 'mellan', 'stor'];
-            sizes.forEach((size, index) => {
-                const originalPrice = priceGroup.prices[size];
-                const discountedPrice = getDiscountedPrice({ id: p.id, size: size, price: originalPrice });
-                
-                if (originalPrice !== discountedPrice) {
-                    priceHtml += `
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="text-sm">
-                                ${size.charAt(0).toUpperCase() + size.slice(1)}:
-                                <span class="line-through text-gray-400">${originalPrice} kr</span>
-                                <span class="text-red-600 font-bold ml-1">${discountedPrice.toFixed(2)} kr</span>
-                            </span>
-                        </div>
-                    `;
-                } else {
-                    priceHtml += `
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="text-sm">${size.charAt(0).toUpperCase() + size.slice(1)}: ${originalPrice} kr</span>
-                        </div>
-                    `;
-                }
-            });
-        }
-        
-        const saleBadge = hasSale ? '<span class="ml-2 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full">REA!</span>' : '';
+            order.items[itemIndex].status = newStatus;
 
-        const image = new Image();
-        image.src = p.imageURL;
-        await new Promise(resolve => image.onload = resolve);
-        const orientation = image.naturalWidth > image.naturalHeight ? 'landscape' : 'portrait';
-
-        return `
-            <div class="card flex flex-col items-center text-center cursor-pointer postcard-card" data-id="${p.id}">
-                <div class="postcard-image-wrapper ${orientation} rounded-lg mb-4">
-                    <img src="${p.imageURL}" alt="${p.title}">
-                </div>
-                <h2 class="text-xl font-bold mb-2">${p.title}${saleBadge}</h2>
-                ${priceHtml}
-            </div>
-        `;
-    }
-    
-    function openPostcardModal(postcardId, cartItemIndex = -1) {
-        const postcard = postcardsData.find(p => p.id === postcardId);
-        if (!postcard) {
-            console.error("Vykortet hittades inte:", postcardId);
-            return;
+            await updateDoc(orderRef, { items: order.items });
+            showMessage(`Vykort i order #${orderId.substring(0, 8)} uppdaterad.`);
         }
 
-        document.getElementById('modal-postcard-id').value = postcard.id;
-        document.getElementById('modal-cart-item-index').value = cartItemIndex;
-        document.getElementById('modal-title').textContent = postcard.title;
-        
-        const imageEl = document.getElementById('modal-image');
-        const imageWrapper = document.getElementById('modal-image-wrapper');
-        imageEl.src = postcard.imageURL;
-
-        const image = new Image();
-        image.src = postcard.imageURL;
-        image.onload = () => {
-            const orientation = image.naturalWidth > image.naturalHeight ? 'landscape' : 'portrait';
-            imageWrapper.className = `postcard-image-wrapper ${orientation} rounded-lg mb-4`;
-        };
-
-        const pricesEl = document.getElementById('modal-size-options');
-        pricesEl.innerHTML = '';
-        
-        const priceGroup = priceGroupsData.find(pg => pg.id === postcard.priceGroup);
-        if (priceGroup) {
-            const sizes = ['liten', 'mellan', 'stor'];
-            sizes.forEach((size, index) => {
-                const originalPrice = priceGroup.prices[size];
-                const discountedPrice = getDiscountedPrice({ id: postcard.id, size: size, price: originalPrice });
-                
-                let priceDisplay = `<span class="font-bold">${discountedPrice.toFixed(2)} kr</span>`;
-                if (originalPrice !== discountedPrice) {
-                    priceDisplay = `<span class="line-through text-gray-400">${originalPrice.toFixed(2)} kr</span>
-                                    <span class="font-bold ml-1 text-red-600">${discountedPrice.toFixed(2)} kr</span>`;
-                }
-                
-                pricesEl.innerHTML += `
-                    <div class="flex items-center">
-                        <input type="radio" id="size-${size}" name="size" value="${size}" class="mr-2" ${index === 0 ? 'checked' : ''}>
-                        <label for="size-${size}" class="flex-1">${size.charAt(0).toUpperCase() + size.slice(1)} (${priceDisplay})</label>
-                    </div>
-                `;
+        async function deleteOrder(orderId) {
+            showConfirmation("Är du säker på att du vill ta bort denna order permanent?", async () => {
+                const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
+                await deleteDoc(orderRef);
+                showMessage(`Order #${orderId.substring(0, 8)} borttagen.`);
+                document.getElementById('orderModal').classList.remove('active');
             });
         }
 
-        if (cartItemIndex !== -1) {
-            const itemToEdit = cart[cartItemIndex];
-            document.getElementById(`size-${itemToEdit.size}`).checked = true;
-            document.getElementById('modal-recipient-name').value = itemToEdit.recipient.name || '';
-            document.getElementById('modal-recipient-address').value = itemToEdit.recipient.address || '';
-            document.getElementById('modal-recipient-address2').value = itemToEdit.recipient.address2 || '';
-            document.getElementById('modal-recipient-zip').value = itemToEdit.recipient.zip || '';
-            document.getElementById('modal-recipient-city').value = itemToEdit.recipient.city || '';
-            document.getElementById('modal-recipient-country').value = itemToEdit.recipient.country || '';
-            document.getElementById('modal-message-text').value = itemToEdit.message || '';
-            document.querySelector('#add-to-cart-form button[type="submit"]').textContent = "Uppdatera i varukorgen";
-        } else {
-            document.getElementById('add-to-cart-form').reset();
-            document.querySelector('#add-to-cart-form button[type="submit"]').textContent = "Lägg i varukorgen";
-        }
-
-        document.getElementById('postcardModal').classList.add('active');
-    }
-
-    function addToCart(item) {
-        cart.push(item);
-        
-        showConfirmationToast();
-        saveCart();
-        renderCart();
-    }
-
-    function editCartItem(index, newItem) {
-        cart[index] = newItem;
-        showConfirmationToast("Vara uppdaterad i varukorgen!");
-        saveCart();
-        renderCart();
-    }
-    
-    function showConfirmationToast(message = "Vara tillagd i varukorgen!") {
-        const toast = document.getElementById('confirmation-toast');
-        if (toast) {
-            toast.textContent = message;
-            toast.classList.add('active');
-            setTimeout(() => {
-                toast.classList.remove('active');
-            }, 2000);
-        }
-    }
-
-    function saveCart() {
-        localStorage.setItem('cart', JSON.stringify(cart));
-        updateCartCount();
-    }
-
-    function updateCartCount() {
-        document.getElementById('cart-count').textContent = cart.length;
-    }
-
-    function calculateCartTotal() {
-        let subtotal = 0;
-        cart.forEach(item => {
-            const discountedPrice = getDiscountedPrice(item);
-            subtotal += discountedPrice;
-        });
-        
-        const applicableSales = salesData.filter(s => {
-            const now = new Date();
-            const isTimeValid = s.noTimeLimit || (s.startDate && s.endDate && now >= new Date(s.startDate) && now <= new Date(s.endDate));
-            const isTargetValid = s.targetType === 'all';
-            return isTimeValid && isTargetValid;
-        });
-        
-        let totalDiscount = 0;
-        let finalTotal = subtotal;
-
-        applicableSales.forEach(s => {
-            if (s.type === 'percent') {
-                totalDiscount += subtotal * (s.value / 100);
-            } else if (s.type === 'summa') {
-                totalDiscount += s.value;
-            }
-        });
-
-        finalTotal = subtotal - totalDiscount;
-        if (finalTotal < 0) finalTotal = 0;
-
-        return { subtotal, totalDiscount, finalTotal };
-    }
-
-    function renderCart() {
-        const cartItemsEl = document.getElementById('cart-items');
-        cartItemsEl.innerHTML = '';
-        
-        if (cart.length === 0) {
-            cartItemsEl.innerHTML = '<p class="text-center text-gray-500">Din varukorg är tom.</p>';
-        } else {
-            cart.forEach((item, index) => {
-                const discountedPrice = getDiscountedPrice(item);
-                const postcardOriginal = postcardsData.find(p => p.id === item.id);
-                const originalPrice = postcardOriginal ? calculatePrice(postcardOriginal)[item.size] : item.price;
-                
-                let priceDisplay = `<span class="font-bold">${discountedPrice.toFixed(2)} kr</span>`;
-                
-                if (originalPrice && originalPrice !== discountedPrice) {
-                    priceDisplay = `<span class="line-through text-gray-400">${originalPrice.toFixed(2)} kr</span>
-                                    <span class="font-bold ml-1 text-red-600">${discountedPrice.toFixed(2)} kr</span>`;
-                }
-                
-                const recipientText = `${item.recipient.name}, ${item.recipient.address}, ${item.recipient.zip} ${item.recipient.city}, ${item.recipient.country}`;
-                const messageText = item.message.substring(0, 50) + (item.message.length > 50 ? '...' : '');
-
-                cartItemsEl.innerHTML += `
-                    <div class="flex flex-col p-2 bg-gray-100 rounded-md">
-                        <div class="flex items-center justify-between">
-                            <p class="font-semibold">${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)})</p>
-                            <div class="flex items-center space-x-2">
-                                <button onclick="openPostcardModal('${item.id}', ${index})" class="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600">Ändra</button>
-                                <button onclick="removeFromCart(${index})" class="px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600">Ta bort</button>
-                            </div>
-                        </div>
-                        <div class="mt-2 text-sm text-gray-600 cart-item-details">
-                            <strong>Pris:</strong>
-                            <span>${priceDisplay}</span>
-                            <strong>Text:</strong>
-                            <span>${messageText || 'Ingen text'}</span>
-                            <strong>Mottagare:</strong>
-                            <span>${recipientText || 'Ej angiven'}</span>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function removeFromCart(index) {
-            cart.splice(index, 1);
-            saveCart();
-            renderCart();
-        }
-        
-        function clearCart() {
-            cart = [];
-            saveCart();
-            renderCart();
-        }
-
-        window.openPostcardModal = openPostcardModal;
-        window.removeFromCart = removeFromCart;
-        window.clearCart = clearCart;
+        window.updateOrderStatus = updateOrderStatus;
+        window.updateItemStatus = updateItemStatus;
+        window.deleteOrder = deleteOrder;
+        window.openOrderModal = openOrderModal;
     </script>
 </body>
 </html>
