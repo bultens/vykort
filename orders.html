@@ -119,6 +119,15 @@
         .item-status-klar {
             background-color: #a7f3d0; /* Green-300 */
         }
+        .order-card-obehandlad {
+            border-left: 5px solid #ef4444; /* Red-500 */
+        }
+        .order-card-klar {
+            border-left: 5px solid #10b981; /* Green-500 */
+        }
+        .order-card-ny {
+            border-left: 5px solid #3b82f6; /* Blue-500 */
+        }
     </style>
 </head>
 <body>
@@ -143,7 +152,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.35</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.36</div>
 
     <main class="container">
         <h1 class="text-4xl font-bold mb-6 text-center">Beställningshantering</h1>
@@ -322,7 +331,20 @@
 
                     ordersInStatus.forEach(order => {
                         const orderCard = document.createElement('div');
-                        orderCard.className = "card";
+                        
+                        let orderCardClass = "card";
+                        const hasObehandlad = order.items.some(item => (item.status || 'obehandlad') === 'obehandlad');
+                        const hasKlar = order.items.some(item => (item.status || 'obehandlad') === 'klar');
+
+                        if (hasObehandlad) {
+                            orderCardClass += " order-card-obehandlad";
+                        } else if (hasKlar) {
+                            orderCardClass += " order-card-klar";
+                        } else if (order.status === 'Ny') {
+                            orderCardClass += " order-card-ny";
+                        }
+                        
+                        orderCard.className = orderCardClass;
                         
                         const timestamp = order.timestamp?.toDate ? order.timestamp.toDate().toLocaleString('sv-SE') : 'Okänt datum';
                         const customerEmail = order.billingInfo?.email || 'Ingen e-post';
@@ -453,7 +475,7 @@
                                 group: item.group || null,
                                 message: item.message || null,
                                 status: item.status || 'obehandlad',
-                                recipient: null // Tömmer recipient-objektet
+                                recipient: null
                             };
                             return sanitizedItem;
                         });
