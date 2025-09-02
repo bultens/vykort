@@ -137,7 +137,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.32</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.33</div>
 
     <main class="container">
         <h1 class="text-4xl font-bold mb-6 text-center">Beställningshantering</h1>
@@ -205,7 +205,7 @@
         let auth;
         let ordersData = [];
         let postcardsData = [];
-        let currentOrder = null;
+        let currentOrder = null; // Global variable
         let unsubscribeOrders = null;
         let unsubscribePostcards = null;
 
@@ -378,7 +378,7 @@
             const order = ordersData.find(o => o.id === orderId);
             if (!order) return;
 
-            currentOrder = order;
+            window.currentOrder = order;
 
             const modalTitle = document.getElementById('modal-order-title');
             const modalId = document.getElementById('modal-order-id');
@@ -387,6 +387,7 @@
             const modalStatus = document.getElementById('modal-order-status');
             const modalItemsList = document.getElementById('modal-order-items');
             const modalTotal = document.getElementById('modal-order-total');
+            const modalActions = document.getElementById('modal-order-actions');
 
             modalTitle.textContent = `Beställningsdetaljer (#${order.id.substring(0, 8)})`;
             modalId.textContent = order.id;
@@ -401,17 +402,17 @@
                 const recipientInfo = item.recipient ? 
                     `${item.recipient.name}, ${item.recipient.address}, ${item.recipient.zip} ${item.recipient.city}` : 
                     'Ej angiven';
+                const itemStatus = item.status || 'obehandlad';
                 
                 return `
-                    <li class="p-2 bg-gray-200 rounded-md">
-                        <div class="flex items-center">
-                            <img src="${thumbnailUrl}" alt="${item.title}" class="w-12 h-12 rounded-md mr-4">
-                            <div>
-                                <p class="font-bold">${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)})</p>
-                                <p class="text-sm">Pris: ${item.price.toFixed(2)} kr</p>
-                                <p class="text-sm">Text: ${item.message || 'Ingen text'}</p>
-                                <p class="text-sm">Mottagare: ${recipientInfo}</p>
-                            </div>
+                    <li class="p-2 bg-gray-200 rounded-md flex items-center space-x-4">
+                        <img src="${thumbnailUrl}" alt="${item.title}" class="w-12 h-12 rounded-md mr-4">
+                        <div class="flex-grow">
+                            <p class="font-bold">${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)})</p>
+                            <p class="text-sm">Pris: ${item.price.toFixed(2)} kr</p>
+                            <p class="text-sm">Text: ${item.message || 'Ingen text'}</p>
+                            <p class="text-sm">Mottagare: ${recipientInfo}</p>
+                            <p class="text-sm font-semibold">Status: ${itemStatus}</p>
                         </div>
                     </li>
                 `;
