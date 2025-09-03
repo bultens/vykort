@@ -84,12 +84,12 @@ export async function renderOrders(globalState) {
                 const hasObehandlad = order.items.some(item => (item.status || 'obehandlad') === 'obehandlad');
                 const allKlar = order.items.every(item => (item.status || 'obehandlad') === 'klar');
 
-                // Logik för att sätta rätt färg baserat på orderns och vykortens status
+                // Dynamiskt bestämma kantfärg baserat på orderns status
                 if (order.status === 'Ny') {
                     orderCardClass += " order-card-ny";
-                } else if (allKlar) {
+                } else if (order.status === 'Klar') {
                     orderCardClass += " order-card-klar";
-                } else if (hasObehandlad) {
+                } else {
                     orderCardClass += " order-card-obehandlad";
                 }
                 
@@ -265,26 +265,27 @@ export async function updateOrderStatus(globalState, orderId, newStatus) {
 
 export async function updateItemStatus(globalState, orderId, itemIndex, newStatus) {
     const { db, appId, showMessage } = globalState;
-    const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
     const order = globalState.ordersData.find(o => o.id === orderId);
     if (!order) {
-        showMessage('Fel: Ordern hittades inte.');
+        window.showMessage('Fel: Ordern hittades inte.');
         return;
     }
-
+    
+    const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
+    
     order.items[itemIndex].status = newStatus;
 
     await updateDoc(orderRef, { items: order.items });
-    showMessage(`Vykort i order #${orderId.substring(0, 8)} uppdaterad.`);
+    window.showMessage(`Vykort i order #${orderId.substring(0, 8)} uppdaterad.`);
 }
 
 export async function deleteOrder(globalState, orderId) {
-    const { db, appId, showMessage, firebase } = globalState;
+    const { db, appId, firebase } = globalState;
     const { doc, deleteDoc } = firebase;
     window.showConfirmation("Är du säker på att du vill ta bort denna order permanent?", async () => {
         const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
         await deleteDoc(orderRef);
-        showMessage(`Order #${orderId.substring(0, 8)} borttagen.`);
+        window.showMessage(`Order #${orderId.substring(0, 8)} borttagen.`);
         document.getElementById('orderModal').classList.remove('active');
     });
 }
