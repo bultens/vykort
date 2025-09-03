@@ -84,12 +84,13 @@ export async function renderOrders(globalState) {
                 const hasObehandlad = order.items.some(item => (item.status || 'obehandlad') === 'obehandlad');
                 const allKlar = order.items.every(item => (item.status || 'obehandlad') === 'klar');
 
-                if (hasObehandlad) {
-                    orderCardClass += " order-card-obehandlad";
+                // Logik för att sätta rätt färg baserat på orderns och vykortens status
+                if (order.status === 'Ny') {
+                    orderCardClass += " order-card-ny";
                 } else if (allKlar) {
                     orderCardClass += " order-card-klar";
-                } else if (order.status === 'Ny') {
-                    orderCardClass += " order-card-ny";
+                } else if (hasObehandlad) {
+                    orderCardClass += " order-card-obehandlad";
                 }
                 
                 orderCard.className = orderCardClass;
@@ -216,6 +217,12 @@ export async function updateOrderStatus(globalState, orderId, newStatus) {
     const { doc, updateDoc } = firebase;
     const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
 
+    const orderExists = globalState.ordersData.some(o => o.id === orderId);
+    if (!orderExists) {
+        window.showMessage('Fel: Ordern hittades inte.');
+        return;
+    }
+
     if (newStatus === 'Klar') {
         window.showConfirmation("Är du säker på att du vill markera ordern som 'Klar'? Detta kommer att ta bort alla adresser permanent.", async () => {
             const orderToUpdate = globalState.ordersData.find(o => o.id === orderId);
@@ -260,7 +267,10 @@ export async function updateItemStatus(globalState, orderId, itemIndex, newStatu
     const { db, appId, showMessage } = globalState;
     const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
     const order = globalState.ordersData.find(o => o.id === orderId);
-    if (!order) return;
+    if (!order) {
+        showMessage('Fel: Ordern hittades inte.');
+        return;
+    }
 
     order.items[itemIndex].status = newStatus;
 
