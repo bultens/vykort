@@ -272,8 +272,8 @@ export async function updateItemStatus(globalState, orderId, itemIndex, newStatu
 }
 
 export async function deleteOrder(globalState, orderId) {
-    const { db, appId, showMessage, showConfirmation } = globalState;
-    const { doc, deleteDoc } = globalState.firebase;
+    const { db, appId, showMessage, showConfirmation, firebase } = globalState;
+    const { doc, deleteDoc } = firebase;
     showConfirmation(globalState, "Är du säker på att du vill ta bort denna order permanent?", async () => {
         const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
         await deleteDoc(orderRef);
