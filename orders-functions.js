@@ -217,44 +217,42 @@ export async function updateOrderStatus(globalState, orderId, newStatus) {
     const { doc, updateDoc } = firebase;
     const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
 
-    const orderExists = globalState.ordersData.some(o => o.id === orderId);
-    if (!orderExists) {
+    // Hämta den senaste statusen direkt från globala tillståndet innan uppdatering
+    const orderToUpdate = globalState.ordersData.find(o => o.id === orderId);
+    if (!orderToUpdate) {
         window.showMessage('Fel: Ordern hittades inte.');
         return;
     }
 
     if (newStatus === 'Klar') {
         window.showConfirmation("Är du säker på att du vill markera ordern som 'Klar'? Detta kommer att ta bort alla adresser permanent.", async () => {
-            const orderToUpdate = globalState.ordersData.find(o => o.id === orderId);
-            if (orderToUpdate) {
-                const sanitizedItems = orderToUpdate.items.map(item => ({
-                    id: item.id || null,
-                    title: item.title || null,
-                    size: item.size || null,
-                    price: item.price || null,
-                    group: item.group || null,
-                    message: item.message || null,
-                    status: item.status || 'obehandlad',
-                    recipient: null
-                }));
-                
-                const sanitizedBillingInfo = {
-                    name: orderToUpdate.billingInfo?.name || null,
-                    email: orderToUpdate.billingInfo?.email || null,
-                    mobile: orderToUpdate.billingInfo?.mobile || null,
-                    address: null,
-                    zip: null,
-                    city: null
-                };
+            const sanitizedItems = orderToUpdate.items.map(item => ({
+                id: item.id || null,
+                title: item.title || null,
+                size: item.size || null,
+                price: item.price || null,
+                group: item.group || null,
+                message: item.message || null,
+                status: item.status || 'obehandlad',
+                recipient: null
+            }));
+            
+            const sanitizedBillingInfo = {
+                name: orderToUpdate.billingInfo?.name || null,
+                email: orderToUpdate.billingInfo?.email || null,
+                mobile: orderToUpdate.billingInfo?.mobile || null,
+                address: null,
+                zip: null,
+                city: null
+            };
 
-                await updateDoc(orderRef, { 
-                    status: newStatus,
-                    items: sanitizedItems,
-                    billingInfo: sanitizedBillingInfo
-                });
-                window.showMessage(`Order #${orderId.substring(0, 8)} är nu markerad som 'Klar' och adresser har raderats.`);
-                document.getElementById('orderModal').classList.remove('active');
-            }
+            await updateDoc(orderRef, { 
+                status: newStatus,
+                items: sanitizedItems,
+                billingInfo: sanitizedBillingInfo
+            });
+            window.showMessage(`Order #${orderId.substring(0, 8)} är nu markerad som 'Klar' och adresser har raderats.`);
+            document.getElementById('orderModal').classList.remove('active');
         });
     } else {
         await updateDoc(orderRef, { status: newStatus });
@@ -283,8 +281,9 @@ export async function deleteOrder(globalState, orderId) {
     const { db, appId, firebase } = globalState;
     const { doc, deleteDoc } = firebase;
 
-    const orderExists = globalState.ordersData.some(o => o.id === orderId);
-    if (!orderExists) {
+    // Hämta den senaste statusen direkt från globala tillståndet innan borttagning
+    const orderToUpdate = globalState.ordersData.find(o => o.id === orderId);
+    if (!orderToUpdate) {
         window.showMessage('Fel: Ordern hittades inte.');
         return;
     }
