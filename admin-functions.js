@@ -407,17 +407,19 @@ export function handleLogout(globalState, showMessage, stopAdminListeners) {
 export async function editPriceGroup(globalState, id) {
     if (!globalState.isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
     const pg = globalState.priceGroupsData.find(p => p.id === id);
-    if (pg) {
-        const name = prompt("Ändra namn på prisgrupp:", pg.name);
-        const liten = prompt("Ändra pris Liten:", pg.prices.liten);
-        const mellan = prompt("Ändra pris Mellan:", pg.prices.mellan);
-        const stor = prompt("Ändra pris Stor:", pg.prices.stor);
-        if (name && liten && mellan && stor) {
-            await updateDoc(doc(globalState.db, `artifacts/${globalState.appId}/public/data/priceGroups`, id), {
-                name,
-                prices: { liten: Number(liten), mellan: Number(mellan), stor: Number(stor) }
-            });
-        }
+    if (!pg) {
+        showMessage("Prisgruppen hittades inte.");
+        return;
+    }
+    const name = prompt("Ändra namn på prisgrupp:", pg.name);
+    const liten = prompt("Ändra pris Liten:", pg.prices.liten);
+    const mellan = prompt("Ändra pris Mellan:", pg.prices.mellan);
+    const stor = prompt("Ändra pris Stor:", pg.prices.stor);
+    if (name && liten && mellan && stor) {
+        await updateDoc(doc(globalState.db, `artifacts/${globalState.appId}/public/data/priceGroups`, id), {
+            name,
+            prices: { liten: Number(liten), mellan: Number(mellan), stor: Number(stor) }
+        });
     }
 }
 
@@ -427,7 +429,8 @@ export async function deletePriceGroup(globalState, id) {
         showMessage('Kan inte ta bort den sista prisgruppen.');
         return;
     }
-    if (globalState.priceGroupsData.find(pg => pg.id === id)?.isDefault) {
+    const pg = globalState.priceGroupsData.find(pg => pg.id === id);
+    if (pg?.isDefault) {
         showMessage('Kan inte ta bort standardprisgruppen.');
         return;
     }
@@ -450,12 +453,14 @@ export async function deletePriceGroup(globalState, id) {
 export async function editGroup(globalState, id) {
     if (!globalState.isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
     const g = globalState.groupsData.find(g => g.id === id);
-    if (g) {
-        const name = prompt("Ändra namn på grupp:", g.name);
-        const order = prompt("Ändra ordning på grupp:", g.order);
-        if (name && order) {
-            await updateDoc(doc(globalState.db, `artifacts/${globalState.appId}/public/data/groups`, id), { name, order: Number(order) });
-        }
+    if (!g) {
+        showMessage("Gruppen hittades inte.");
+        return;
+    }
+    const name = prompt("Ändra namn på grupp:", g.name);
+    const order = prompt("Ändra ordning på grupp:", g.order);
+    if (name && order) {
+        await updateDoc(doc(globalState.db, `artifacts/${globalState.appId}/public/data/groups`, id), { name, order: Number(order) });
     }
 }
 
@@ -465,7 +470,8 @@ export async function deleteGroup(globalState, id) {
         showMessage('Kan inte ta bort den sista gruppen.');
         return;
     }
-    if (globalState.groupsData.find(g => g.id === id)?.isDefault) {
+    const g = globalState.groupsData.find(g => g.id === id);
+    if (g?.isDefault) {
         showMessage('Kan inte ta bort standardgruppen.');
         return;
     }
@@ -565,6 +571,12 @@ export async function updateNews(globalState, showMessage) {
     const text = document.getElementById('edit-news-text').value;
     const order = Number(document.getElementById('edit-news-order').value);
     const noTimeLimit = document.getElementById('edit-news-no-time-limit').checked;
+    
+    const newsItemExists = globalState.newsData.some(n => n.id === id);
+    if (!newsItemExists) {
+        showMessage('Fel: Nyheten hittades inte.');
+        return;
+    }
     
     const newsDataToUpdate = { title, text, order, noTimeLimit };
     if (!noTimeLimit) {
