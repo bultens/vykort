@@ -147,7 +147,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.92</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.93</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -196,6 +196,10 @@
                 <div id="cart-total-discount-container" class="flex justify-between items-center mb-2 hidden">
                     <span>Rabatt på hela korgen:</span>
                     <span id="cart-total-discount">-0 kr</span>
+                </div>
+                <div id="cart-rounding-container" class="flex justify-between items-center mb-2 hidden">
+                    <span>Öresutjämning:</span>
+                    <span id="cart-rounding">0 kr</span>
                 </div>
                 <div class="flex justify-between items-center mb-2">
                     <span>Att betala:</span>
@@ -264,7 +268,7 @@
                     <input type="text" id="register-username" placeholder="Användarnamn" class="w-full p-3 rounded-lg border border-gray-300">
                     <input type="email" id="register-email" placeholder="E-postadress" class="w-full p-3 rounded-lg border border-gray-300">
                     <input type="password" id="register-password" placeholder="Lösenord" class="w-full p-3 rounded-lg border border-gray-300">
-                    <button type="submit" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700">Skapa konto</button>
+                    <button type="submit" class="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-md hover:bg-green-700">Skapa konto</button>
                 </form>
                 <button id="login-switch" class="mt-4 w-full text-blue-600 font-bold hover:underline hidden">Har du redan ett konto? Logga in här!</button>
             </div>
@@ -755,13 +759,14 @@
         }));
         
         const { finalTotal } = calculateCartTotal();
+        const roundedTotal = Math.floor(finalTotal);
         
         const orderId = Math.floor(1000 + Math.random() * 9000).toString();
         
         const orderData = {
             id: orderId,
             items: cartItemsForOrder,
-            total: finalTotal,
+            total: roundedTotal,
             billingInfo: billingInfo,
             timestamp: serverTimestamp(),
             userId: currentUser ? currentUser.uid : null,
@@ -781,7 +786,7 @@
                         price: item.price,
                         status: item.status
                     })),
-                    total: finalTotal,
+                    total: roundedTotal,
                     timestamp: serverTimestamp(),
                     orderId: orderId
                 };
@@ -791,9 +796,9 @@
             document.getElementById('billing-info-section').classList.add('hidden');
             document.getElementById('order-confirmation-section').classList.remove('hidden');
             document.getElementById('order-id-display').textContent = orderId;
-            document.getElementById('order-total-display').textContent = finalTotal.toFixed(2).replace('.', ',');
+            document.getElementById('order-total-display').textContent = roundedTotal.toFixed(2).replace('.', ',');
             
-            createSwishQrCode(finalTotal, orderId);
+            createSwishQrCode(roundedTotal, orderId);
             
             clearCart();
         } catch (e) {
@@ -1244,7 +1249,11 @@
         finalTotal = subtotal - totalDiscount;
         if (finalTotal < 0) finalTotal = 0;
 
-        return { subtotal, totalDiscount, finalTotal };
+        // Calculate rounding
+        const roundedTotal = Math.floor(finalTotal);
+        const roundingAmount = finalTotal - roundedTotal;
+
+        return { subtotal, totalDiscount, finalTotal, roundedTotal, roundingAmount };
     }
 
     function renderCart() {
@@ -1305,6 +1314,27 @@
                 removeFromCart(index);
             });
         });
+
+        const { subtotal, totalDiscount, finalTotal, roundedTotal, roundingAmount } = calculateCartTotal();
+        document.getElementById('cart-subtotal').textContent = `${subtotal.toFixed(2)} kr`;
+        
+        const totalDiscountContainer = document.getElementById('cart-total-discount-container');
+        if (totalDiscount > 0) {
+            totalDiscountContainer.classList.remove('hidden');
+            document.getElementById('cart-total-discount').textContent = `-${totalDiscount.toFixed(2)} kr`;
+        } else {
+            totalDiscountContainer.classList.add('hidden');
+        }
+
+        const roundingContainer = document.getElementById('cart-rounding-container');
+        if (roundingAmount > 0) {
+            roundingContainer.classList.remove('hidden');
+            document.getElementById('cart-rounding').textContent = `-${roundingAmount.toFixed(2)} kr`;
+        } else {
+            roundingContainer.classList.add('hidden');
+        }
+
+        document.getElementById('cart-total').textContent = `${roundedTotal.toFixed(2)} kr`;
     }
         
     function removeFromCart(index) {
