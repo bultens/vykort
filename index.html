@@ -147,7 +147,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.89</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.90</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -342,13 +342,14 @@
                 </div>
 
                 <div id="order-confirmation-section" class="mb-6 card hidden">
-                    <h3 class="text-xl font-bold mb-4 text-center text-green-600">Tack för din beställning!</h3>
-                    <p class="text-center mb-2">Din beställning är nu skickad. Betalning kan ske via Swish till **070-2249015**. Vänligen ange ditt order-ID (<span id="order-id-display"></span>) som meddelande.</p>
+                    <h3 class="text-xl font-bold mb-4 text-center text-green-600">Din beställning är emottagen!</h3>
+                    <p class="text-center mb-2">Din beställning är nu emottagen och avvaktar betalning innan den skickas.</p>
+                    <p class="text-center mb-2">Betalning kan ske via Swish till **070-224 90 15 (Mats Jonsson)**. Ange Ordernummer **<span id="order-id-display"></span>** som meddelande. Summa att betala är **<span id="order-total-display"></span>** kronor.</p>
                     <div id="swish-qr-container" class="mt-4 flex flex-col items-center">
                         <p class="mb-2 font-bold">Skanna QR-koden för att betala direkt:</p>
                         <div id="swish-qr-code" class="w-48 h-48 border rounded-lg"></div>
                     </div>
-                    <p class="text-center mt-4">Du kan också invänta att vi kontaktar dig med betalningsinstruktioner via e-post.</p>
+                    <p class="text-center mt-4">Ett mail med betalningsinformation kommer skickas, och vi uppdaterar dig med statusändringar. Om du skapade ett konto kommer statusen även uppdateras där.</p>
                 </div>
             </div>
         </div>
@@ -789,6 +790,7 @@
             document.getElementById('billing-info-section').classList.add('hidden');
             document.getElementById('order-confirmation-section').classList.remove('hidden');
             document.getElementById('order-id-display').textContent = orderId;
+            document.getElementById('order-total-display').textContent = finalTotal.toFixed(2).replace('.', ',');
             
             createSwishQrCode(finalTotal, orderId);
             
