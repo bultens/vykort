@@ -147,7 +147,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.91</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.92</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -263,7 +263,7 @@
                 <form id="register-form" class="space-y-4 hidden">
                     <input type="text" id="register-username" placeholder="Användarnamn" class="w-full p-3 rounded-lg border border-gray-300">
                     <input type="email" id="register-email" placeholder="E-postadress" class="w-full p-3 rounded-lg border border-gray-300">
-                    <input type="password" id="register-password" placeholder="Lösenord (minst 6 tecken)" class="w-full p-3 rounded-lg border border-gray-300">
+                    <input type="password" id="register-password" placeholder="Lösenord" class="w-full p-3 rounded-lg border border-gray-300">
                     <button type="submit" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700">Skapa konto</button>
                 </form>
                 <button id="login-switch" class="mt-4 w-full text-blue-600 font-bold hover:underline hidden">Har du redan ett konto? Logga in här!</button>
@@ -567,6 +567,7 @@
         document.getElementById('billing-info-form').addEventListener('submit', handlePlaceOrder);
         document.getElementById('close-checkout-modal').addEventListener('click', () => {
             document.getElementById('checkoutModal').classList.remove('active');
+            document.getElementById('main-content').classList.remove('hidden');
         });
 
         // Handle closing the error modal
@@ -805,7 +806,7 @@
     function updateUserStatus(isLoggedIn) {
         const userStatusEl = document.getElementById('user-status');
         if (isLoggedIn) {
-            const userEmail = auth.currentUser.email;
+            const userEmail = auth.currentUser.email || 'Användare';
             userStatusEl.innerHTML = `<span class="font-bold">Hej, ${userEmail}!</span> | <a href="#" id="logout-link" class="hover:text-gray-300 transition duration-300">Logga ut</a> | <a href="#" id="orders-link" class="hover:text-gray-300 transition duration-300">Mina ordrar</a>`;
             document.getElementById('orders-link').addEventListener('click', (e) => {
                 e.preventDefault();
@@ -1304,14 +1305,14 @@
                 removeFromCart(index);
             });
         });
-
-        function removeFromCart(index) {
-            cart.splice(index, 1);
-            saveCart();
-            renderCart();
-        }
     }
         
+    function removeFromCart(index) {
+        cart.splice(index, 1);
+        saveCart();
+        renderCart();
+    }
+    
     function clearCart() {
         cart = [];
         saveCart();
