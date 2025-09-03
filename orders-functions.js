@@ -7,7 +7,7 @@ export function showMessage(message) {
     document.getElementById('messageModal').classList.add('active');
 }
 
-export function showConfirmation(message, onConfirm) {
+export function showConfirmation(globalState, message, onConfirm) {
     document.getElementById('confirm-message').textContent = message;
     document.getElementById('confirmationModal').classList.add('active');
     
@@ -118,7 +118,7 @@ export async function renderOrders(globalState) {
                                 <p class="text-sm">Status: ${itemStatus}</p>
                             </div>
                             <div>
-                                <select onchange="updateItemStatus('${order.id}', ${itemIndex}, this.value)" class="p-1 rounded-md text-sm">
+                                <select onchange="window.updateItemStatus('${order.id}', ${itemIndex}, this.value)" class="p-1 rounded-md text-sm">
                                     <option value="obehandlad" ${itemStatus === 'obehandlad' ? 'selected' : ''}>Obehandlad</option>
                                     <option value="klar" ${itemStatus === 'klar' ? 'selected' : ''}>Klar</option>
                                 </select>
@@ -135,7 +135,7 @@ export async function renderOrders(globalState) {
                         </div>
                         <div class="flex items-center space-x-2">
                             <span class="status-header">${status}</span>
-                            <button onclick="openOrderModal('${order.id}')" class="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600">Detaljer</button>
+                            <button onclick="window.openOrderModal('${order.id}')" class="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600">Detaljer</button>
                         </div>
                     </div>
                     <div class="order-body">
@@ -212,11 +212,12 @@ export function openOrderModal(globalState, orderId) {
 }
 
 export async function updateOrderStatus(globalState, orderId, newStatus) {
-    const { db, appId, showMessage } = globalState;
+    const { db, appId, firebase } = globalState;
+    const { doc, updateDoc } = firebase;
     const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
     
     if (newStatus === 'Klar') {
-        showConfirmation("Är du säker på att du vill markera ordern som 'Klar'? Detta kommer att ta bort alla adresser permanent.", async () => {
+        showConfirmation(globalState, "Är du säker på att du vill markera ordern som 'Klar'? Detta kommer att ta bort alla adresser permanent.", async () => {
             const orderToUpdate = globalState.ordersData.find(o => o.id === orderId);
             if (orderToUpdate) {
                 const sanitizedItems = orderToUpdate.items.map(item => {
@@ -272,7 +273,8 @@ export async function updateItemStatus(globalState, orderId, itemIndex, newStatu
 
 export async function deleteOrder(globalState, orderId) {
     const { db, appId, showMessage, showConfirmation } = globalState;
-    showConfirmation("Är du säker på att du vill ta bort denna order permanent?", async () => {
+    const { doc, deleteDoc } = globalState.firebase;
+    showConfirmation(globalState, "Är du säker på att du vill ta bort denna order permanent?", async () => {
         const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
         await deleteDoc(orderRef);
         showMessage(`Order #${orderId.substring(0, 8)} borttagen.`);

@@ -152,7 +152,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.38</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.39</div>
 
     <main class="container">
         <h1 class="text-4xl font-bold mb-6 text-center">Beställningshantering</h1>
@@ -183,12 +183,12 @@
                 </div>
             </div>
             <div id="modal-order-actions" class="mt-4 flex flex-wrap gap-2 justify-center">
-                <button onclick="updateOrderStatus(window.globalState.currentOrder.id, 'Väntar')" class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600">Väntar</button>
-                <button onclick="updateOrderStatus(window.globalState.currentOrder.id, 'Avakta Betalning')" class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600">Avvakta</button>
-                <button onclick="updateOrderStatus(window.globalState.currentOrder.id, 'Betald')" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">Betald</button>
-                <button onclick="updateOrderStatus(window.globalState.currentOrder.id, 'Skickad')" class="px-4 py-2 bg-cyan-500 text-white rounded-md hover:bg-cyan-600">Skickad</button>
-                <button onclick="updateOrderStatus(window.globalState.currentOrder.id, 'Klar')" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">Klar</button>
-                <button onclick="deleteOrder(window.globalState.currentOrder.id)" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">Ta bort</button>
+                <button onclick="updateOrderStatus(window.globalState, window.globalState.currentOrder.id, 'Väntar')" class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600">Väntar</button>
+                <button onclick="updateOrderStatus(window.globalState, window.globalState.currentOrder.id, 'Avakta Betalning')" class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600">Avvakta</button>
+                <button onclick="updateOrderStatus(window.globalState, window.globalState.currentOrder.id, 'Betald')" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">Betald</button>
+                <button onclick="updateOrderStatus(window.globalState, window.globalState.currentOrder.id, 'Skickad')" class="px-4 py-2 bg-cyan-500 text-white rounded-md hover:bg-cyan-600">Skickad</button>
+                <button onclick="updateOrderStatus(window.globalState, window.globalState.currentOrder.id, 'Klar')" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">Klar</button>
+                <button onclick="deleteOrder(window.globalState, window.globalState.currentOrder.id)" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">Ta bort</button>
             </div>
         </div>
     </div>
@@ -236,11 +236,13 @@
 
         // Expose functions to global scope for inline onclick handlers
         window.showMessage = showMessage;
-        window.showConfirmation = showConfirmation;
-        window.updateOrderStatus = (orderId, newStatus) => updateOrderStatus(window.globalState, orderId, newStatus);
+        window.showConfirmation = (msg, onConfirm) => showConfirmation(window.globalState, msg, onConfirm);
+        window.updateOrderStatus = (state, orderId, newStatus) => updateOrderStatus(state, orderId, newStatus);
         window.updateItemStatus = (orderId, itemIndex, newStatus) => updateItemStatus(window.globalState, orderId, itemIndex, newStatus);
-        window.deleteOrder = (orderId) => deleteOrder(window.globalState, orderId);
+        window.deleteOrder = (state, orderId) => deleteOrder(state, orderId);
         window.openOrderModal = (orderId) => openOrderModal(window.globalState, orderId);
+        window.renderOrders = (state) => renderOrders(state);
+        window.updateStatusBar = (state) => updateStatusBar(state);
         
         document.addEventListener('DOMContentLoaded', () => {
             if (firebaseConfig.projectId) {
