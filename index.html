@@ -149,7 +149,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.97</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.98</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -341,7 +341,7 @@
                 </div>
 
                 <div id="order-history-section" class="mb-6 card hidden">
-                    <h3 class="text-xl font-bold mb-4">Dina tidigare ordrar</h3>
+                    <h3 class="text-xl font-bold mb-4">Tidigare ordrar</h3>
                     <div id="order-history-list" class="space-y-4">
                         <p class="text-gray-500">Inga tidigare ordrar hittades.</p>
                     </div>
@@ -783,8 +783,8 @@
                         id: item.id,
                         title: item.title,
                         size: item.size,
-                        price: item.price,
-                        status: item.status
+                        price: getDiscountedPrice(item), // Använd det rabatterade priset
+                        status: 'obehandlad'
                     })),
                     total: roundedTotal,
                     timestamp: serverTimestamp(),
@@ -885,14 +885,6 @@
             const orderDiv = document.createElement('div');
             orderDiv.className = 'p-4 bg-gray-100 rounded-lg shadow-sm';
             
-            let total = 0;
-            let itemsHtml = order.items.map(item => {
-                total += item.price;
-                return `
-                    <p class="text-sm">- ${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)}): ${item.price.toFixed(2)} kr</p>
-                `;
-            }).join('');
-            
             const timestamp = order.timestamp?.toDate ? order.timestamp.toDate().toLocaleString('sv-SE') : 'Okänt datum';
             
             const orderNumberToDisplay = order.orderNumber || order.orderId;
@@ -901,7 +893,9 @@
                 <h4 class="font-bold text-lg">Order #${orderNumberToDisplay}</h4>
                 <p class="text-sm text-gray-600">Datum: ${timestamp}</p>
                 <p class="text-sm font-semibold">Status: ${order.status || 'Okänd'}</p>
-                <div class="mt-2 space-y-1">${itemsHtml}</div>
+                <div class="mt-2 space-y-1">
+                    ${order.items.map(item => `<p class="text-sm">- ${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)}): ${item.price.toFixed(2)} kr</p>`).join('')}
+                </div>
                 <p class="mt-2 font-bold text-right">Summa: ${order.total.toFixed(2)} kr</p>
             `;
             orderHistoryList.appendChild(orderDiv);
