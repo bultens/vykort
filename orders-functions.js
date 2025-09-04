@@ -221,7 +221,7 @@ export function openOrderModal(globalState, orderId) {
 
 export async function updateOrderStatus(globalState, orderId, newStatus) {
     const { db, appId, firebase } = globalState;
-    const { doc, updateDoc } = firebase;
+    const { doc, updateDoc, where, collection, query, getDocs } = firebase;
 
     const orderToUpdate = globalState.ordersData.find(o => o.firestoreId === orderId);
     if (!orderToUpdate) {
@@ -263,8 +263,14 @@ export async function updateOrderStatus(globalState, orderId, newStatus) {
             await updateDoc(publicOrderRef, updatesWithSanitizedData);
             
             if (orderToUpdate.userId) {
-                const privateOrderRef = doc(db, `artifacts/public/users/${orderToUpdate.userId}/orders`, orderToUpdate.firestoreId);
-                await updateDoc(privateOrderRef, { status: newStatus });
+                const privateOrdersRef = collection(db, `artifacts/public/users/${orderToUpdate.userId}/orders`);
+                const q = query(privateOrdersRef, where('orderId', '==', orderToUpdate.firestoreId));
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    const privateOrderDoc = querySnapshot.docs[0];
+                    await updateDoc(privateOrderDoc.ref, { status: newStatus });
+                }
             }
 
             window.showMessage(`Order #${orderToUpdate.orderNumber || orderToUpdate.firestoreId.substring(0, 8)} är nu markerad som 'Klar' och adresser har raderats.`);
@@ -274,8 +280,13 @@ export async function updateOrderStatus(globalState, orderId, newStatus) {
         await updateDoc(publicOrderRef, updates);
 
         if (orderToUpdate.userId) {
-            const privateOrderRef = doc(db, `artifacts/public/users/${orderToUpdate.userId}/orders`, orderToUpdate.firestoreId);
-            await updateDoc(privateOrderRef, { status: newStatus });
+            const privateOrdersRef = collection(db, `artifacts/public/users/${orderToUpdate.userId}/orders`);
+            const q = query(privateOrdersRef, where('orderId', '==', orderToUpdate.firestoreId));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                const privateOrderDoc = querySnapshot.docs[0];
+                await updateDoc(privateOrderDoc.ref, { status: newStatus });
+            }
         }
 
         window.showMessage(`Order #${orderToUpdate.orderNumber || orderToUpdate.firestoreId.substring(0, 8)} uppdaterad till ${newStatus}.`);

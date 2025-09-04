@@ -20,6 +20,16 @@
         .card {
             background-color: #ffffff;
             border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1-2937;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             padding: 2rem;
             margin-bottom: 1.5rem;
@@ -149,7 +159,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 2.02</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 2.04</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -306,37 +316,6 @@
                         <input type="email" id="checkout-register-email" placeholder="E-postadress" class="w-full p-2 border rounded-md">
                         <input type="password" id="checkout-register-password" placeholder="Lösenord" class="w-full p-2 border rounded-md">
                         <button type="submit" class="bg-green-600 text-white font-bold py-2 px-4 rounded-md hover:bg-green-700">Skapa konto</button>
-                    </form>
-                </div>
-
-                <div id="billing-info-section" class="mb-6 card hidden">
-                    <h3 class="text-xl font-bold mb-4">Steg 2: Faktureringsuppgifter</h3>
-                    <form id="billing-info-form" class="space-y-4">
-                        <div class="form-group">
-                            <label for="billing-name" class="block font-bold">Namn:</label>
-                            <input type="text" id="billing-name" placeholder="Fullständigt namn" class="w-full p-2 border rounded-md" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="billing-address" class="block font-bold">Adress:</label>
-                            <input type="text" id="billing-address" placeholder="Gatuadress" class="w-full p-2 border rounded-md" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="billing-zip" class="block font-bold">Postnummer:</label>
-                            <input type="text" id="billing-zip" placeholder="Postnummer" class="w-full p-2 border rounded-md" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="billing-city" class="block font-bold">Stad:</label>
-                            <input type="text" id="billing-city" placeholder="Stad" class="w-full p-2 border rounded-md" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="billing-mobile" class="block font-bold">Mobilnummer:</label>
-                            <input type="tel" id="billing-mobile" placeholder="Mobilnummer för Swish" class="w-full p-2 border rounded-md" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="billing-email" class="block font-bold">E-post:</label>
-                            <input type="email" id="billing-email" placeholder="E-postadress för bekräftelse" class="w-full p-2 border rounded-md" required>
-                        </div>
-                        <button id="place-order-btn" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300">Bekräfta beställning</button>
                     </form>
                 </div>
 
