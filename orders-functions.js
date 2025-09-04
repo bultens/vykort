@@ -222,13 +222,15 @@ export function openOrderModal(globalState, orderId) {
 export async function updateOrderStatus(globalState, orderId, newStatus) {
     const { db, appId, firebase } = globalState;
     const { doc, updateDoc } = firebase;
-    const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
 
     const orderToUpdate = globalState.ordersData.find(o => o.firestoreId === orderId);
     if (!orderToUpdate) {
         window.showMessage('Fel: Ordern hittades inte.');
         return;
     }
+
+    const publicOrderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
+    const updates = { status: newStatus };
 
     if (newStatus === 'Klar') {
         window.showConfirmation("Är du säker på att du vill markera ordern som 'Klar'? Detta kommer att ta bort alla adresser permanent.", async () => {
@@ -252,17 +254,31 @@ export async function updateOrderStatus(globalState, orderId, newStatus) {
                 city: null
             };
 
-            await updateDoc(orderRef, { 
+            const updatesWithSanitizedData = {
                 status: newStatus,
                 items: sanitizedItems,
                 billingInfo: sanitizedBillingInfo
-            });
-            window.showMessage(`Order #${orderId.substring(0, 8)} är nu markerad som 'Klar' och adresser har raderats.`);
+            };
+
+            await updateDoc(publicOrderRef, updatesWithSanitizedData);
+            
+            if (orderToUpdate.userId) {
+                const privateOrderRef = doc(db, `artifacts/public/users/${orderToUpdate.userId}/orders`, orderId);
+                await updateDoc(privateOrderRef, { status: newStatus });
+            }
+
+            window.showMessage(`Order #${orderToUpdate.orderNumber || orderToUpdate.firestoreId.substring(0, 8)} är nu markerad som 'Klar' och adresser har raderats.`);
             document.getElementById('orderModal').classList.remove('active');
         });
     } else {
-        await updateDoc(orderRef, { status: newStatus });
-        window.showMessage(`Order #${orderId.substring(0, 8)} uppdaterad till ${newStatus}.`);
+        await updateDoc(publicOrderRef, updates);
+
+        if (orderToUpdate.userId) {
+            const privateOrderRef = doc(db, `artifacts/public/users/${orderToUpdate.userId}/orders`, orderId);
+            await updateDoc(privateOrderRef, { status: newStatus });
+        }
+
+        window.showMessage(`Order #${orderToUpdate.orderNumber || orderToUpdate.firestoreId.substring(0, 8)} uppdaterad till ${newStatus}.`);
         document.getElementById('orderModal').classList.remove('active');
     }
 }
