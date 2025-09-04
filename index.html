@@ -147,7 +147,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.95</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.96</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -807,11 +807,23 @@
     }
 
 
-    function updateUserStatus(isLoggedIn) {
+    async function updateUserStatus(isLoggedIn) {
         const userStatusEl = document.getElementById('user-status');
         if (isLoggedIn) {
-            const userEmail = auth.currentUser.email || 'Användare';
-            userStatusEl.innerHTML = `<span class="font-bold">Hej, ${userEmail}!</span> | <a href="#" id="logout-link" class="hover:text-gray-300 transition duration-300">Logga ut</a> | <a href="#" id="orders-link" class="hover:text-gray-300 transition duration-300">Mina ordrar</a>`;
+            const user = auth.currentUser;
+            let username = 'Användare';
+            try {
+                const usersRef = collection(db, `artifacts/${appId}/public/data/users`);
+                const q = query(usersRef, where('uid', '==', user.uid));
+                const querySnapshot = await getDocs(q);
+                if (!querySnapshot.empty) {
+                    username = querySnapshot.docs[0].data().username;
+                }
+            } catch (e) {
+                console.error("Kunde inte hämta användarnamn:", e);
+            }
+            
+            userStatusEl.innerHTML = `<span class="font-bold">Hej, ${username}!</span> | <a href="#" id="logout-link" class="hover:text-gray-300 transition duration-300">Logga ut</a> | <a href="#" id="orders-link" class="hover:text-gray-300 transition duration-300">Mina ordrar</a>`;
             document.getElementById('orders-link').addEventListener('click', (e) => {
                 e.preventDefault();
                 document.getElementById('main-content').classList.add('hidden');
@@ -879,9 +891,13 @@
             }).join('');
             
             const timestamp = order.timestamp?.toDate ? order.timestamp.toDate().toLocaleString('sv-SE') : 'Okänt datum';
+            
+            const orderNumberToDisplay = order.orderNumber || order.orderId;
 
             orderDiv.innerHTML = `
-                <h4 class="font-bold text-lg">Order ${timestamp}</h4>
+                <h4 class="font-bold text-lg">Order #${orderNumberToDisplay}</h4>
+                <p class="text-sm text-gray-600">Datum: ${timestamp}</p>
+                <p class="text-sm font-semibold">Status: ${order.status}</p>
                 <div class="mt-2 space-y-1">${itemsHtml}</div>
                 <p class="mt-2 font-bold text-right">Summa: ${total.toFixed(2)} kr</p>
             `;
@@ -997,17 +1013,18 @@
         const originalPrice = calculatePrice(postcard)[item.size];
         let finalPrice = originalPrice;
 
-        const productSale = salesData.find(s => s.targetType === 'product' && s.targetId === item.id);
-        const groupSale = salesData.find(s => s.targetType === 'group' && s.targetId === postcard.group);
+        const applicableSales = salesData.filter(s => {
+            const now = new Date();
+            const isTimeValid = s.noTimeLimit || (s.startDate && s.endDate && now >= new Date(s.startDate) && now <= new Date(s.endDate));
+            
+            const isTargetValid = (s.targetType === 'group' && s.targetId === postcard.group) || 
+                                  (s.targetType === 'product' && s.targetId === item.id);
+                          
+            return isTimeValid && isTargetValid;
+        });
         
-        let appliedSale = null;
-        if (productSale) {
-            appliedSale = productSale;
-        } else if (groupSale) {
-            appliedSale = groupSale;
-        }
-
-        if (appliedSale) {
+        if (applicableSales.length > 0) {
+             const appliedSale = applicableSales[0];
             if (appliedSale.type === 'percent') {
                 finalPrice = originalPrice - (originalPrice * (appliedSale.value / 100));
             } else if (appliedSale.type === 'summa') {
