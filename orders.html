@@ -186,12 +186,12 @@
                 </div>
             </div>
             <div id="modal-order-actions" class="mt-4 flex flex-wrap gap-2 justify-center">
-                <button onclick="window.updateOrderStatus(window.globalState.currentOrder.id, 'Väntar')" class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600">Väntar</button>
-                <button onclick="window.updateOrderStatus(window.globalState.currentOrder.id, 'Avakta Betalning')" class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600">Avvakta</button>
-                <button onclick="window.updateOrderStatus(window.globalState.currentOrder.id, 'Betald')" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">Betald</button>
-                <button onclick="window.updateOrderStatus(window.globalState.currentOrder.id, 'Skickad')" class="px-4 py-2 bg-cyan-500 text-white rounded-md hover:bg-cyan-600">Skickad</button>
-                <button onclick="window.updateOrderStatus(window.globalState.currentOrder.id, 'Klar')" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">Klar</button>
-                <button onclick="window.deleteOrder(window.globalState.currentOrder.id)" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">Ta bort</button>
+                <button onclick="window.updateOrderStatus(window.globalState.currentOrder.firestoreId, 'Väntar')" class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600">Väntar</button>
+                <button onclick="window.updateOrderStatus(window.globalState.currentOrder.firestoreId, 'Avakta Betalning')" class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600">Avvakta</button>
+                <button onclick="window.updateOrderStatus(window.globalState.currentOrder.firestoreId, 'Betald')" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">Betald</button>
+                <button onclick="window.updateOrderStatus(window.globalState.currentOrder.firestoreId, 'Skickad')" class="px-4 py-2 bg-cyan-500 text-white rounded-md hover:bg-cyan-600">Skickad</button>
+                <button onclick="window.updateOrderStatus(window.globalState.currentOrder.firestoreId, 'Klar')" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">Klar</button>
+                <button onclick="window.deleteOrder(window.globalState.currentOrder.firestoreId)" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">Ta bort</button>
             </div>
         </div>
     </div>
