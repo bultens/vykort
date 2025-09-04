@@ -1,5 +1,5 @@
 import { 
-    getFirestore, onSnapshot, collection, query, orderBy, getDocs, updateDoc, doc, deleteDoc, where 
+    getFirestore, onSnapshot, collection, query, orderBy, getDocs, updateDoc, doc, deleteDoc, where, writeBatch 
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 export function showMessage(message) {
@@ -29,7 +29,7 @@ export function startListeners(globalState) {
     
     const ordersRef = query(collection(db, `artifacts/${appId}/public/data/orders`), orderBy('timestamp', 'desc'));
     globalState.unsubscribeOrders = onSnapshot(ordersRef, (snapshot) => {
-        globalState.ordersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        globalState.ordersData = snapshot.docs.map(doc => ({ ...doc.data(), firestoreId: doc.id }));
         renderOrders(globalState);
         updateStatusBar(globalState);
     });
@@ -119,7 +119,7 @@ export async function renderOrders(globalState) {
                                 <p class="text-sm">Status: ${itemStatus}</p>
                             </div>
                             <div>
-                                <select onchange="window.updateItemStatus('${order.id}', ${itemIndex}, this.value)" class="p-1 rounded-md text-sm">
+                                <select onchange="window.updateItemStatus('${order.firestoreId}', ${itemIndex}, this.value)" class="p-1 rounded-md text-sm">
                                     <option value="obehandlad" ${itemStatus === 'obehandlad' ? 'selected' : ''}>Obehandlad</option>
                                     <option value="klar" ${itemStatus === 'klar' ? 'selected' : ''}>Klar</option>
                                 </select>
@@ -127,16 +127,19 @@ export async function renderOrders(globalState) {
                         </li>
                     `;
                 }).join('');
+                
+                const orderIdToDisplay = order.orderNumber ? `#${order.orderNumber}` : `#${order.firestoreId.substring(0, 8)}`;
+
 
                 orderCard.innerHTML = `
                     <div class="order-header flex justify-between items-center">
                         <div>
-                            <h3 class="font-bold text-xl">Beställning #${order.id.substring(0, 8)}</h3>
+                            <h3 class="font-bold text-xl">Beställning ${orderIdToDisplay}</h3>
                             <p class="text-sm text-gray-600">${timestamp}</p>
                         </div>
                         <div class="flex items-center space-x-2">
                             <span class="status-header">${status}</span>
-                            <button onclick="window.openOrderModal('${order.id}')" class="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600">Detaljer</button>
+                            <button onclick="window.openOrderModal('${order.firestoreId}')" class="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600">Detaljer</button>
                         </div>
                     </div>
                     <div class="order-body">
@@ -157,7 +160,7 @@ export async function renderOrders(globalState) {
 }
 
 export function openOrderModal(globalState, orderId) {
-    const order = globalState.ordersData.find(o => o.id === orderId);
+    const order = globalState.ordersData.find(o => o.firestoreId === orderId);
     if (!order) {
         window.showMessage('Fel: Ordern hittades inte.');
         return;
@@ -176,8 +179,10 @@ export function openOrderModal(globalState, orderId) {
     const modalBillingAddress = document.getElementById('modal-billing-address');
     const modalBillingMobile = document.getElementById('modal-billing-mobile');
 
-    modalTitle.textContent = `Beställningsdetaljer (#${order.id.substring(0, 8)})`;
-    modalId.textContent = order.id;
+    const orderIdToDisplay = order.orderNumber ? `#${order.orderNumber}` : `#${order.firestoreId.substring(0, 8)}`;
+    modalTitle.textContent = `Beställningsdetaljer (${orderIdToDisplay})`;
+
+    modalId.textContent = order.orderNumber || order.firestoreId;
     modalEmail.textContent = order.billingInfo?.email || 'Ingen e-post';
     modalDate.textContent = order.timestamp?.toDate ? order.timestamp.toDate().toLocaleString('sv-SE') : 'Okänt datum';
     modalStatus.textContent = order.status || 'Ny';
@@ -221,7 +226,7 @@ export async function updateOrderStatus(globalState, orderId, newStatus) {
     const { doc, updateDoc } = firebase;
     const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
 
-    const orderToUpdate = globalState.ordersData.find(o => o.id === orderId);
+    const orderToUpdate = globalState.ordersData.find(o => o.firestoreId === orderId);
     if (!orderToUpdate) {
         window.showMessage('Fel: Ordern hittades inte.');
         return;
@@ -266,7 +271,7 @@ export async function updateOrderStatus(globalState, orderId, newStatus) {
 
 export async function updateItemStatus(globalState, orderId, itemIndex, newStatus) {
     const { db, appId, showMessage } = globalState;
-    const order = globalState.ordersData.find(o => o.id === orderId);
+    const order = globalState.ordersData.find(o => o.firestoreId === orderId);
     if (!order) {
         window.showMessage('Fel: Ordern hittades inte.');
         return;
@@ -284,7 +289,7 @@ export async function deleteOrder(globalState, orderId) {
     const { db, appId, firebase } = globalState;
     const { doc, deleteDoc } = firebase;
 
-    const orderToUpdate = globalState.ordersData.find(o => o.id === orderId);
+    const orderToUpdate = globalState.ordersData.find(o => o.firestoreId === orderId);
     if (!orderToUpdate) {
         window.showMessage('Fel: Ordern hittades inte.');
         return;
@@ -295,5 +300,34 @@ export async function deleteOrder(globalState, orderId) {
         await deleteDoc(orderRef);
         window.showMessage(`Order #${orderId.substring(0, 8)} borttagen.`);
         document.getElementById('orderModal').classList.remove('active');
+    });
+}
+
+
+export async function deleteAllOldOrders(globalState) {
+    const { db, appId, firebase } = globalState;
+    const { collection, getDocs, writeBatch } = firebase;
+    const ordersRef = collection(db, `artifacts/${appId}/public/data/orders`);
+    
+    window.showConfirmation("Är du säker på att du vill radera ALLA ordrar som har ett femsiffrigt ID? Denna åtgärd kan inte ångras.", async () => {
+        try {
+            const ordersToDelete = globalState.ordersData.filter(order => /^\d{5}$/.test(order.orderNumber));
+            
+            if (ordersToDelete.length === 0) {
+                window.showMessage('Inga gamla testordrar med femsiffrigt ID hittades.');
+                return;
+            }
+            
+            const batch = writeBatch(db);
+            ordersToDelete.forEach(order => {
+                batch.delete(doc(ordersRef, order.firestoreId));
+            });
+            
+            await batch.commit();
+            window.showMessage(`Tog bort ${ordersToDelete.length} gamla testordrar.`);
+        } catch (e) {
+            console.error("Fel vid radering av gamla ordrar:", e);
+            window.showMessage('Ett fel uppstod vid radering av ordrar. Se konsolen för detaljer.');
+        }
     });
 }
