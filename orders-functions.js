@@ -263,7 +263,7 @@ export async function updateOrderStatus(globalState, orderId, newStatus) {
             await updateDoc(publicOrderRef, updatesWithSanitizedData);
             
             if (orderToUpdate.userId) {
-                const privateOrderRef = doc(db, `artifacts/public/users/${orderToUpdate.userId}/orders/${orderToUpdate.firestoreId}`);
+                const privateOrderRef = doc(db, `artifacts/public/users/${orderToUpdate.userId}/orders`, orderToUpdate.firestoreId);
                 await updateDoc(privateOrderRef, { status: newStatus });
             }
 
@@ -274,7 +274,7 @@ export async function updateOrderStatus(globalState, orderId, newStatus) {
         await updateDoc(publicOrderRef, updates);
 
         if (orderToUpdate.userId) {
-            const privateOrderRef = doc(db, `artifacts/public/users/${orderToUpdate.userId}/orders/${orderToUpdate.firestoreId}`);
+            const privateOrderRef = doc(db, `artifacts/public/users/${orderToUpdate.userId}/orders`, orderToUpdate.firestoreId);
             await updateDoc(privateOrderRef, { status: newStatus });
         }
 
