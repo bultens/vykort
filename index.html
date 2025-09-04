@@ -52,6 +52,8 @@
             width: 80%;
             max-width: 600px;
             text-align: left;
+            max-height: 90vh; /* Gör modalen scrollbar */
+            overflow-y: auto; /* Gör modalen scrollbar */
         }
         .modal-close-btn {
             float: right;
@@ -147,7 +149,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.96</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.97</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -787,7 +789,8 @@
                     total: roundedTotal,
                     timestamp: serverTimestamp(),
                     orderId: docRef.id,
-                    orderNumber: orderNumber
+                    orderNumber: orderNumber,
+                    status: 'Ny' // Lägg till status här
                 };
                 await addDoc(collection(db, `artifacts/public/users/${currentUser.uid}/orders`), privateOrderData);
             }
@@ -897,9 +900,9 @@
             orderDiv.innerHTML = `
                 <h4 class="font-bold text-lg">Order #${orderNumberToDisplay}</h4>
                 <p class="text-sm text-gray-600">Datum: ${timestamp}</p>
-                <p class="text-sm font-semibold">Status: ${order.status}</p>
+                <p class="text-sm font-semibold">Status: ${order.status || 'Okänd'}</p>
                 <div class="mt-2 space-y-1">${itemsHtml}</div>
-                <p class="mt-2 font-bold text-right">Summa: ${total.toFixed(2)} kr</p>
+                <p class="mt-2 font-bold text-right">Summa: ${order.total.toFixed(2)} kr</p>
             `;
             orderHistoryList.appendChild(orderDiv);
         });
