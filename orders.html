@@ -146,19 +146,17 @@
                     <span id="status-Klar" class="bg-gray-500 text-white px-2 py-1 rounded-full">Klar: 0</span>
                 </div>
                 <div class="flex space-x-4 font-medium">
+                    <a href="index.html" class="hover:text-gray-300 transition duration-300">Till Butik</a>
                     <a href="admin.html" class="hover:text-gray-300 transition duration-300">Tillbaka till Admin</a>
                 </div>
             </nav>
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.49</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.50</div>
 
     <main class="container">
         <h1 class="text-4xl font-bold mb-6 text-center">Beställningshantering</h1>
-        <div class="text-center mb-6">
-            <button id="delete-old-orders-btn" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">Radera gamla testordrar</button>
-        </div>
         <div id="orders-container" class="space-y-8">
             <div id="loading-message" class="text-center text-gray-500">Laddar beställningar...</div>
         </div>
@@ -219,7 +217,7 @@
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, onSnapshot, collection, query, orderBy, getDocs, updateDoc, doc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { firebaseConfig } from "./firebase-config.js";
-        import { showMessage, showConfirmation, updateOrderStatus, updateItemStatus, deleteOrder, openOrderModal, renderOrders, updateStatusBar, startListeners, deleteAllOldOrders } from "./orders-functions.js";
+        import { showMessage, showConfirmation, updateOrderStatus, updateItemStatus, deleteOrder, openOrderModal, renderOrders, updateStatusBar, startListeners } from "./orders-functions.js";
 
         const appId = firebaseConfig.projectId;
 
@@ -246,7 +244,6 @@
         window.openOrderModal = (orderId) => openOrderModal(window.globalState, orderId);
         window.renderOrders = (state) => renderOrders(state);
         window.updateStatusBar = (state) => updateStatusBar(state);
-        window.deleteAllOldOrders = () => deleteAllOldOrders(window.globalState);
         
         document.addEventListener('DOMContentLoaded', () => {
             if (firebaseConfig.projectId) {
@@ -280,10 +277,6 @@
             });
             document.getElementById('confirm-no-btn').addEventListener('click', () => {
                 document.getElementById('confirmationModal').classList.remove('active');
-            });
-            
-            document.getElementById('delete-old-orders-btn').addEventListener('click', () => {
-                deleteAllOldOrders(window.globalState);
             });
         });
     </script>

@@ -1,5 +1,5 @@
 import { 
-    getFirestore, onSnapshot, collection, query, orderBy, getDocs, updateDoc, doc, deleteDoc, where, writeBatch 
+    getFirestore, onSnapshot, collection, query, orderBy, getDocs, updateDoc, doc, deleteDoc, where 
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 export function showMessage(message) {
@@ -81,10 +81,8 @@ export async function renderOrders(globalState) {
                 const orderCard = document.createElement('div');
                 
                 let orderCardClass = "card";
-                const hasObehandlad = order.items.some(item => (item.status || 'obehandlad') === 'obehandlad');
-                const allKlar = order.items.every(item => (item.status || 'obehandlad') === 'klar');
-
-                // Dynamiskt bestämma kantfärg baserat på orderns status
+                
+                // Använd order.status för att bestämma kortets kantfärg
                 if (order.status === 'Ny') {
                     orderCardClass += " order-card-ny";
                 } else if (order.status === 'Klar') {
@@ -300,34 +298,5 @@ export async function deleteOrder(globalState, orderId) {
         await deleteDoc(orderRef);
         window.showMessage(`Order #${orderId.substring(0, 8)} borttagen.`);
         document.getElementById('orderModal').classList.remove('active');
-    });
-}
-
-
-export async function deleteAllOldOrders(globalState) {
-    const { db, appId, firebase } = globalState;
-    const { collection, getDocs, writeBatch } = firebase;
-    const ordersRef = collection(db, `artifacts/${appId}/public/data/orders`);
-    
-    window.showConfirmation("Är du säker på att du vill radera ALLA ordrar som har ett femsiffrigt ID? Denna åtgärd kan inte ångras.", async () => {
-        try {
-            const ordersToDelete = globalState.ordersData.filter(order => /^\d{5}$/.test(order.orderNumber));
-            
-            if (ordersToDelete.length === 0) {
-                window.showMessage('Inga gamla testordrar med femsiffrigt ID hittades.');
-                return;
-            }
-            
-            const batch = writeBatch(db);
-            ordersToDelete.forEach(order => {
-                batch.delete(doc(ordersRef, order.firestoreId));
-            });
-            
-            await batch.commit();
-            window.showMessage(`Tog bort ${ordersToDelete.length} gamla testordrar.`);
-        } catch (e) {
-            console.error("Fel vid radering av gamla ordrar:", e);
-            window.showMessage('Ett fel uppstod vid radering av ordrar. Se konsolen för detaljer.');
-        }
     });
 }
