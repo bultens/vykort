@@ -160,6 +160,7 @@ export function openOrderModal(globalState, orderId) {
     const order = globalState.ordersData.find(o => o.id === orderId);
     if (!order) return;
 
+    // Spara order-ID och orderobjekt i global state för att kunna referera till det i modalen
     globalState.currentOrder = order;
 
     const modalTitle = document.getElementById('modal-order-title');
@@ -217,7 +218,6 @@ export async function updateOrderStatus(globalState, orderId, newStatus) {
     const { doc, updateDoc } = firebase;
     const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
 
-    // Hämta den senaste statusen direkt från globala tillståndet innan uppdatering
     const orderToUpdate = globalState.ordersData.find(o => o.id === orderId);
     if (!orderToUpdate) {
         window.showMessage('Fel: Ordern hittades inte.');
@@ -281,7 +281,6 @@ export async function deleteOrder(globalState, orderId) {
     const { db, appId, firebase } = globalState;
     const { doc, deleteDoc } = firebase;
 
-    // Hämta den senaste statusen direkt från globala tillståndet innan borttagning
     const orderToUpdate = globalState.ordersData.find(o => o.id === orderId);
     if (!orderToUpdate) {
         window.showMessage('Fel: Ordern hittades inte.');
