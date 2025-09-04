@@ -158,7 +158,10 @@ export async function renderOrders(globalState) {
 
 export function openOrderModal(globalState, orderId) {
     const order = globalState.ordersData.find(o => o.id === orderId);
-    if (!order) return;
+    if (!order) {
+        window.showMessage('Fel: Ordern hittades inte.');
+        return;
+    }
 
     // Spara order-ID och orderobjekt i global state för att kunna referera till det i modalen
     globalState.currentOrder = order;
