@@ -147,7 +147,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.93</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.95</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -761,21 +761,19 @@
         const { finalTotal } = calculateCartTotal();
         const roundedTotal = Math.floor(finalTotal);
         
-        const orderId = Math.floor(1000 + Math.random() * 9000).toString();
-        
-        const orderData = {
-            id: orderId,
-            items: cartItemsForOrder,
-            total: roundedTotal,
-            billingInfo: billingInfo,
-            timestamp: serverTimestamp(),
-            userId: currentUser ? currentUser.uid : null,
-            isGuest: !currentUser,
-            status: 'Ny'
-        };
-        
+        const orderNumber = Math.floor(10000 + Math.random() * 90000).toString();
+
         try {
-            await addDoc(collection(db, `artifacts/${appId}/public/data/orders`), orderData);
+            const docRef = await addDoc(collection(db, `artifacts/${appId}/public/data/orders`), {
+                orderNumber: orderNumber,
+                items: cartItemsForOrder,
+                total: roundedTotal,
+                billingInfo: billingInfo,
+                timestamp: serverTimestamp(),
+                userId: currentUser ? currentUser.uid : null,
+                isGuest: !currentUser,
+                status: 'Ny'
+            });
             
             if (currentUser) {
                 const privateOrderData = {
@@ -788,17 +786,18 @@
                     })),
                     total: roundedTotal,
                     timestamp: serverTimestamp(),
-                    orderId: orderId
+                    orderId: docRef.id,
+                    orderNumber: orderNumber
                 };
                 await addDoc(collection(db, `artifacts/public/users/${currentUser.uid}/orders`), privateOrderData);
             }
             
             document.getElementById('billing-info-section').classList.add('hidden');
             document.getElementById('order-confirmation-section').classList.remove('hidden');
-            document.getElementById('order-id-display').textContent = orderId;
+            document.getElementById('order-id-display').textContent = orderNumber;
             document.getElementById('order-total-display').textContent = roundedTotal.toFixed(2).replace('.', ',');
             
-            createSwishQrCode(roundedTotal, orderId);
+            createSwishQrCode(roundedTotal, orderNumber);
             
             clearCart();
         } catch (e) {
