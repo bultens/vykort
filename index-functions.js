@@ -292,15 +292,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-function showErrorModal(title, message) {
-    const errorModalTitle = document.getElementById('error-modal-title');
-    if (errorModalTitle) errorModalTitle.textContent = title;
-    const errorModalMessage = document.getElementById('error-modal-message');
-    if (errorModalMessage) errorModalMessage.textContent = message;
-    const errorModal = document.getElementById('errorModal');
-    if (errorModal) errorModal.classList.add('active');
-}
-
 async function handleLogin(e) {
     e.preventDefault();
     const email = document.getElementById('login-email').value;
@@ -1149,7 +1140,6 @@ function clearCart() {
     renderCart();
 }
 
-// Expose functions to the window object
 window.openPostcardModal = openPostcardModal;
 window.removeFromCart = removeFromCart;
 window.clearCart = clearCart;
