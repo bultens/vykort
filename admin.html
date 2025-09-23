@@ -155,7 +155,7 @@
         </div>
     </header>
     
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.41</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.42</div>
 
     <main class="container">
         <section id="admin-login-panel" class="card max-w-md mx-auto">
@@ -358,56 +358,6 @@
         editNews, deleteNews, updateNews
     } from "./admin-functions.js";
 
-    // Nu kan du använda firebaseConfig direkt här
-    const appId = firebaseConfig.projectId;
-
-    let db;
-    let isAdminLoggedIn = false;
-    let defaultPriceGroupId = 'default';
-    let defaultGroupId = 'default';
-    let currentEditingPostcardId = null;
-    let priceGroupsData = [];
-    let groupsData = [];
-    let postcardsData = [];
-    let adminsData = [];
-    let salesData = [];
-    let newsData = [];
-    let unsubscribePriceGroups = null;
-    let unsubscribeGroups = null;
-    let unsubscribePostcards = null;
-    let unsubscribeAdmins = null;
-    let unsubscribeSales = null;
-    let unsubscribeNews = null;
-    let unsubscribeOrders = null;
-    
-    // Assign imported functions to global scope (window) for inline HTML event handlers
-    window.addPriceGroup = addPriceGroup;
-    window.addGroup = addGroup;
-    window.addOrUpdatePostcard = addOrUpdatePostcard;
-    window.addSale = addSale;
-    window.addNews = addNews;
-    window.renderGroupsAndPrices = renderGroupsAndPrices;
-    window.renderAdminLists = renderAdminLists;
-    window.updateAdminStatusBar = updateAdminStatusBar;
-    window.addAdmin = addAdmin;
-    window.handleLogin = handleLogin;
-    window.handleLogout = handleLogout;
-    window.startAdminListeners = startAdminListeners;
-    window.stopAdminListeners = stopAdminListeners;
-    window.showMessage = showMessage;
-    window.showConfirmation = showConfirmation;
-    window.editPriceGroup = editPriceGroup;
-    window.deletePriceGroup = deletePriceGroup;
-    window.editGroup = editGroup;
-    window.deleteGroup = deleteGroup;
-    window.editPostcard = editPostcard;
-    window.deletePostcard = deletePostcard;
-    window.deleteAdmin = deleteAdmin;
-    window.deleteSale = deleteSale;
-    window.editNews = editNews;
-    window.deleteNews = deleteNews;
-    window.updateNews = updateNews;
-
     window.globalState = {
         db: null,
         isAdminLoggedIn: false,
@@ -428,13 +378,24 @@
         unsubscribeSales: null,
         unsubscribeNews: null,
         unsubscribeOrders: null,
-        
         firebase: {
             initializeApp, getAuth, onAuthStateChanged, signOut,
             getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc, serverTimestamp
         }
     };
     
+    // Expose functions to global scope (window) for inline HTML event handlers
+    window.editPriceGroup = (id) => editPriceGroup(window.globalState, id);
+    window.deletePriceGroup = (id) => deletePriceGroup(window.globalState, id);
+    window.editGroup = (id) => editGroup(window.globalState, id);
+    window.deleteGroup = (id) => deleteGroup(window.globalState, id);
+    window.editPostcard = (id) => editPostcard(window.globalState, id);
+    window.deletePostcard = (id) => deletePostcard(window.globalState, id);
+    window.deleteAdmin = (id) => deleteAdmin(window.globalState, id);
+    window.deleteSale = (id) => deleteSale(window.globalState, id);
+    window.editNews = (id) => editNews(window.globalState, id);
+    window.deleteNews = (id) => deleteNews(window.globalState, id);
+
     document.addEventListener('DOMContentLoaded', () => {
         if (firebaseConfig.projectId) {
             try {
@@ -463,13 +424,13 @@
             showMessage("Firebase-konfiguration saknas.");
         }
 
-        document.getElementById('login-btn').addEventListener('click', () => handleLogin(window.globalState.db, window.globalState.appId, showMessage, startAdminListeners));
+        document.getElementById('login-btn').addEventListener('click', () => handleLogin(window.globalState.db, window.globalState.appId));
         document.getElementById('admin-password').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                handleLogin(window.globalState.db, window.globalState.appId, showMessage, startAdminListeners);
+                handleLogin(window.globalState.db, window.globalState.appId);
             }
         });
-        document.getElementById('logout-btn').addEventListener('click', () => handleLogout(window.globalState, showMessage, stopAdminListeners));
+        document.getElementById('logout-btn').addEventListener('click', () => handleLogout(window.globalState));
         
         document.getElementById('add-price-group-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -479,26 +440,26 @@
                 mellan: Number(document.getElementById('price-mellan').value),
                 stor: Number(document.getElementById('price-stor').value)
             };
-            await addPriceGroup(window.globalState, name, prices, showMessage);
+            await addPriceGroup(window.globalState, name, prices);
             e.target.reset();
         });
         document.getElementById('add-group-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('new-group-name').value;
             const order = document.getElementById('new-group-order').value;
-            await addGroup(window.globalState, name, order, showMessage);
+            await addGroup(window.globalState, name, order);
             e.target.reset();
         });
         document.getElementById('add-postcard-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            await addOrUpdatePostcard(window.globalState, showMessage);
+            await addOrUpdatePostcard(window.globalState);
             e.target.reset();
         });
         document.getElementById('add-admin-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('new-admin-username').value;
             const password = document.getElementById('new-admin-password').value;
-            await addAdmin(window.globalState, username, password, showMessage);
+            await addAdmin(window.globalState, username, password);
             e.target.reset();
         });
         
@@ -508,19 +469,14 @@
         const noTimeLimitCheckbox = document.getElementById('no-time-limit');
 
         noTimeLimitCheckbox.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                saleDateFields.classList.add('hidden');
-            } else {
-                saleDateFields.classList.remove('hidden');
-            }
+            saleDateFields.classList.toggle('hidden', e.target.checked);
         });
 
         saleTargetTypeSelect.addEventListener('change', (e) => {
-            if (e.target.value === 'group' || e.target.value === 'product') {
-                saleTargetSelectContainer.classList.remove('hidden');
+            const showTargetSelect = e.target.value === 'group' || e.target.value === 'product';
+            saleTargetSelectContainer.classList.toggle('hidden', !showTargetSelect);
+            if(showTargetSelect) {
                 renderGroupsAndPrices(window.globalState);
-            } else {
-                saleTargetSelectContainer.classList.add('hidden');
             }
         });
 
@@ -531,67 +487,51 @@
             const type = document.getElementById('sale-type').value;
             const targetType = document.getElementById('sale-target-type').value;
             const noTimeLimit = document.getElementById('no-time-limit').checked;
-            let startDate = null;
-            let endDate = null;
-            let timezone = null;
+            let startDate = null, endDate = null, timezone = null;
 
             if (!noTimeLimit) {
                 startDate = document.getElementById('sale-start-date').value;
                 endDate = document.getElementById('sale-end-date').value;
                 timezone = document.getElementById('sale-timezone').value;
             }
-
-            let targetId = '';
-            if (targetType === 'group' || targetType === 'product') {
-                targetId = document.getElementById('sale-target-id').value;
-            }
+            let targetId = (targetType === 'group' || targetType === 'product') ? document.getElementById('sale-target-id').value : '';
             
-            await addSale(window.globalState, name, value, type, targetType, targetId, noTimeLimit, startDate, endDate, timezone, showMessage);
+            await addSale(window.globalState, name, value, type, targetType, targetId, noTimeLimit, startDate, endDate, timezone);
             e.target.reset();
             noTimeLimitCheckbox.checked = true;
             saleDateFields.classList.add('hidden');
         });
         
-        const newsDateFields = document.getElementById('news-date-fields');
-        const newsNoTimeLimitCheckbox = document.getElementById('news-no-time-limit');
-        newsNoTimeLimitCheckbox.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                newsDateFields.classList.add('hidden');
-            } else {
-                newsDateFields.classList.remove('hidden');
-            }
+        document.getElementById('news-no-time-limit').addEventListener('change', (e) => {
+            document.getElementById('news-date-fields').classList.toggle('hidden', e.target.checked);
         });
+
         document.getElementById('add-news-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const title = document.getElementById('news-title').value;
             const text = document.getElementById('news-text').value;
             const order = document.getElementById('news-order').value;
             const noTimeLimit = document.getElementById('news-no-time-limit').checked;
-            let startDate = null;
-            let endDate = null;
+            let startDate = null, endDate = null;
 
             if (!noTimeLimit) {
                 startDate = document.getElementById('news-start-date').value;
                 endDate = document.getElementById('news-end-date').value;
             }
             
-            await addNews(window.globalState, title, text, order, noTimeLimit, startDate, endDate, showMessage);
+            await addNews(window.globalState, title, text, order, noTimeLimit, startDate, endDate);
             e.target.reset();
-            newsNoTimeLimitCheckbox.checked = true;
-            newsDateFields.classList.add('hidden');
+            document.getElementById('news-no-time-limit').checked = true;
+            document.getElementById('news-date-fields').classList.add('hidden');
         });
         
         document.getElementById('edit-news-no-time-limit').addEventListener('change', (e) => {
-            if (e.target.checked) {
-                document.getElementById('edit-news-date-fields').classList.add('hidden');
-            } else {
-                document.getElementById('edit-news-date-fields').classList.remove('hidden');
-            }
+            document.getElementById('edit-news-date-fields').classList.toggle('hidden', e.target.checked);
         });
 
         document.getElementById('edit-news-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            await updateNews(window.globalState, showMessage);
+            await updateNews(window.globalState);
         });
     });
     </script>
