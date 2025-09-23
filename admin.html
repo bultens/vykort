@@ -1,4 +1,4 @@
-DOCTYPE html>
+<!DOCTYPE html>
 <html lang="sv">
 <head>
     <meta charset="UTF-8">
@@ -155,7 +155,7 @@ DOCTYPE html>
         </div>
     </header>
     
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.40</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.41</div>
 
     <main class="container">
         <section id="admin-login-panel" class="card max-w-md mx-auto">
@@ -212,9 +212,13 @@ DOCTYPE html>
                 <h2 class="text-2xl font-bold mb-4">Rea</h2>
                 <div id="sales-list" class="space-y-4 mb-4"></div>
                 <form id="add-sale-form" class="space-y-4">
-                    <div class="flex gap-4">
-                        <input type="text" id="sale-name" placeholder="Namn på rea" required class="w-1/2 p-2 border rounded-md">
-                        <input type="number" id="sale-value" placeholder="Värde" required class="w-1/2 p-2 border rounded-md">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <input type="text" id="sale-name" placeholder="Namn på rea" required class="w-full p-2 border rounded-md">
+                        <input type="number" id="sale-value" placeholder="Värde (t.ex. 10)" required class="w-full p-2 border rounded-md">
+                        <select id="sale-type" class="w-full p-2 border rounded-md">
+                            <option value="percent">Procent (%)</option>
+                            <option value="summa">Fast summa (kr)</option>
+                        </select>
                     </div>
                     <div class="flex items-center space-x-2 mb-2">
                         <input type="checkbox" id="no-time-limit" checked>
