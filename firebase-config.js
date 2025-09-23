@@ -1,9 +1,10 @@
-export const firebaseConfig = {
-    apiKey: "AIzaSyB52hRH8vfCKFLCAzPCEaQM05lKHgYq-hE",
-    authDomain: "kumlaskytte.firebaseapp.com",
-    projectId: "kumlaskytte",
-    storageBucket: "kumlaskytte.firebasestorage.app",
-    messagingSenderId: "571676149705",
-    appId: "1:571676149705:web:a0ace868f4680298a78a18",
-    measurementId: "G-KSJ9NLNDBX"
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyA_E4M8WPU3qrrWtW8fOkSJEM46sylRyzk",
+  authDomain: "snake-6dbce.firebaseapp.com",
+  projectId: "snake-6dbce",
+  storageBucket: "snake-6dbce.firebasestorage.app",
+  messagingSenderId: "322128334339",
+  appId: "1:322128334339:web:f9815a73fb71ab75eb8836",
+  measurementId: "G-QS1QW6ZZJ0"
 };
