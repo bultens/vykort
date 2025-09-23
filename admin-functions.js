@@ -1,3 +1,4 @@
+// Version 1.01
 import { 
     getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc 
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -25,21 +26,21 @@ export function showConfirmation(message, onConfirm) {
 }
 
 // Funktioner för att lägga till data
-export async function addPriceGroup(globalState, name, prices, showMessage) {
+export async function addPriceGroup(globalState, name, prices) {
     if (!globalState.isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
     const priceGroupsCollection = collection(globalState.db, `artifacts/${globalState.appId}/public/data/priceGroups`);
     await addDoc(priceGroupsCollection, { name, prices, isDefault: false });
     showMessage('Prisgrupp tillagd!');
 }
 
-export async function addGroup(globalState, name, order, showMessage) {
+export async function addGroup(globalState, name, order) {
     if (!globalState.isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
     const groupsCollection = collection(globalState.db, `artifacts/${globalState.appId}/public/data/groups`);
     await addDoc(groupsCollection, { name, order: Number(order), isDefault: false });
     showMessage('Grupp tillagd!');
 }
 
-export async function addOrUpdatePostcard(globalState, showMessage) {
+export async function addOrUpdatePostcard(globalState) {
     if (!globalState.isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
     const title = document.getElementById('postcard-title').value;
     const imageURL = document.getElementById('postcard-image-url').value;
@@ -60,7 +61,7 @@ export async function addOrUpdatePostcard(globalState, showMessage) {
     document.getElementById('add-postcard-form').reset();
 }
 
-export async function addSale(globalState, name, value, type, targetType, targetId, noTimeLimit, startDate, endDate, timezone, showMessage) {
+export async function addSale(globalState, name, value, type, targetType, targetId, noTimeLimit, startDate, endDate, timezone) {
     if (!globalState.isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
     const saleData = {
         name,
@@ -77,7 +78,7 @@ export async function addSale(globalState, name, value, type, targetType, target
     showMessage('Rea tillagd!');
 }
 
-export async function addNews(globalState, title, text, order, noTimeLimit, startDate, endDate, showMessage) {
+export async function addNews(globalState, title, text, order, noTimeLimit, startDate, endDate) {
     if (!globalState.isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
     const newsData = {
         title,
@@ -258,7 +259,7 @@ export function updateAdminStatusBar(orders) {
     document.getElementById('status-Klar').textContent = `Klar: ${statusCounts['Klar']}`;
 }
 
-export async function addAdmin(globalState, username, password, showMessage) {
+export async function addAdmin(globalState, username, password) {
     if (!globalState.isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
     const adminsCollection = collection(globalState.db, `artifacts/${globalState.appId}/public/data/admins`);
     const q = query(adminsCollection, where('username', '==', username));
@@ -343,7 +344,7 @@ export function stopAdminListeners() {
     if (window.globalState.unsubscribeOrders) window.globalState.unsubscribeOrders();
 }
 
-export async function handleLogin(db, appId, showMessage, startAdminListeners) {
+export async function handleLogin(db, appId) {
     const username = document.getElementById('admin-username').value;
     const password = document.getElementById('admin-password').value;
 
@@ -385,7 +386,7 @@ export async function handleLogin(db, appId, showMessage, startAdminListeners) {
     }
 }
 
-export function handleLogout(globalState, showMessage, stopAdminListeners) {
+export function handleLogout(globalState) {
     globalState.isAdminLoggedIn = false;
     localStorage.removeItem('adminLoggedIn');
     localStorage.removeItem('adminUsername');
@@ -565,7 +566,7 @@ export async function deleteNews(globalState, id) {
     });
 }
 
-export async function updateNews(globalState, showMessage) {
+export async function updateNews(globalState) {
     const id = document.getElementById('edit-news-id').value;
     const title = document.getElementById('edit-news-title').value;
     const text = document.getElementById('edit-news-text').value;
