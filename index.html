@@ -149,7 +149,7 @@
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 2.08</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 2.09</div>
 
     <div class="container text-center py-4 text-gray-700 leading-relaxed">
         <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
@@ -316,6 +316,38 @@
                     </div>
                 </div>
 
+                <div id="billing-info-section" class="mb-6 card hidden">
+                    <h3 class="text-xl font-bold mb-4">Steg 2: Dina uppgifter</h3>
+                    <form id="billing-info-form" class="space-y-4">
+                        <div>
+                            <label for="billing-name" class="block text-sm font-medium text-gray-700">Namn</label>
+                            <input type="text" id="billing-name" required class="mt-1 block w-full p-2 border rounded-md">
+                        </div>
+                        <div>
+                            <label for="billing-address" class="block text-sm font-medium text-gray-700">Adress</label>
+                            <input type="text" id="billing-address" required class="mt-1 block w-full p-2 border rounded-md">
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="billing-zip" class="block text-sm font-medium text-gray-700">Postnummer</label>
+                                <input type="text" id="billing-zip" required class="mt-1 block w-full p-2 border rounded-md">
+                            </div>
+                            <div>
+                                <label for="billing-city" class="block text-sm font-medium text-gray-700">Ort</label>
+                                <input type="text" id="billing-city" required class="mt-1 block w-full p-2 border rounded-md">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="billing-mobile" class="block text-sm font-medium text-gray-700">Mobilnummer</label>
+                            <input type="tel" id="billing-mobile" required class="mt-1 block w-full p-2 border rounded-md">
+                        </div>
+                        <div>
+                            <label for="billing-email" class="block text-sm font-medium text-gray-700">E-postadress</label>
+                            <input type="email" id="billing-email" required class="mt-1 block w-full p-2 border rounded-md">
+                        </div>
+                        <button type="submit" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300">Slutför beställning</button>
+                    </form>
+                </div>
                 <div id="order-confirmation-section" class="mb-6 card hidden">
                     <h3 class="text-xl font-bold mb-4 text-center text-green-600">Din beställning är emottagen!</h3>
                     <p class="text-center mb-2">Din beställning är nu emottagen och avvaktar betalning innan den skickas.</p>
