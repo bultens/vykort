@@ -155,7 +155,7 @@
         </div>
     </header>
     
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.42</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.36</div>
 
     <main class="container">
         <section id="admin-login-panel" class="card max-w-md mx-auto">
@@ -212,13 +212,9 @@
                 <h2 class="text-2xl font-bold mb-4">Rea</h2>
                 <div id="sales-list" class="space-y-4 mb-4"></div>
                 <form id="add-sale-form" class="space-y-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <input type="text" id="sale-name" placeholder="Namn på rea" required class="w-full p-2 border rounded-md">
-                        <input type="number" id="sale-value" placeholder="Värde (t.ex. 10)" required class="w-full p-2 border rounded-md">
-                        <select id="sale-type" class="w-full p-2 border rounded-md">
-                            <option value="percent">Procent (%)</option>
-                            <option value="summa">Fast summa (kr)</option>
-                        </select>
+                    <div class="flex gap-4">
+                        <input type="text" id="sale-name" placeholder="Namn på rea" required class="w-1/2 p-2 border rounded-md">
+                        <input type="number" id="sale-value" placeholder="Värde" required class="w-1/2 p-2 border rounded-md">
                     </div>
                     <div class="flex items-center space-x-2 mb-2">
                         <input type="checkbox" id="no-time-limit" checked>
@@ -231,6 +227,10 @@
                     <select id="sale-timezone" class="w-full p-2 border rounded-md">
                         <option value="UTC">UTC</option>
                         <option value="Europe/Stockholm" selected>Europe/Stockholm</option>
+                    </select>
+                    <select id="sale-type" class="w-full p-2 border rounded-md">
+                        <option value="percent">%</option>
+                        <option value="summa">Summa</option>
                     </select>
                     <select id="sale-target-type" class="w-full p-2 border rounded-md">
                         <option value="all">Hela varukorgen</option>
@@ -337,102 +337,585 @@
         </div>
     </footer>
 
-    <script type="module" src="./admin-functions.js"></script>
     <script type="module">
-    import { 
-        initializeApp 
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { 
-        getAuth, onAuthStateChanged, signOut 
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { 
-        getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc, serverTimestamp 
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    import { firebaseConfig } from "./firebase-config.js";
-    import { 
-        addPriceGroup, addGroup, addOrUpdatePostcard, addSale, addNews,
-        renderGroupsAndPrices, renderAdminLists, updateAdminStatusBar,
-        addAdmin, handleLogin, handleLogout, startAdminListeners, stopAdminListeners,
-        showMessage, showConfirmation, editPriceGroup, deletePriceGroup, editGroup,
-        deleteGroup, editPostcard, deletePostcard, deleteAdmin, deleteSale,
-        editNews, deleteNews, updateNews
-    } from "./admin-functions.js";
-
-    window.globalState = {
-        db: null,
-        isAdminLoggedIn: false,
-        appId: firebaseConfig.projectId,
-        defaultPriceGroupId: 'default',
-        defaultGroupId: 'default',
-        currentEditingPostcardId: null,
-        priceGroupsData: [],
-        groupsData: [],
-        postcardsData: [],
-        adminsData: [],
-        salesData: [],
-        newsData: [],
-        unsubscribePriceGroups: null,
-        unsubscribeGroups: null,
-        unsubscribePostcards: null,
-        unsubscribeAdmins: null,
-        unsubscribeSales: null,
-        unsubscribeNews: null,
-        unsubscribeOrders: null,
-        firebase: {
-            initializeApp, getAuth, onAuthStateChanged, signOut,
-            getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc, serverTimestamp
-        }
-    };
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     
-    // Expose functions to global scope (window) for inline HTML event handlers
-    window.editPriceGroup = (id) => editPriceGroup(window.globalState, id);
-    window.deletePriceGroup = (id) => deletePriceGroup(window.globalState, id);
-    window.editGroup = (id) => editGroup(window.globalState, id);
-    window.deleteGroup = (id) => deleteGroup(window.globalState, id);
-    window.editPostcard = (id) => editPostcard(window.globalState, id);
-    window.deletePostcard = (id) => deletePostcard(window.globalState, id);
-    window.deleteAdmin = (id) => deleteAdmin(window.globalState, id);
-    window.deleteSale = (id) => deleteSale(window.globalState, id);
-    window.editNews = (id) => editNews(window.globalState, id);
-    window.deleteNews = (id) => deleteNews(window.globalState, id);
+    // Importera din konfiguration från den nya filen
+    import { firebaseConfig } from "./firebase-config.js";
 
-    document.addEventListener('DOMContentLoaded', () => {
-        if (firebaseConfig.projectId) {
-            try {
-                const app = window.globalState.firebase.initializeApp(firebaseConfig);
-                window.globalState.db = window.globalState.firebase.getFirestore(app);
-                
-                const loggedIn = localStorage.getItem('adminLoggedIn');
-                if (loggedIn) {
-                    window.globalState.isAdminLoggedIn = true;
-                    document.getElementById('admin-login-panel').classList.add('hidden');
-                    document.getElementById('admin-panel').classList.remove('hidden');
-                    document.getElementById('admin-management-section').classList.remove('hidden');
-                    document.getElementById('admin-indicator').classList.remove('hidden');
-                    document.getElementById('admin-user-info').textContent = `Du är inloggad som ${localStorage.getItem('adminUsername')}.`;
-                    startAdminListeners();
-                    document.getElementById('order-status-summary').classList.remove('hidden');
-                    document.getElementById('orders-link-container').classList.remove('hidden');
-                } else {
-                    document.getElementById('admin-login-panel').classList.remove('hidden');
-                }
-            } catch (e) {
-                console.error("Firebase initieringsfel:", e);
-                showMessage("Databasen kunde inte anslutas. Kontakta webbplatsadministratören.");
-            }
-        } else {
-            showMessage("Firebase-konfiguration saknas.");
+    // Nu kan du använda firebaseConfig direkt här
+    const appId = firebaseConfig.projectId;
+
+        let db;
+        let isAdminLoggedIn = false;
+        let defaultPriceGroupId = 'default';
+        let defaultGroupId = 'default';
+        let currentEditingPostcardId = null;
+        let priceGroupsData = [];
+        let groupsData = [];
+        let postcardsData = [];
+        let adminsData = [];
+        let salesData = [];
+        let newsData = [];
+        let unsubscribePriceGroups = null;
+        let unsubscribeGroups = null;
+        let unsubscribePostcards = null;
+        let unsubscribeAdmins = null;
+        let unsubscribeSales = null;
+        let unsubscribeNews = null;
+        let unsubscribeOrders = null;
+
+        // Modala funktioner
+        function showMessage(message) {
+            document.getElementById('modal-message').textContent = message;
+            document.getElementById('messageModal').classList.add('active');
         }
 
-        document.getElementById('login-btn').addEventListener('click', () => handleLogin(window.globalState.db, window.globalState.appId));
+        function showConfirmation(message, onConfirm) {
+            document.getElementById('confirm-message').textContent = message;
+            document.getElementById('confirmationModal').classList.add('active');
+            
+            const confirmBtn = document.getElementById('confirm-yes-btn');
+            const cancelBtn = document.getElementById('confirm-no-btn');
+
+            confirmBtn.onclick = () => {
+                onConfirm();
+                document.getElementById('confirmationModal').classList.remove('active');
+            };
+            cancelBtn.onclick = () => {
+                document.getElementById('confirmationModal').classList.remove('active');
+            };
+        }
+
+        // Funktion för att rendera grupper och prisgrupper
+        function renderGroupsAndPrices() {
+            const priceGroupSelect = document.getElementById('postcard-price-group');
+            const groupSelect = document.getElementById('postcard-group');
+            const saleTargetSelect = document.getElementById('sale-target-id');
+
+            priceGroupSelect.innerHTML = '';
+            priceGroupsData.forEach(pg => {
+                const option = document.createElement('option');
+                option.value = pg.id;
+                option.textContent = pg.name;
+                priceGroupSelect.appendChild(option);
+                if (pg.isDefault) {
+                    defaultPriceGroupId = pg.id;
+                    option.selected = true;
+                }
+            });
+
+            groupSelect.innerHTML = '';
+            saleTargetSelect.innerHTML = '<option value="">Välj...</option>';
+            groupsData.forEach(g => {
+                const option = document.createElement('option');
+                option.value = g.id;
+                option.textContent = `Grupp: ${g.name}`;
+                groupSelect.appendChild(option);
+                saleTargetSelect.appendChild(option.cloneNode(true));
+            });
+            postcardsData.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p.id;
+                option.textContent = `Produkt: ${p.title}`;
+                saleTargetSelect.appendChild(option);
+            });
+        }
+        
+        // Funktion för att rendera listor i adminpanelen
+        function renderAdminLists() {
+            if (!isAdminLoggedIn) return;
+
+            const priceGroupsList = document.getElementById('price-groups-list');
+            const groupsList = document.getElementById('groups-list');
+            const postcardsList = document.getElementById('postcards-list');
+            const adminsList = document.getElementById('admin-list');
+            const salesList = document.getElementById('sales-list');
+            const newsList = document.getElementById('news-list');
+            
+            priceGroupsList.innerHTML = '';
+            priceGroupsData.forEach(pg => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center p-2 bg-gray-100 rounded-md";
+                let pricesText = `(Liten: ${pg.prices.liten}, Mellan: ${pg.prices.mellan}, Stor: ${pg.prices.stor})`;
+                div.innerHTML = `
+                    <span>${pg.name} ${pg.isDefault ? ' (Standard)' : ''} ${pricesText}</span>
+                    <div class="space-x-2">
+                        <button onclick="window.editPriceGroup('${pg.id}')" class="text-blue-500 hover:text-blue-700">Ändra</button>
+                        ${priceGroupsData.length > 1 ? `<button onclick="window.deletePriceGroup('${pg.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>` : ''}
+                    </div>
+                `;
+                priceGroupsList.appendChild(div);
+            });
+
+            groupsList.innerHTML = '';
+            groupsData.forEach(g => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center p-2 bg-gray-100 rounded-md";
+                div.innerHTML = `
+                    <span>${g.name} (Ordning: ${g.order}) ${g.isDefault ? ' (Standard)' : ''}</span>
+                    <div class="space-x-2">
+                        <button onclick="window.editGroup('${g.id}')" class="text-blue-500 hover:text-blue-700">Ändra</button>
+                        ${groupsData.length > 1 ? `<button onclick="window.deleteGroup('${g.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>` : ''}
+                    </div>
+                `;
+                groupsList.appendChild(div);
+            });
+
+            postcardsList.innerHTML = '';
+            postcardsData.forEach(p => {
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-4 bg-gray-100 rounded-md";
+                const priceGroupName = priceGroupsData.find(pg => pg.id === p.priceGroup)?.name || 'Okänd';
+                const groupName = groupsData.find(g => g.id === p.group)?.name || 'Okänd';
+                div.innerHTML = `
+                    <div class="flex items-center flex-1">
+                        <img src="${p.imageURL}" alt="${p.title}" class="postcard-thumbnail">
+                        <div class="flex-1 space-y-1">
+                            <h3 class="font-bold">${p.title}</h3>
+                            <p class="text-sm text-gray-600">Grupp: ${groupName}</p>
+                            <p class="text-sm text-gray-600">Prisgrupp: ${priceGroupName}</p>
+                        </div>
+                    </div>
+                    <div class="space-x-2 flex-shrink-0">
+                        <button onclick="window.editPostcard('${p.id}')" class="text-blue-500 hover:text-blue-700">Ändra</button>
+                        <button onclick="window.deletePostcard('${p.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>
+                    </div>
+                `;
+                postcardsList.appendChild(div);
+            });
+            
+            adminsList.innerHTML = '';
+            adminsData.forEach(a => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center p-2 bg-gray-100 rounded-md";
+                div.innerHTML = `
+                    <span>${a.username}</span>
+                    <div class="space-x-2">
+                        ${adminsData.length > 1 ? `<button onclick="window.deleteAdmin('${a.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>` : ''}
+                    </div>
+                `;
+                adminsList.appendChild(div);
+            });
+
+            salesList.innerHTML = '';
+            salesData.forEach(s => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center p-2 bg-gray-100 rounded-md";
+                const targetText = s.targetType === 'all' ? 'Hela varukorgen' :
+                                   s.targetType === 'group' ? `Grupp: ${groupsData.find(g => g.id === s.targetId)?.name || 'Okänd'}` :
+                                   `Produkt: ${postcardsData.find(p => p.id === s.targetId)?.title || 'Okänd'}`;
+                const valueText = s.type === 'percent' ? `${s.value}%` : `${s.value} kr`;
+                div.innerHTML = `
+                    <span>${s.name} (${valueText} rabatt på ${targetText})</span>
+                    <button onclick="window.deleteSale('${s.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>
+                `;
+                salesList.appendChild(div);
+            });
+
+            newsList.innerHTML = '';
+            newsData.forEach(n => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center p-2 bg-gray-100 rounded-md";
+                let dateInfo = '';
+                if (!n.noTimeLimit) {
+                    const start = n.startDate ? new Date(n.startDate).toLocaleString() : 'Ej angivet';
+                    const end = n.endDate ? new Date(n.endDate).toLocaleString() : 'Ej angivet';
+                    dateInfo = `(Period: ${start} - ${end})`;
+                } else {
+                    dateInfo = '(Ingen tidsbegränsning)';
+                }
+                div.innerHTML = `
+                    <span>${n.title} (Ordning: ${n.order}) ${dateInfo}</span>
+                    <div class="space-x-2">
+                        <button onclick="window.editNews('${n.id}')" class="text-blue-500 hover:text-blue-700">Ändra</button>
+                        <button onclick="window.deleteNews('${n.id}')" class="text-red-500 hover:text-red-700">Ta bort</button>
+                    </div>
+                `;
+                newsList.appendChild(div);
+            });
+        }
+        
+        function updateAdminStatusBar(orders) {
+            const statusCounts = {
+                'Ny': 0, 'Väntar': 0, 'Avakta Betalning': 0, 'Betald': 0, 'Skickad': 0, 'Klar': 0
+            };
+            orders.forEach(order => {
+                const status = order.status || 'Ny';
+                if (statusCounts[status] !== undefined) {
+                    statusCounts[status]++;
+                }
+            });
+
+            document.getElementById('status-Ny').textContent = `Ny: ${statusCounts['Ny']}`;
+            document.getElementById('status-Väntar').textContent = `Väntar: ${statusCounts['Väntar']}`;
+            document.getElementById('status-Avakta-Betalning').textContent = `Avvakta: ${statusCounts['Avakta Betalning']}`;
+            document.getElementById('status-Betald').textContent = `Betald: ${statusCounts['Betald']}`;
+            document.getElementById('status-Skickad').textContent = `Skickad: ${statusCounts['Skickad']}`;
+            document.getElementById('status-Klar').textContent = `Klar: ${statusCounts['Klar']}`;
+        }
+
+        async function addAdmin(username, password) {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const adminsCollection = collection(db, `artifacts/${appId}/public/data/admins`);
+            const q = query(adminsCollection, where('username', '==', username));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                showMessage('Användarnamnet finns redan.');
+                return;
+            }
+
+            await addDoc(adminsCollection, { username, password });
+            showMessage('Admin tillagd!');
+        }
+        
+        function startAdminListeners() {
+            if (!db) return;
+            
+            const priceGroupsRef = collection(db, `artifacts/${appId}/public/data/priceGroups`);
+            unsubscribePriceGroups = onSnapshot(priceGroupsRef, (snapshot) => {
+                priceGroupsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderGroupsAndPrices();
+                renderAdminLists();
+            });
+
+            const groupsRef = query(collection(db, `artifacts/${appId}/public/data/groups`), orderBy('order'));
+            unsubscribeGroups = onSnapshot(groupsRef, (snapshot) => {
+                groupsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderGroupsAndPrices();
+                renderAdminLists();
+            });
+
+            const postcardsRef = collection(db, `artifacts/${appId}/public/data/postcards`);
+            unsubscribePostcards = onSnapshot(postcardsRef, (snapshot) => {
+                postcardsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderAdminLists();
+                renderGroupsAndPrices();
+            });
+            
+            const adminsRef = collection(db, `artifacts/${appId}/public/data/admins`);
+            unsubscribeAdmins = onSnapshot(adminsRef, (snapshot) => {
+                adminsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderAdminLists();
+            });
+            
+            const salesRef = collection(db, `artifacts/${appId}/public/data/sales`);
+            unsubscribeSales = onSnapshot(salesRef, (snapshot) => {
+                salesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderAdminLists();
+            });
+            
+            const newsRef = query(collection(db, `artifacts/${appId}/public/data/news`), orderBy('order'));
+            unsubscribeNews = onSnapshot(newsRef, (snapshot) => {
+                newsData = snapshot.docs.map(doc => {
+                    const data = doc.data();
+                    if (data.startDate && data.startDate.toDate) {
+                        data.startDate = data.startDate.toDate().toISOString().substring(0, 16);
+                    }
+                    if (data.endDate && data.endDate.toDate) {
+                        data.endDate = data.endDate.toDate().toISOString().substring(0, 16);
+                    }
+                    return { id: doc.id, ...data };
+                });
+                renderAdminLists();
+            });
+            
+            const ordersRef = collection(db, `artifacts/${appId}/public/data/orders`);
+            unsubscribeOrders = onSnapshot(ordersRef, (snapshot) => {
+                const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                updateAdminStatusBar(orders);
+            });
+        }
+
+        function stopAdminListeners() {
+            if (unsubscribePriceGroups) unsubscribePriceGroups();
+            if (unsubscribeGroups) unsubscribeGroups();
+            if (unsubscribePostcards) unsubscribePostcards();
+            if (unsubscribeAdmins) unsubscribeAdmins();
+            if (unsubscribeSales) unsubscribeSales();
+            if (unsubscribeNews) unsubscribeNews();
+            if (unsubscribeOrders) unsubscribeOrders();
+        }
+        
+        async function handleLogin() {
+            const username = document.getElementById('admin-username').value;
+            const password = document.getElementById('admin-password').value;
+
+            if (!db) {
+                showMessage("Databasen är inte ansluten.");
+                return;
+            }
+
+            try {
+                const adminsRef = collection(db, `artifacts/${appId}/public/data/admins`);
+                const q = query(adminsRef, where('username', '==', username), where('password', '==', password));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    showMessage('Fel: Ogiltiga inloggningsuppgifter.');
+                    return;
+                }
+                
+                const adminData = querySnapshot.docs[0].data();
+                
+                isAdminLoggedIn = true;
+                
+                localStorage.setItem('adminLoggedIn', 'true');
+                localStorage.setItem('adminUsername', adminData.username);
+
+                document.getElementById('admin-login-panel').classList.add('hidden');
+                document.getElementById('admin-panel').classList.remove('hidden');
+                document.getElementById('admin-management-section').classList.remove('hidden');
+                document.getElementById('admin-indicator').classList.remove('hidden');
+                document.getElementById('admin-user-info').textContent = `Du är inloggad som ${adminData.username}.`;
+                
+                document.getElementById('orders-link-container').classList.remove('hidden');
+                document.getElementById('order-status-summary').classList.remove('hidden');
+                
+                startAdminListeners();
+            } catch (e) {
+                console.error("Inloggningsfel:", e);
+                showMessage('Ett fel uppstod vid inloggning.');
+            }
+        }
+        
+        function handleLogout() {
+            isAdminLoggedIn = false;
+            localStorage.removeItem('adminLoggedIn');
+            localStorage.removeItem('adminUsername');
+
+            document.getElementById('admin-login-panel').classList.remove('hidden');
+            document.getElementById('admin-panel').classList.add('hidden');
+            document.getElementById('admin-management-section').classList.add('hidden');
+            document.getElementById('admin-indicator').classList.add('hidden');
+            document.getElementById('admin-username').value = '';
+            document.getElementById('admin-password').value = '';
+            currentEditingPostcardId = null;
+            document.getElementById('add-postcard-btn').textContent = 'Lägg till vykort';
+            document.getElementById('add-postcard-form').reset();
+            stopAdminListeners();
+            document.getElementById('order-status-summary').classList.add('hidden');
+            document.getElementById('orders-link-container').classList.add('hidden');
+        }
+
+        window.onload = function () {
+            if (firebaseConfig.projectId) {
+                try {
+                    const app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    
+                    const loggedIn = localStorage.getItem('adminLoggedIn');
+                    if (loggedIn) {
+                        isAdminLoggedIn = true;
+                        document.getElementById('admin-login-panel').classList.add('hidden');
+                        document.getElementById('admin-panel').classList.remove('hidden');
+                        document.getElementById('admin-management-section').classList.remove('hidden');
+                        document.getElementById('admin-indicator').classList.remove('hidden');
+                        document.getElementById('admin-user-info').textContent = `Du är inloggad som ${localStorage.getItem('adminUsername')}.`;
+                        startAdminListeners();
+                        document.getElementById('order-status-summary').classList.remove('hidden');
+                        document.getElementById('orders-link-container').classList.remove('hidden');
+                    } else {
+                        document.getElementById('admin-login-panel').classList.remove('hidden');
+                    }
+                } catch (e) {
+                    console.error("Firebase initieringsfel:", e);
+                    showMessage("Databasen kunde inte anslutas. Kontakta webbplatsadministratören.");
+                }
+            } else {
+                showMessage("Firebase-konfiguration saknas.");
+            }
+        };
+
+        window.editPriceGroup = (id) => {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const pg = priceGroupsData.find(p => p.id === id);
+            if (pg) {
+                const name = prompt("Ändra namn på prisgrupp:", pg.name);
+                const liten = prompt("Ändra pris Liten:", pg.prices.liten);
+                const mellan = prompt("Ändra pris Mellan:", pg.prices.mellan);
+                const stor = prompt("Ändra pris Stor:", pg.prices.stor);
+                if (name && liten && mellan && stor) {
+                    updateDoc(doc(db, `artifacts/${appId}/public/data/priceGroups`, id), {
+                        name,
+                        prices: { liten: Number(liten), mellan: Number(mellan), stor: Number(stor) }
+                    });
+                }
+            }
+        };
+        window.deletePriceGroup = (id) => {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            if (priceGroupsData.length <= 1) {
+                showMessage('Kan inte ta bort den sista prisgruppen.');
+                return;
+            }
+            if (priceGroupsData.find(pg => pg.id === id)?.isDefault) {
+                showMessage('Kan inte ta bort standardprisgruppen.');
+                return;
+            }
+            const priceGroupsCollection = collection(db, `artifacts/${appId}/public/data/priceGroups`);
+            const postcardsCollection = collection(db, `artifacts/${appId}/public/data/postcards`);
+            
+            showConfirmation("Är du säker på att du vill ta bort denna prisgrupp? Vykort som använder denna prisgrupp kommer att tilldelas standardprisgruppen.", async () => {
+                const batch = writeBatch(db);
+                const q = query(postcardsCollection, where('priceGroup', '==', id));
+                const snapshot = await getDocs(q);
+                snapshot.forEach(doc => {
+                    batch.update(doc.ref, { priceGroup: defaultPriceGroupId });
+                });
+                batch.delete(doc(priceGroupsCollection, id));
+                await batch.commit();
+                showMessage('Prisgrupp borttagen och vykort uppdaterade.');
+            });
+        };
+        window.editGroup = (id) => {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const g = groupsData.find(g => g.id === id);
+            if (g) {
+                const name = prompt("Ändra namn på grupp:", g.name);
+                const order = prompt("Ändra ordning på grupp:", g.order);
+                if (name && order) {
+                    updateDoc(doc(db, `artifacts/${appId}/public/data/groups`, id), { name, order: Number(order) });
+                }
+            }
+        };
+        window.deleteGroup = (id) => {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            if (groupsData.length <= 1) {
+                showMessage('Kan inte ta bort den sista gruppen.');
+                return;
+            }
+            if (groupsData.find(g => g.id === id)?.isDefault) {
+                showMessage('Kan inte ta bort standardgruppen.');
+                return;
+            }
+            const groupsCollection = collection(db, `artifacts/${appId}/public/data/groups`);
+            const postcardsCollection = collection(db, `artifacts/${appId}/public/data/postcards`);
+
+            showConfirmation("Är du säker på att du vill ta bort denna grupp? Vykort som använder denna grupp kommer att tilldelas standardgruppen.", async () => {
+                const batch = writeBatch(db);
+                const q = query(postcardsCollection, where('group', '==', id));
+                const snapshot = await getDocs(q);
+                snapshot.forEach(doc => {
+                    batch.update(doc.ref, { group: defaultGroupId });
+                });
+                batch.delete(doc(groupsCollection, id));
+                await batch.commit();
+                showMessage('Grupp borttagen och vykort uppdaterade.');
+            });
+        };
+        window.editPostcard = (id) => {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const postcard = postcardsData.find(p => p.id === id);
+            if (postcard) {
+                document.getElementById('postcard-title').value = postcard.title;
+                document.getElementById('postcard-image-url').value = postcard.imageURL;
+                document.getElementById('postcard-group').value = postcard.group;
+                document.getElementById('postcard-price-group').value = postcard.priceGroup;
+                currentEditingPostcardId = id;
+                document.getElementById('add-postcard-btn').textContent = 'Spara ändringar';
+            }
+        };
+        window.deletePostcard = (id) => {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            showConfirmation("Är du säker på att du vill ta bort detta vykort?", async () => {
+                await deleteDoc(doc(db, `artifacts/${appId}/public/data/postcards`, id));
+                showMessage('Vykort borttaget.');
+            });
+        };
+        window.addAdmin = async (username, password) => {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const adminsCollection = collection(db, `artifacts/${appId}/public/data/admins`);
+            const q = query(adminsCollection, where('username', '==', username));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                showMessage('Användarnamnet finns redan.');
+                return;
+            }
+
+            await addDoc(adminsCollection, { username, password });
+            showMessage('Admin tillagd!');
+        };
+        window.deleteAdmin = (id) => {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            if (adminsData.length <= 1) {
+                showMessage('Kan inte ta bort den sista administratören.');
+                return;
+            }
+            showConfirmation("Är du säker på att du vill ta bort denna admin?", async () => {
+                await deleteDoc(doc(db, `artifacts/${appId}/public/data/admins`, id));
+                showMessage('Admin borttagen.');
+            });
+        };
+        window.deleteSale = (id) => {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            showConfirmation("Är du säker på att du vill ta bort denna rea?", async () => {
+                await deleteDoc(doc(db, `artifacts/${appId}/public/data/sales`, id));
+                showMessage('Rea borttagen.');
+            });
+        };
+        window.editNews = (id) => {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            const newsItem = newsData.find(n => n.id === id);
+            if (!newsItem) return;
+
+            document.getElementById('edit-news-id').value = newsItem.id;
+            document.getElementById('edit-news-title').value = newsItem.title;
+            document.getElementById('edit-news-text').value = newsItem.text;
+            document.getElementById('edit-news-order').value = newsItem.order;
+            
+            const noTimeLimitCheckbox = document.getElementById('edit-news-no-time-limit');
+            const dateFields = document.getElementById('edit-news-date-fields');
+            
+            noTimeLimitCheckbox.checked = newsItem.noTimeLimit;
+            if (newsItem.noTimeLimit) {
+                dateFields.classList.add('hidden');
+            } else {
+                dateFields.classList.remove('hidden');
+                document.getElementById('edit-news-start-date').value = newsItem.startDate || '';
+                document.getElementById('edit-news-end-date').value = newsItem.endDate || '';
+            }
+
+            document.getElementById('editNewsModal').classList.add('active');
+        };
+        window.deleteNews = (id) => {
+            if (!isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+            showConfirmation("Är du säker på att du vill ta bort denna nyhet?", async () => {
+                await deleteDoc(doc(db, `artifacts/${appId}/public/data/news`, id));
+                showMessage('Nyhet borttagen.');
+            });
+        };
+        window.updateNews = async () => {
+            const id = document.getElementById('edit-news-id').value;
+            const title = document.getElementById('edit-news-title').value;
+            const text = document.getElementById('edit-news-text').value;
+            const order = Number(document.getElementById('edit-news-order').value);
+            const noTimeLimit = document.getElementById('edit-news-no-time-limit').checked;
+            
+            const newsDataToUpdate = { title, text, order, noTimeLimit };
+            if (!noTimeLimit) {
+                newsDataToUpdate.startDate = document.getElementById('edit-news-start-date').value;
+                newsDataToUpdate.endDate = document.getElementById('edit-news-end-date').value;
+            } else {
+                if (newsDataToUpdate.startDate) delete newsDataToUpdate.startDate;
+                if (newsDataToUpdate.endDate) delete newsDataToUpdate.endDate;
+            }
+
+            await updateDoc(doc(db, `artifacts/${appId}/public/data/news`, id), newsDataToUpdate);
+            showMessage('Nyhet uppdaterad!');
+            document.getElementById('editNewsModal').classList.remove('active');
+        };
+
+        document.getElementById('login-btn').addEventListener('click', handleLogin);
         document.getElementById('admin-password').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                handleLogin(window.globalState.db, window.globalState.appId);
+                handleLogin();
             }
         });
-        document.getElementById('logout-btn').addEventListener('click', () => handleLogout(window.globalState));
-        
-        document.getElementById('add-price-group-form').addEventListener('submit', async (e) => {
+        document.getElementById('logout-btn').addEventListener('click', handleLogout);
+        document.getElementById('add-price-group-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const name = document.getElementById('new-price-group-name').value;
             const prices = {
@@ -440,26 +923,25 @@
                 mellan: Number(document.getElementById('price-mellan').value),
                 stor: Number(document.getElementById('price-stor').value)
             };
-            await addPriceGroup(window.globalState, name, prices);
+            addPriceGroup(name, prices);
             e.target.reset();
         });
-        document.getElementById('add-group-form').addEventListener('submit', async (e) => {
+        document.getElementById('add-group-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const name = document.getElementById('new-group-name').value;
             const order = document.getElementById('new-group-order').value;
-            await addGroup(window.globalState, name, order);
+            addGroup(name, order);
             e.target.reset();
         });
-        document.getElementById('add-postcard-form').addEventListener('submit', async (e) => {
+        document.getElementById('add-postcard-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            await addOrUpdatePostcard(window.globalState);
-            e.target.reset();
+            addOrUpdatePostcard();
         });
         document.getElementById('add-admin-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('new-admin-username').value;
             const password = document.getElementById('new-admin-password').value;
-            await addAdmin(window.globalState, username, password);
+            await addAdmin(username, password);
             e.target.reset();
         });
         
@@ -469,71 +951,91 @@
         const noTimeLimitCheckbox = document.getElementById('no-time-limit');
 
         noTimeLimitCheckbox.addEventListener('change', (e) => {
-            saleDateFields.classList.toggle('hidden', e.target.checked);
-        });
-
-        saleTargetTypeSelect.addEventListener('change', (e) => {
-            const showTargetSelect = e.target.value === 'group' || e.target.value === 'product';
-            saleTargetSelectContainer.classList.toggle('hidden', !showTargetSelect);
-            if(showTargetSelect) {
-                renderGroupsAndPrices(window.globalState);
+            if (e.target.checked) {
+                saleDateFields.classList.add('hidden');
+            } else {
+                saleDateFields.classList.remove('hidden');
             }
         });
 
-        document.getElementById('add-sale-form').addEventListener('submit', async (e) => {
+        saleTargetTypeSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'group' || e.target.value === 'product') {
+                saleTargetSelectContainer.classList.remove('hidden');
+                renderGroupsAndPrices();
+            } else {
+                saleTargetSelectContainer.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('add-sale-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const name = document.getElementById('sale-name').value;
             const value = document.getElementById('sale-value').value;
             const type = document.getElementById('sale-type').value;
             const targetType = document.getElementById('sale-target-type').value;
             const noTimeLimit = document.getElementById('no-time-limit').checked;
-            let startDate = null, endDate = null, timezone = null;
+            let startDate = null;
+            let endDate = null;
+            let timezone = null;
 
             if (!noTimeLimit) {
                 startDate = document.getElementById('sale-start-date').value;
                 endDate = document.getElementById('sale-end-date').value;
                 timezone = document.getElementById('sale-timezone').value;
             }
-            let targetId = (targetType === 'group' || targetType === 'product') ? document.getElementById('sale-target-id').value : '';
+
+            let targetId = '';
+            if (targetType === 'group' || targetType === 'product') {
+                targetId = document.getElementById('sale-target-id').value;
+            }
             
-            await addSale(window.globalState, name, value, type, targetType, targetId, noTimeLimit, startDate, endDate, timezone);
+            addSale(name, value, type, targetType, targetId, noTimeLimit, startDate, endDate, timezone);
             e.target.reset();
             noTimeLimitCheckbox.checked = true;
             saleDateFields.classList.add('hidden');
         });
         
-        document.getElementById('news-no-time-limit').addEventListener('change', (e) => {
-            document.getElementById('news-date-fields').classList.toggle('hidden', e.target.checked);
+        const newsDateFields = document.getElementById('news-date-fields');
+        const newsNoTimeLimitCheckbox = document.getElementById('news-no-time-limit');
+        newsNoTimeLimitCheckbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                newsDateFields.classList.add('hidden');
+            } else {
+                newsDateFields.classList.remove('hidden');
+            }
         });
-
-        document.getElementById('add-news-form').addEventListener('submit', async (e) => {
+        document.getElementById('add-news-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const title = document.getElementById('news-title').value;
             const text = document.getElementById('news-text').value;
             const order = document.getElementById('news-order').value;
             const noTimeLimit = document.getElementById('news-no-time-limit').checked;
-            let startDate = null, endDate = null;
+            let startDate = null;
+            let endDate = null;
 
             if (!noTimeLimit) {
                 startDate = document.getElementById('news-start-date').value;
                 endDate = document.getElementById('news-end-date').value;
             }
             
-            await addNews(window.globalState, title, text, order, noTimeLimit, startDate, endDate);
+            addNews(title, text, order, noTimeLimit, startDate, endDate);
             e.target.reset();
-            document.getElementById('news-no-time-limit').checked = true;
-            document.getElementById('news-date-fields').classList.add('hidden');
+            newsNoTimeLimitCheckbox.checked = true;
+            newsDateFields.classList.add('hidden');
         });
         
         document.getElementById('edit-news-no-time-limit').addEventListener('change', (e) => {
-            document.getElementById('edit-news-date-fields').classList.toggle('hidden', e.target.checked);
+            if (e.target.checked) {
+                document.getElementById('edit-news-date-fields').classList.add('hidden');
+            } else {
+                document.getElementById('edit-news-date-fields').classList.remove('hidden');
+            }
         });
 
-        document.getElementById('edit-news-form').addEventListener('submit', async (e) => {
+        document.getElementById('edit-news-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            await updateNews(window.globalState);
+            updateNews();
         });
-    });
     </script>
 </body>
 </html>
