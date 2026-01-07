@@ -139,9 +139,10 @@ console.log("Rendering lists with data:", globalState.postcardsData);
     
     priceGroupsList.innerHTML = '';
     globalState.priceGroupsData.forEach(pg => {
-        const div = document.createElement('div');
         div.className = "flex justify-between items-center p-2 bg-gray-100 rounded-md";
-        let pricesText = `(Liten: ${pg.prices.liten}, Mellan: ${pg.prices.mellan}, Stor: ${pg.prices.stor})`;
+        const p = pg.prices || { liten: 0, mellan: 0, stor: 0 }; 
+        let pricesText = `(Liten: ${p.liten}, Mellan: ${p.mellan}, Stor: ${p.stor})`;
+        
         div.innerHTML = `
             <span>${pg.name} ${pg.isDefault ? ' (Standard)' : ''} ${pricesText}</span>
             <div class="space-x-2">
