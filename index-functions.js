@@ -662,15 +662,31 @@ function populateFilters() {
     const groupFilter = document.getElementById('group-filter');
     if (!groupFilter) return;
 
-    const currentValue = groupFilter.value;
+    // Spara vad användaren har valt, eller kolla om vi ska sätta en default
+    let currentValue = groupFilter.value;
+    
     groupFilter.innerHTML = '<option value="all">Alla Grupper</option>';
+    
+    let defaultGroupId = 'all';
+
     groupsData.forEach(g => {
         const option = document.createElement('option');
         option.value = g.id;
         option.textContent = g.name;
         groupFilter.appendChild(option);
+        
+        // Om gruppen är markerad som standard i databasen
+        if (g.isDefault) {
+            defaultGroupId = g.id;
+        }
     });
-    groupFilter.value = currentValue;
+
+    // Om användaren inte har valt något manuellt ännu, använd default-gruppen
+    if (!currentValue || currentValue === "") {
+        groupFilter.value = defaultGroupId;
+    } else {
+        groupFilter.value = currentValue;
+    }
 }
 
 function calculatePrice(postcard) {
