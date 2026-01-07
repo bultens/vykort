@@ -7,7 +7,7 @@ import { firebaseConfig } from "./firebase-config.js";
 import { createSwishQrCode } from "./qr.js";
 
 const appId = firebaseConfig.projectId;
-const swishNumber = '0702249015';
+//const swishNumber = '0702249015';
 
 let db;
 let auth;
@@ -17,6 +17,7 @@ let groupsData = [];
 let salesData = [];
 let cart = [];
 let currentUser = null;
+let swishSettings = { number: '0722283154', name: 'Mats Jonsson' }; // Standardvärden ifall inget finns i DB
 
 let initialDataLoaded = {
     postcards: false,
@@ -379,6 +380,7 @@ async function handleCheckoutRegister(e) {
 async function handlePlaceOrder(e) {
     e.preventDefault();
     
+    // Samla in faktureringsuppgifter från formuläret
     const billingInfo = {
         name: document.getElementById('billing-name').value,
         address: document.getElementById('billing-address').value,
@@ -388,6 +390,7 @@ async function handlePlaceOrder(e) {
         email: document.getElementById('billing-email').value
     };
     
+    // Förbered artiklar för ordern med aktuella rabatter
     const cartItemsForOrder = cart.map(item => ({
         id: item.id,
         title: item.title,
@@ -398,12 +401,15 @@ async function handlePlaceOrder(e) {
         status: 'obehandlad'
     }));
     
+    // Beräkna totalbelopp och avrunda nedåt till heltal
     const { finalTotal } = calculateCartTotal();
     const roundedTotal = Math.floor(finalTotal);
     
+    // Generera ett slumpmässigt femsiffrigt ordernummer
     const orderNumber = Math.floor(10000 + Math.random() * 90000).toString();
 
     try {
+        // Spara ordern i den publika samlingen för administratören
         const docRef = await addDoc(collection(db, `artifacts/${appId}/public/data/orders`), {
             orderNumber: orderNumber,
             items: cartItemsForOrder,
@@ -415,6 +421,7 @@ async function handlePlaceOrder(e) {
             status: 'Ny'
         });
         
+        // Om användaren är inloggad, spara även en kopia i användarens privata historik
         if (currentUser) {
             const privateOrderData = {
                 items: cartItemsForOrder.map(item => ({
@@ -430,25 +437,43 @@ async function handlePlaceOrder(e) {
                 orderNumber: orderNumber,
                 status: 'Ny'
             };
-            // FIX: Corrected path for private orders
+            
+            // Korrekt sökväg för privata användarordrar
             const privateOrdersCollection = collection(db, `artifacts/public/users/${currentUser.uid}/orders`);
             const privateDocRef = await addDoc(privateOrdersCollection, privateOrderData);
             
+            // Uppdatera den publika ordern med en referens till den privata
             await updateDoc(docRef, { privateOrderId: privateDocRef.id });
         }
         
+        // Hantera gränssnittet efter lagd beställning
         document.getElementById('billing-info-section')?.classList.add('hidden');
         document.getElementById('order-confirmation-section')?.classList.remove('hidden');
         
+        // Visa ordernummer och totalsumma i bekräftelsen
         const orderIdDisplay = document.getElementById('order-id-display');
         if (orderIdDisplay) orderIdDisplay.textContent = orderNumber;
         
         const orderTotalDisplay = document.getElementById('order-total-display');
         if (orderTotalDisplay) orderTotalDisplay.textContent = roundedTotal.toFixed(2).replace('.', ',');
+
+        // --- DYNAMISK SWISH-UPPDATERING ---
+        // Uppdatera texten med Swish-nummer och namn från admin-inställningarna
+        const confirmationSection = document.getElementById('order-confirmation-section');
+        if (confirmationSection) {
+            const swishInfoStrong = confirmationSection.querySelector('p strong');
+            if (swishInfoStrong) {
+                // swishSettings hämtas via onSnapshot i startListeners
+                swishInfoStrong.textContent = `${swishSettings.number} (${swishSettings.name})`;
+            }
+        }
         
-        createSwishQrCode(roundedTotal, orderNumber);
+        // Generera QR-kod med det dynamiska numret
+        createSwishQrCode(roundedTotal, orderNumber, swishSettings.number);
+        // ----------------------------------
         
-        clearCart();
+        clearCart(); // Töm varukorgen efter lyckad beställning
+        
     } catch (e) {
         console.error("Fel vid beställning:", e);
         showErrorModal("Beställningen misslyckades", "Ett fel uppstod när din beställning skulle sparas. Vänligen försök igen.");
@@ -614,6 +639,12 @@ function startListeners() {
         initialDataLoaded.groups = true;
         checkAndRender();
     });
+    onSnapshot(doc(db, `artifacts/${appId}/public/data/settings`, 'swish'), (snapshot) => {
+        if (snapshot.exists()) {
+            swishSettings = snapshot.data();
+            console.log("Swish-inställningar uppdaterade:", swishSettings);
+        }
+    });
     onSnapshot(collection(db, `artifacts/${appId}/public/data/sales`), (snapshot) => {
         salesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         initialDataLoaded.sales = true;
@@ -656,7 +687,6 @@ function renderNews(news) {
         });
     }
 }
-
 
 function populateFilters() {
     const groupFilter = document.getElementById('group-filter');
