@@ -128,8 +128,8 @@ export function renderGroupsAndPrices(globalState) {
 }
 
 export function renderAdminLists(globalState) {
-    if (!globalState.isAdminLoggedIn) return;
-
+   // if (!globalState.isAdminLoggedIn) return;
+console.log("Rendering lists with data:", globalState.postcardsData);
     const priceGroupsList = document.getElementById('price-groups-list');
     const groupsList = document.getElementById('groups-list');
     const postcardsList = document.getElementById('postcards-list');
