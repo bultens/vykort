@@ -586,11 +586,13 @@ function loadCart() {
 }
 
 function checkAndRender() {
-    if (initialDataLoaded.postcards && initialDataLoaded.priceGroups && initialDataLoaded.groups && initialDataLoaded.sales && initialDataLoaded.news) {
+    // Rendera sidan så fort de kritiska delarna (vykort, priser, grupper) har laddats
+    if (initialDataLoaded.postcards && initialDataLoaded.priceGroups && initialDataLoaded.groups) {
         if (!allDataLoaded) {
             renderPostcards();
             renderCart();
             allDataLoaded = true;
+            console.log("Data laddad - Butiken visas");
         }
     }
 }

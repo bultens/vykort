@@ -146,13 +146,14 @@
                     <span id="status-Klar" class="bg-gray-500 text-white px-2 py-1 rounded-full">Klar: 0</span>
                 </div>
                 <div class="flex space-x-4 font-medium">
+                    <a href="index.html" class="hover:text-gray-300 transition duration-300">Till Butik</a>
                     <a href="admin.html" class="hover:text-gray-300 transition duration-300">Tillbaka till Admin</a>
                 </div>
             </nav>
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.37</div>
+    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.57</div>
 
     <main class="container">
         <h1 class="text-4xl font-bold mb-6 text-center">Beställningshantering</h1>
@@ -183,12 +184,12 @@
                 </div>
             </div>
             <div id="modal-order-actions" class="mt-4 flex flex-wrap gap-2 justify-center">
-                <button onclick="updateOrderStatus(currentOrder.id, 'Väntar')" class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600">Väntar</button>
-                <button onclick="updateOrderStatus(currentOrder.id, 'Avakta Betalning')" class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600">Avvakta</button>
-                <button onclick="updateOrderStatus(currentOrder.id, 'Betald')" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">Betald</button>
-                <button onclick="updateOrderStatus(currentOrder.id, 'Skickad')" class="px-4 py-2 bg-cyan-500 text-white rounded-md hover:bg-cyan-600">Skickad</button>
-                <button onclick="updateOrderStatus(currentOrder.id, 'Klar')" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">Klar</button>
-                <button onclick="deleteOrder(currentOrder.id)" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">Ta bort</button>
+                <button onclick="window.updateOrderStatus(window.globalState.currentOrder.firestoreId, 'Väntar')" class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600">Väntar</button>
+                <button onclick="window.updateOrderStatus(window.globalState.currentOrder.firestoreId, 'Avakta Betalning')" class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600">Avvakta</button>
+                <button onclick="window.updateOrderStatus(window.globalState.currentOrder.firestoreId, 'Betald')" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">Betald</button>
+                <button onclick="window.updateOrderStatus(window.globalState.currentOrder.firestoreId, 'Skickad')" class="px-4 py-2 bg-cyan-500 text-white rounded-md hover:bg-cyan-600">Skickad</button>
+                <button onclick="window.updateOrderStatus(window.globalState.currentOrder.firestoreId, 'Klar')" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">Klar</button>
+                <button onclick="window.deleteOrder(window.globalState.currentOrder.firestoreId)" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">Ta bort</button>
             </div>
         </div>
     </div>
@@ -210,28 +211,45 @@
         </div>
     </div>
 
+    <script type="module" src="./orders-functions.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, onSnapshot, collection, query, orderBy, getDocs, updateDoc, doc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { firebaseConfig } from "./firebase-config.js";
+        import { showMessage, showConfirmation, updateOrderStatus, updateItemStatus, deleteOrder, openOrderModal, renderOrders, updateStatusBar, startListeners } from "./orders-functions.js";
 
         const appId = firebaseConfig.projectId;
 
-        let db;
-        let auth;
-        let ordersData = [];
-        let postcardsData = [];
-        let currentOrder = null;
-        let unsubscribeOrders = null;
-        let unsubscribePostcards = null;
+        window.globalState = {
+            db: null,
+            appId: firebaseConfig.projectId,
+            ordersData: [],
+            postcardsData: [],
+            currentOrder: null,
+            unsubscribeOrders: null,
+            unsubscribePostcards: null,
+            firebase: {
+                initializeApp, getAuth, onAuthStateChanged, signOut,
+                getFirestore, onSnapshot, collection, query, orderBy, getDocs, updateDoc, doc, deleteDoc, where
+            }
+        };
 
+        // Expose functions to global scope for inline onclick handlers
+        window.showMessage = showMessage;
+        window.showConfirmation = (msg, onConfirm) => showConfirmation(window.globalState, msg, onConfirm);
+        window.updateOrderStatus = (orderId, newStatus) => updateOrderStatus(window.globalState, orderId, newStatus);
+        window.updateItemStatus = (orderId, itemIndex, newStatus) => updateItemStatus(window.globalState, orderId, itemIndex, newStatus);
+        window.deleteOrder = (orderId) => deleteOrder(window.globalState, orderId);
+        window.openOrderModal = (orderId) => openOrderModal(window.globalState, orderId);
+        window.renderOrders = (state) => renderOrders(state);
+        window.updateStatusBar = (state) => updateStatusBar(state);
+        
         document.addEventListener('DOMContentLoaded', () => {
             if (firebaseConfig.projectId) {
                 try {
-                    const app = initializeApp(firebaseConfig);
-                    db = getFirestore(app);
-                    auth = getAuth(app);
+                    const app = window.globalState.firebase.initializeApp(firebaseConfig);
+                    window.globalState.db = window.globalState.firebase.getFirestore(app);
                     
                     const adminLoggedIn = localStorage.getItem('adminLoggedIn');
                     if (!adminLoggedIn) {
@@ -239,7 +257,7 @@
                         return;
                     }
 
-                    startListeners();
+                    startListeners(window.globalState);
                     document.getElementById('loading-message').classList.add('hidden');
                     document.getElementById('order-status-summary').classList.remove('hidden');
 
@@ -261,279 +279,6 @@
                 document.getElementById('confirmationModal').classList.remove('active');
             });
         });
-
-        function showMessage(message) {
-            document.getElementById('modal-message').textContent = message;
-            document.getElementById('messageModal').classList.add('active');
-        }
-
-        function showConfirmation(message, onConfirm) {
-            document.getElementById('confirm-message').textContent = message;
-            document.getElementById('confirmationModal').classList.add('active');
-            
-            const confirmBtn = document.getElementById('confirm-yes-btn');
-
-            confirmBtn.onclick = () => {
-                onConfirm();
-                document.getElementById('confirmationModal').classList.remove('active');
-            };
-        }
-
-        function startListeners() {
-            const ordersRef = query(collection(db, `artifacts/${appId}/public/data/orders`), orderBy('timestamp', 'desc'));
-            unsubscribeOrders = onSnapshot(ordersRef, (snapshot) => {
-                ordersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderOrders();
-                updateStatusBar();
-            });
-
-            const postcardsRef = collection(db, `artifacts/${appId}/public/data/postcards`);
-            unsubscribePostcards = onSnapshot(postcardsRef, (snapshot) => {
-                postcardsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderOrders();
-            });
-        }
-
-        function updateStatusBar() {
-            const statusCounts = {
-                'Ny': 0, 'Väntar': 0, 'Avakta Betalning': 0, 'Betald': 0, 'Skickad': 0, 'Klar': 0
-            };
-            ordersData.forEach(order => {
-                const status = order.status || 'Ny';
-                if (statusCounts[status] !== undefined) {
-                    statusCounts[status]++;
-                } else {
-                    statusCounts['Ny']++;
-                }
-            });
-
-            document.getElementById('status-Ny').textContent = `Ny: ${statusCounts['Ny']}`;
-            document.getElementById('status-Väntar').textContent = `Väntar: ${statusCounts['Väntar']}`;
-            document.getElementById('status-Avakta-Betalning').textContent = `Avvakta: ${statusCounts['Avakta Betalning']}`;
-            document.getElementById('status-Betald').textContent = `Betald: ${statusCounts['Betald']}`;
-            document.getElementById('status-Skickad').textContent = `Skickad: ${statusCounts['Skickad']}`;
-            document.getElementById('status-Klar').textContent = `Klar: ${statusCounts['Klar']}`;
-        }
-        
-        async function renderOrders() {
-            const ordersContainer = document.getElementById('orders-container');
-            ordersContainer.innerHTML = '';
-            
-            const statusOrder = ['Ny', 'Väntar', 'Avakta Betalning', 'Betald', 'Skickad', 'Klar'];
-            
-            statusOrder.forEach(status => {
-                const ordersInStatus = ordersData.filter(o => (o.status || 'Ny') === status);
-
-                if (ordersInStatus.length > 0) {
-                    const sectionTitle = document.createElement('h2');
-                    sectionTitle.className = "text-3xl font-bold mt-8 mb-4";
-                    sectionTitle.textContent = status;
-                    ordersContainer.appendChild(sectionTitle);
-
-                    ordersInStatus.forEach(order => {
-                        const orderCard = document.createElement('div');
-                        
-                        let orderCardClass = "card";
-                        const hasObehandlad = order.items.some(item => (item.status || 'obehandlad') === 'obehandlad');
-                        const allKlar = order.items.every(item => (item.status || 'obehandlad') === 'klar');
-
-                        if (hasObehandlad) {
-                            orderCardClass += " order-card-obehandlad";
-                        } else if (allKlar) {
-                            orderCardClass += " order-card-klar";
-                        } else if (order.status === 'Ny') {
-                            orderCardClass += " order-card-ny";
-                        }
-                        
-                        orderCard.className = orderCardClass;
-                        
-                        const timestamp = order.timestamp?.toDate ? order.timestamp.toDate().toLocaleString('sv-SE') : 'Okänt datum';
-                        const customerEmail = order.billingInfo?.email || 'Ingen e-post';
-                        const billingName = order.billingInfo?.name || 'Ej angivet';
-                        const billingMobile = order.billingInfo?.mobile || 'Ej angivet';
-
-                        let itemsHtml = order.items.map((item, itemIndex) => {
-                            const postcard = postcardsData.find(p => p.id === item.id);
-                            const thumbnailUrl = postcard ? postcard.imageURL : '';
-                            const itemStatus = item.status || 'obehandlad';
-                            const recipientInfo = item.recipient ? 
-                                `${item.recipient.name || 'Ej angiven'}, ${item.recipient.address || 'Ej angiven'}, ${item.recipient.zip || ''} ${item.recipient.city || ''}` : 
-                                'Ej angiven';
-                            
-                            const itemStatusClass = itemStatus === 'klar' ? 'item-status-klar' : 'item-status-obehandlad';
-                            
-                            return `
-                                <li class="p-2 ${itemStatusClass} rounded-md flex items-center space-x-4 mb-2">
-                                    <img src="${thumbnailUrl}" alt="${item.title}" class="w-12 h-12 object-cover rounded-md">
-                                    <div class="flex-grow">
-                                        <p class="font-semibold">${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)})</p>
-                                        <p class="text-sm">Mottagare: ${recipientInfo}</p>
-                                        <p class="text-sm">Status: ${itemStatus}</p>
-                                    </div>
-                                    <div>
-                                        <select onchange="updateItemStatus('${order.id}', ${itemIndex}, this.value)" class="p-1 rounded-md text-sm">
-                                            <option value="obehandlad" ${itemStatus === 'obehandlad' ? 'selected' : ''}>Obehandlad</option>
-                                            <option value="klar" ${itemStatus === 'klar' ? 'selected' : ''}>Klar</option>
-                                        </select>
-                                    </div>
-                                </li>
-                            `;
-                        }).join('');
-
-                        orderCard.innerHTML = `
-                            <div class="order-header flex justify-between items-center">
-                                <div>
-                                    <h3 class="font-bold text-xl">Beställning #${order.id.substring(0, 8)}</h3>
-                                    <p class="text-sm text-gray-600">${timestamp}</p>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <span class="status-header">${status}</span>
-                                    <button onclick="openOrderModal('${order.id}')" class="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600">Detaljer</button>
-                                </div>
-                            </div>
-                            <div class="order-body">
-                                <p class="text-sm"><strong>Kund:</strong> ${billingName}</p>
-                                <p class="text-sm"><strong>E-post:</strong> ${customerEmail}</p>
-                                <p class="text-sm"><strong>Mobil:</strong> ${billingMobile}</p>
-                                <p class="text-sm"><strong>Total:</strong> ${order.total.toFixed(2)} kr</p>
-                                <h4 class="font-bold text-lg mt-4">Vykort i ordern:</h4>
-                                <ul class="order-item-list mt-2">
-                                    ${itemsHtml}
-                                </ul>
-                            </div>
-                        `;
-                        ordersContainer.appendChild(orderCard);
-                    });
-                }
-            });
-        }
-
-        function openOrderModal(orderId) {
-            const order = ordersData.find(o => o.id === orderId);
-            if (!order) return;
-
-            window.currentOrder = order;
-
-            const modalTitle = document.getElementById('modal-order-title');
-            const modalId = document.getElementById('modal-order-id');
-            const modalEmail = document.getElementById('modal-order-email');
-            const modalDate = document.getElementById('modal-order-date');
-            const modalStatus = document.getElementById('modal-order-status');
-            const modalItemsList = document.getElementById('modal-order-items');
-            const modalTotal = document.getElementById('modal-order-total');
-            const modalBillingAddress = document.getElementById('modal-billing-address');
-            const modalBillingMobile = document.getElementById('modal-billing-mobile');
-
-            modalTitle.textContent = `Beställningsdetaljer (#${order.id.substring(0, 8)})`;
-            modalId.textContent = order.id;
-            modalEmail.textContent = order.billingInfo?.email || 'Ingen e-post';
-            modalDate.textContent = order.timestamp?.toDate ? order.timestamp.toDate().toLocaleString('sv-SE') : 'Okänt datum';
-            modalStatus.textContent = order.status || 'Ny';
-            modalTotal.textContent = `${order.total.toFixed(2)} kr`;
-            modalBillingAddress.textContent = order.billingInfo?.address ? 
-                `${order.billingInfo.address}, ${order.billingInfo.zip} ${order.billingInfo.city}` : 
-                'Ej angiven';
-            modalBillingMobile.textContent = order.billingInfo?.mobile || 'Ej angivet';
-
-
-            modalItemsList.innerHTML = order.items.map(item => {
-                const postcard = postcardsData.find(p => p.id === item.id);
-                const thumbnailUrl = postcard ? postcard.imageURL : '';
-                const recipientInfo = item.recipient ? 
-                    `${item.recipient.name}, ${item.recipient.address}, ${item.recipient.zip} ${item.recipient.city}` : 
-                    'Ej angiven';
-                const itemStatus = item.status || 'obehandlad';
-                const itemStatusClass = itemStatus === 'klar' ? 'item-status-klar' : 'item-status-obehandlad';
-
-                return `
-                    <li class="p-2 ${itemStatusClass} rounded-md">
-                        <div class="flex items-center">
-                            <img src="${thumbnailUrl}" alt="${item.title}" class="w-12 h-12 rounded-md mr-4">
-                            <div>
-                                <p class="font-bold">${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)})</p>
-                                <p class="text-sm">Pris: ${item.price.toFixed(2)} kr</p>
-                                <p class="text-sm">Text: ${item.message || 'Ingen text'}</p>
-                                <p class="text-sm">Mottagare: ${recipientInfo}</p>
-                                <p class="text-sm font-semibold">Status: ${itemStatus}</p>
-                            </div>
-                        </div>
-                    </li>
-                `;
-            }).join('');
-            
-            document.getElementById('orderModal').classList.add('active');
-        }
-
-        async function updateOrderStatus(orderId, newStatus) {
-            const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
-            
-            if (newStatus === 'Klar') {
-                showConfirmation("Är du säker på att du vill markera ordern som 'Klar'? Detta kommer att ta bort alla adresser permanent.", async () => {
-                    const orderToUpdate = ordersData.find(o => o.id === orderId);
-                    if (orderToUpdate) {
-                        const sanitizedItems = orderToUpdate.items.map(item => {
-                            const sanitizedItem = {
-                                id: item.id || null,
-                                title: item.title || null,
-                                size: item.size || null,
-                                price: item.price || null,
-                                group: item.group || null,
-                                message: item.message || null,
-                                status: item.status || 'obehandlad',
-                                recipient: null
-                            };
-                            return sanitizedItem;
-                        });
-                        
-                        const sanitizedBillingInfo = {
-                            name: orderToUpdate.billingInfo?.name || null,
-                            email: orderToUpdate.billingInfo?.email || null,
-                            mobile: orderToUpdate.billingInfo?.mobile || null,
-                            address: null,
-                            zip: null,
-                            city: null
-                        };
-
-                        await updateDoc(orderRef, { 
-                            status: newStatus,
-                            items: sanitizedItems,
-                            billingInfo: sanitizedBillingInfo
-                        });
-                        showMessage(`Order #${orderId.substring(0, 8)} är nu markerad som 'Klar' och adresser har raderats.`);
-                        document.getElementById('orderModal').classList.remove('active');
-                    }
-                });
-            } else {
-                await updateDoc(orderRef, { status: newStatus });
-                showMessage(`Order #${orderId.substring(0, 8)} uppdaterad till ${newStatus}.`);
-                document.getElementById('orderModal').classList.remove('active');
-            }
-        }
-        
-        async function updateItemStatus(orderId, itemIndex, newStatus) {
-            const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
-            const order = ordersData.find(o => o.id === orderId);
-            if (!order) return;
-
-            order.items[itemIndex].status = newStatus;
-
-            await updateDoc(orderRef, { items: order.items });
-            showMessage(`Vykort i order #${orderId.substring(0, 8)} uppdaterad.`);
-        }
-
-        async function deleteOrder(orderId) {
-            showConfirmation("Är du säker på att du vill ta bort denna order permanent?", async () => {
-                const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
-                await deleteDoc(orderRef);
-                showMessage(`Order #${orderId.substring(0, 8)} borttagen.`);
-                document.getElementById('orderModal').classList.remove('active');
-            });
-        }
-
-        window.updateOrderStatus = updateOrderStatus;
-        window.updateItemStatus = updateItemStatus;
-        window.deleteOrder = deleteOrder;
-        window.openOrderModal = openOrderModal;
     </script>
 </body>
 </html>
