@@ -171,7 +171,22 @@
                 <button id="logout-btn" class="px-4 py-2 bg-gray-500 text-white font-bold rounded-lg hover:bg-gray-600 transition duration-300">Logga ut</button>
             </div>
             <div id="admin-user-info" class="mb-4 text-sm text-gray-500"></div>
-
+            <div class="card">
+                <h2 class="text-2xl font-bold mb-4">Butiksinställningar</h2>
+                <form id="settings-form" class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium">Swish-nummer</label>
+                            <input type="text" id="setting-swish-number" placeholder="t.ex. 1234567890" class="w-full p-2 border rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium">Mottagarnamn (Swish)</label>
+                            <input type="text" id="setting-swish-name" placeholder="t.ex. Mats Jonsson" class="w-full p-2 border rounded-md">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">Spara inställningar</button>
+                </form>
+            </div>
             <div class="card">
                 <h2 class="text-2xl font-bold mb-4">Prisgrupper</h2>
                 <div id="price-groups-list" class="space-y-4 mb-4"></div>

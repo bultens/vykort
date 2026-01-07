@@ -127,6 +127,19 @@ export function renderGroupsAndPrices(globalState) {
     });
 }
 
+export async function updateSettings(globalState, swishNumber, swishName) {
+    if (!globalState.isAdminLoggedIn) return showMessage('Du måste vara inloggad.');
+    const { db, appId } = globalState;
+    const settingsRef = doc(db, `artifacts/${appId}/public/data/settings`, 'swish');
+    
+    await setDoc(settingsRef, { 
+        number: swishNumber, 
+        name: swishName 
+    }, { merge: true });
+    
+    showMessage('Inställningar sparade!');
+}
+
 export function renderAdminLists(globalState) {
    // if (!globalState.isAdminLoggedIn) return;
 console.log("Rendering lists with data:", globalState.postcardsData);
@@ -333,6 +346,15 @@ export function startAdminListeners() {
     window.globalState.unsubscribeOrders = onSnapshot(ordersRef, (snapshot) => {
         const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         updateAdminStatusBar(orders);
+    });
+    const settingsRef = doc(db, `artifacts/${appId}/public/data/settings`, 'swish');
+    onSnapshot(settingsRef, (doc) => {
+        if (doc.exists()) {
+            const data = doc.data();
+            document.getElementById('setting-swish-number').value = data.number || '';
+            document.getElementById('setting-swish-name').value = data.name || '';
+            globalState.swishSettings = data; // Spara i globalState
+        }
     });
 }
 
