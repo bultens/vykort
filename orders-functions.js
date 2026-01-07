@@ -219,10 +219,14 @@ export function openOrderModal(globalState, orderId) {
     document.getElementById('orderModal').classList.add('active');
 }
 
+/**
+ * Uppdaterar status på en order och synkroniserar ändringen till kundens privata historik.
+ */
 export async function updateOrderStatus(globalState, orderId, newStatus) {
     const { db, appId, firebase } = globalState;
     const { doc, updateDoc, where, collection, query, getDocs } = firebase;
 
+    // Hitta ordern i det lokala tillståndet för att få tag på userId och ordernummer
     const orderToUpdate = globalState.ordersData.find(o => o.firestoreId === orderId);
     if (!orderToUpdate) {
         window.showMessage('Fel: Ordern hittades inte.');
@@ -230,10 +234,26 @@ export async function updateOrderStatus(globalState, orderId, newStatus) {
     }
 
     const publicOrderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
-    const updates = { status: newStatus };
+    
+    // Hjälpfunktion för att uppdatera kundens privata orderdokument
+    const syncPrivateOrder = async (status) => {
+        if (orderToUpdate.userId) {
+            // Sökvägen måste matcha exakt den som kunden läser ifrån i index-functions.js
+            const privateOrdersRef = collection(db, `artifacts/public/users/${orderToUpdate.userId}/orders`);
+            const q = query(privateOrdersRef, where('orderId', '==', orderId));
+            const querySnapshot = await getDocs(q);
 
+            if (!querySnapshot.empty) {
+                const privateOrderDoc = querySnapshot.docs[0];
+                await updateDoc(privateOrderDoc.ref, { status: status });
+            }
+        }
+    };
+
+    // Om statusen sätts till 'Klar', rensa känsliga personuppgifter enligt GDPR-tänk
     if (newStatus === 'Klar') {
         window.showConfirmation("Är du säker på att du vill markera ordern som 'Klar'? Detta kommer att ta bort alla adresser permanent.", async () => {
+            // Skapa en "rensad" version av artiklarna utan mottagaradresser
             const sanitizedItems = orderToUpdate.items.map(item => ({
                 id: item.id || null,
                 title: item.title || null,
@@ -242,9 +262,10 @@ export async function updateOrderStatus(globalState, orderId, newStatus) {
                 group: item.group || null,
                 message: item.message || null,
                 status: item.status || 'obehandlad',
-                recipient: null
+                recipient: null // Här raderas adressen
             }));
             
+            // Rensa faktureringsadressen men behåll namn och kontaktuppgifter för bokföring
             const sanitizedBillingInfo = {
                 name: orderToUpdate.billingInfo?.name || null,
                 email: orderToUpdate.billingInfo?.email || null,
@@ -260,36 +281,19 @@ export async function updateOrderStatus(globalState, orderId, newStatus) {
                 billingInfo: sanitizedBillingInfo
             };
 
+            // Uppdatera både den publika ordern och kundens historik
             await updateDoc(publicOrderRef, updatesWithSanitizedData);
-            
-            if (orderToUpdate.userId) {
-                const privateOrdersRef = collection(db, `artifacts/public/users/${orderToUpdate.userId}/orders`);
-                const q = query(privateOrdersRef, where('orderId', '==', orderToUpdate.firestoreId));
-                const querySnapshot = await getDocs(q);
+            await syncPrivateOrder(newStatus);
 
-                if (!querySnapshot.empty) {
-                    const privateOrderDoc = querySnapshot.docs[0];
-                    await updateDoc(privateOrderDoc.ref, { status: newStatus });
-                }
-            }
-
-            window.showMessage(`Order #${orderToUpdate.orderNumber || orderToUpdate.firestoreId.substring(0, 8)} är nu markerad som 'Klar' och adresser har raderats.`);
+            window.showMessage(`Order #${orderToUpdate.orderNumber || orderId.substring(0, 8)} är nu klar och adresser har raderats.`);
             document.getElementById('orderModal').classList.remove('active');
         });
     } else {
-        await updateDoc(publicOrderRef, updates);
+        // För alla andra statusar (Väntar, Betald, etc.), uppdatera bara statusfältet
+        await updateDoc(publicOrderRef, { status: newStatus });
+        await syncPrivateOrder(newStatus);
 
-        if (orderToUpdate.userId) {
-            const privateOrdersRef = collection(db, `artifacts/public/users/${orderToUpdate.userId}/orders`);
-            const q = query(privateOrdersRef, where('orderId', '==', orderToUpdate.firestoreId));
-            const querySnapshot = await getDocs(q);
-            if (!querySnapshot.empty) {
-                const privateOrderDoc = querySnapshot.docs[0];
-                await updateDoc(privateOrderDoc.ref, { status: newStatus });
-            }
-        }
-
-        window.showMessage(`Order #${orderToUpdate.orderNumber || orderToUpdate.firestoreId.substring(0, 8)} uppdaterad till ${newStatus}.`);
+        window.showMessage(`Order #${orderToUpdate.orderNumber || orderId.substring(0, 8)} uppdaterad till ${newStatus}.`);
         document.getElementById('orderModal').classList.remove('active');
     }
 }

@@ -545,53 +545,90 @@ function renderCheckout(showOrders = false) {
     }
 }
 
-async function renderOrderHistory() {
-    if (!currentUser) {
-        console.log("Ingen användare inloggad, kan inte visa orderhistorik.");
-        return;
+// Ny funktion för att visa betalinfo för en befintlig order
+window.showOrderPaymentInfo = function(orderNumber, total) {
+    document.getElementById('order-history-section')?.classList.add('hidden');
+    document.getElementById('order-confirmation-section')?.classList.remove('hidden');
+    
+    const orderIdDisplay = document.getElementById('order-id-display');
+    if (orderIdDisplay) orderIdDisplay.textContent = orderNumber;
+    
+    const orderTotalDisplay = document.getElementById('order-total-display');
+    if (orderTotalDisplay) orderTotalDisplay.textContent = total.toFixed(2).replace('.', ',');
+
+    const confirmationSection = document.getElementById('order-confirmation-section');
+    if (confirmationSection) {
+        const swishInfoStrong = confirmationSection.querySelector('p strong');
+        if (swishInfoStrong) {
+            swishInfoStrong.textContent = `${swishSettings.number} (${swishSettings.name})`;
+        }
     }
+    
+    createSwishQrCode(total, orderNumber, swishSettings.number);
+};
+
+// Uppdaterad renderOrderHistory med onSnapshot för realtidsstatus
+async function renderOrderHistory() {
+    if (!currentUser) return;
 
     const orderHistoryList = document.getElementById('order-history-list');
     if (!orderHistoryList) return;
     
     orderHistoryList.innerHTML = '<p class="text-gray-500">Laddar orderhistorik...</p>';
     
-    try {
-        const ordersRef = collection(db, `artifacts/public/users/${currentUser.uid}/orders`);
-        const q = query(ordersRef, orderBy('timestamp', 'desc'));
-        const querySnapshot = await getDocs(q);
-
+    // Vi skapar en lyssnare istället för getDocs för att se statusändringar direkt
+    const ordersRef = collection(db, `artifacts/public/users/${currentUser.uid}/orders`);
+    const q = query(ordersRef, orderBy('timestamp', 'desc'));
+    
+    onSnapshot(q, (querySnapshot) => {
         if (querySnapshot.empty) {
             orderHistoryList.innerHTML = '<p class="text-gray-500">Inga tidigare ordrar hittades.</p>';
             return;
         }
         
-        orderHistoryList.innerHTML = ''; // Clear loading message
+        orderHistoryList.innerHTML = ''; 
         
         querySnapshot.forEach(doc => {
             const order = doc.data();
             const orderDiv = document.createElement('div');
-            orderDiv.className = 'p-4 bg-gray-100 rounded-lg shadow-sm';
+            orderDiv.className = 'p-4 bg-gray-100 rounded-lg shadow-sm mb-4';
             
             const timestamp = order.timestamp?.toDate ? order.timestamp.toDate().toLocaleString('sv-SE') : 'Okänt datum';
-            
             const orderNumberToDisplay = order.orderNumber || order.orderId;
+            const status = order.status || 'Ny';
+
+            // Logik för att visa betalningsknapp
+            let paymentButtonHtml = '';
+            if (status === 'Väntar' || status === 'Avakta Betalning') {
+                paymentButtonHtml = `
+                    <button onclick="window.showOrderPaymentInfo('${orderNumberToDisplay}', ${order.total})" 
+                            class="mt-2 px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-md hover:bg-blue-700 transition">
+                        Visa betalningsinfo / QR
+                    </button>`;
+            }
 
             orderDiv.innerHTML = `
-                <h4 class="font-bold text-lg">Order #${orderNumberToDisplay}</h4>
-                <p class="text-sm text-gray-600">Datum: ${timestamp}</p>
-                <p class="text-sm font-semibold">Status: ${order.status || 'Okänd'}</p>
-                <div class="mt-2 space-y-1">
-                    ${order.items.map(item => `<p class="text-sm">- ${item.title} (${item.size.charAt(0).toUpperCase() + item.size.slice(1)}): ${item.price.toFixed(2)} kr</p>`).join('')}
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h4 class="font-bold text-lg">Order #${orderNumberToDisplay}</h4>
+                        <p class="text-sm text-gray-600">Datum: ${timestamp}</p>
+                        <p class="text-sm font-semibold">Status: <span class="text-blue-600">${status}</span></p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold">${order.total.toFixed(2)} kr</p>
+                    </div>
                 </div>
-                <p class="mt-2 font-bold text-right">Summa: ${order.total.toFixed(2)} kr</p>
+                <div class="mt-2 space-y-1 border-t pt-2">
+                    ${order.items.map(item => `<p class="text-xs text-gray-700">- ${item.title} (${item.size}): ${item.price.toFixed(2)} kr</p>`).join('')}
+                </div>
+                ${paymentButtonHtml}
             `;
             orderHistoryList.appendChild(orderDiv);
         });
-    } catch (e) {
-        console.error("Fel vid hämtning av orderhistorik:", e);
+    }, (error) => {
+        console.error("Fel vid hämtning av orderhistorik:", error);
         orderHistoryList.innerHTML = '<p class="text-red-500">Kunde inte ladda din orderhistorik.</p>';
-    }
+    });
 }
 
 
