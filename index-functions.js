@@ -599,7 +599,7 @@ async function renderOrderHistory() {
 
             // Logik för att visa betalningsknapp
             let paymentButtonHtml = '';
-            if (status === 'Väntar' || status === 'Avakta Betalning') {
+            if (status === 'Väntar' || status === 'Avakta Betalning' || status === 'Ny' ) {
                 paymentButtonHtml = `
                     <button onclick="window.showOrderPaymentInfo('${orderNumberToDisplay}', ${order.total})" 
                             class="mt-2 px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-md hover:bg-blue-700 transition">
