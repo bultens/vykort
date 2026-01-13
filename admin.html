@@ -352,8 +352,21 @@
                     <form id="add-postcard-form" class="space-y-4 mb-6">
                         <input type="text" id="postcard-title" placeholder="Titel på vykort" required 
                                class="form-group input">
-                        <input type="url" id="postcard-image-url" placeholder="URL till bild" required 
-                               class="form-group input">
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-sage-700 mb-1">Bild</label>
+                            <input type="file" id="postcard-image-file" accept="image/*" class="form-group input mb-2">
+                            
+                            <input type="hidden" id="existing-image-url">
+                            
+                            <div id="image-preview-container" class="hidden mt-2 p-2 border border-sage-200 rounded bg-sage-50 text-center">
+                                <p class="text-xs text-sage-600 mb-1">Vald/Nuvarande bild:</p>
+                                <img id="image-preview" src="" alt="Preview" class="max-h-32 mx-auto rounded">
+                            </div>
+                            
+                            <div id="upload-status" class="hidden text-terracotta-600 text-sm font-bold mt-1">
+                                Laddar upp bild...
+                            </div>
+                        </div>
                         <div class="grid grid-cols-2 gap-3">
                             <select id="postcard-group" required class="form-group input">
                                 <option value="">Välj grupp...</option>
@@ -522,6 +535,7 @@
     import { 
         getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc, serverTimestamp, setDoc 
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
     import { firebaseConfig } from "./firebase-config.js";
     import { 
         addPriceGroup, addGroup, addOrUpdatePostcard, addSale, addNews,
@@ -554,7 +568,7 @@
         unsubscribeOrders: null,
         firebase: {
             initializeApp, getAuth, onAuthStateChanged, signOut,
-            getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc, serverTimestamp, setDoc
+            getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc, serverTimestamp, setDoc, getStorage, ref, uploadBytes, getDownloadURL
         }
     };
     
@@ -574,6 +588,7 @@
             try {
                 const app = window.globalState.firebase.initializeApp(firebaseConfig);
                 window.globalState.db = window.globalState.firebase.getFirestore(app);
+                window.globalState.storage = window.globalState.firebase.getStorage(app);
                 
                 const loggedIn = localStorage.getItem('adminLoggedIn');
                 if (loggedIn) {

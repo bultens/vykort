@@ -2,6 +2,9 @@
 import { 
     getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc 
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { 
+    getStorage, ref, uploadBytes, getDownloadURL 
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
 // Modala funktioner
 export function showMessage(message) {
@@ -42,23 +45,79 @@ export async function addGroup(globalState, name, order) {
 
 export async function addOrUpdatePostcard(globalState) {
     if (!globalState.isAdminLoggedIn) return showMessage('Du måste vara inloggad för att utföra denna åtgärd.');
+    
     const title = document.getElementById('postcard-title').value;
-    const imageURL = document.getElementById('postcard-image-url').value;
     const group = document.getElementById('postcard-group').value;
     const priceGroup = document.getElementById('postcard-price-group').value;
+    
+    const fileInput = document.getElementById('postcard-image-file');
+    const existingUrlInput = document.getElementById('existing-image-url');
+    const uploadStatus = document.getElementById('upload-status');
+    const submitBtn = document.getElementById('add-postcard-btn');
+
+    let imageURL = existingUrlInput.value; // Använd gammal URL som standard (vid redigering)
+
+    // Kontrollera om en NY fil har valts
+    if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        
+        // Visa laddar-status
+        uploadStatus.classList.remove('hidden');
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Laddar upp...";
+
+        try {
+            const { getStorage, ref, uploadBytes, getDownloadURL } = globalState.firebase;
+            const storage = globalState.storage; // Se till att denna är satt i admin.html
+            
+            // Skapa ett unikt filnamn: postcards/timestamp_filnamn
+            const storageRef = ref(storage, `postcards/${Date.now()}_${file.name}`);
+            
+            // Ladda upp
+            const snapshot = await uploadBytes(storageRef, file);
+            
+            // Hämta URL
+            imageURL = await getDownloadURL(snapshot.ref);
+            
+        } catch (error) {
+            console.error("Uppladdningsfel:", error);
+            showMessage("Kunde inte ladda upp bilden: " + error.message);
+            uploadStatus.classList.add('hidden');
+            submitBtn.disabled = false;
+            submitBtn.textContent = globalState.currentEditingPostcardId ? 'Spara ändringar' : 'Lägg till vykort';
+            return; // Avbryt om uppladdning misslyckas
+        }
+    } else if (!imageURL) {
+        // Om ingen fil vald och ingen existerande URL (nytt vykort utan bild)
+        return showMessage("Du måste välja en bild.");
+    }
 
     const postcardData = { title, imageURL, group, priceGroup };
 
-    if (globalState.currentEditingPostcardId) {
-        await updateDoc(doc(globalState.db, `artifacts/${globalState.appId}/public/data/postcards`, globalState.currentEditingPostcardId), postcardData);
-        showMessage('Vykort uppdaterat!');
-        globalState.currentEditingPostcardId = null;
-        document.getElementById('add-postcard-btn').textContent = 'Lägg till vykort';
-    } else {
-        await addDoc(collection(globalState.db, `artifacts/${globalState.appId}/public/data/postcards`), postcardData);
-        showMessage('Vykort tillagt!');
+    try {
+        if (globalState.currentEditingPostcardId) {
+            await updateDoc(doc(globalState.db, `artifacts/${globalState.appId}/public/data/postcards`, globalState.currentEditingPostcardId), postcardData);
+            showMessage('Vykort uppdaterat!');
+            globalState.currentEditingPostcardId = null;
+            document.getElementById('add-postcard-btn').textContent = 'Lägg till vykort';
+        } else {
+            await addDoc(collection(globalState.db, `artifacts/${globalState.appId}/public/data/postcards`), postcardData);
+            showMessage('Vykort tillagt!');
+        }
+        
+        // Återställ formulär och UI
+        document.getElementById('add-postcard-form').reset();
+        document.getElementById('existing-image-url').value = "";
+        document.getElementById('image-preview-container').classList.add('hidden');
+        document.getElementById('image-preview').src = "";
+        uploadStatus.classList.add('hidden');
+        submitBtn.disabled = false;
+        
+    } catch (e) {
+        console.error("Databasfel:", e);
+        showMessage("Ett fel uppstod när datan skulle sparas.");
+        submitBtn.disabled = false;
     }
-    document.getElementById('add-postcard-form').reset();
 }
 
 export async function addSale(globalState, name, value, type, targetType, targetId, noTimeLimit, startDate, endDate, timezone) {
@@ -521,11 +580,20 @@ export async function editPostcard(globalState, id) {
     const postcard = globalState.postcardsData.find(p => p.id === id);
     if (postcard) {
         document.getElementById('postcard-title').value = postcard.title;
-        document.getElementById('postcard-image-url').value = postcard.imageURL;
         document.getElementById('postcard-group').value = postcard.group;
         document.getElementById('postcard-price-group').value = postcard.priceGroup;
+        
+        // Hantera bild-fälten för redigering
+        document.getElementById('existing-image-url').value = postcard.imageURL;
+        document.getElementById('image-preview').src = postcard.imageURL;
+        document.getElementById('image-preview-container').classList.remove('hidden');
+        document.getElementById('postcard-image-file').value = ""; // Rensa filväljaren
+        
         globalState.currentEditingPostcardId = id;
         document.getElementById('add-postcard-btn').textContent = 'Spara ändringar';
+        
+        // Skrolla upp till formuläret
+        document.getElementById('add-postcard-form').scrollIntoView({ behavior: 'smooth' });
     }
 }
 
