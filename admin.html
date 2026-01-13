@@ -3,90 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adminpanel - Bultens.net</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <title>Adminpanel - Vykortsbutik</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        :root {
+            --sage-50: #f6f7f6;
+            --sage-100: #e3e7e3;
+            --sage-200: #c7d0c7;
+            --sage-300: #a1b2a1;
+            --sage-400: #7a917a;
+            --sage-500: #5d755d;
+            --sage-600: #495d49;
+            --sage-700: #3c4c3c;
+            --sage-800: #323f32;
+            --sage-900: #2b352b;
+            
+            --terracotta-50: #fdf6f3;
+            --terracotta-100: #fae9e1;
+            --terracotta-200: #f4d5c4;
+            --terracotta-300: #ecb892;
+            --terracotta-400: #e19658;
+            --terracotta-500: #d4722a;
+            --terracotta-600: #c05621;
+            --terracotta-700: #9f4219;
+            --terracotta-800: #823618;
+            --terracotta-900: #6b3017;
+            
+            --charcoal: #2c2c2c;
+            --warm-white: #fefefe;
+            --soft-gray: #f8f9fa;
+        }
+        
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            color: #1f2937;
+            background-color: var(--sage-50);
+            color: var(--charcoal);
+            line-height: 1.6;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
+        
+        .font-display {
+            font-family: 'Playfair Display', serif;
         }
+        
+        .bg-sage-50 { background-color: var(--sage-50); }
+        .bg-sage-100 { background-color: var(--sage-100); }
+        .bg-sage-200 { background-color: var(--sage-200); }
+        .bg-terracotta-600 { background-color: var(--terracotta-600); }
+        .bg-terracotta-700 { background-color: var(--terracotta-700); }
+        .text-sage-600 { color: var(--sage-600); }
+        .text-sage-700 { color: var(--sage-700); }
+        .text-sage-800 { color: var(--sage-800); }
+        .text-terracotta-600 { color: var(--terracotta-600); }
+        .text-terracotta-700 { color: var(--terracotta-700); }
+        .border-sage-200 { border-color: var(--sage-200); }
+        .border-sage-300 { border-color: var(--sage-300); }
+        
         .card {
-            background-color: #ffffff;
+            background-color: var(--warm-white);
             border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
             margin-bottom: 1.5rem;
+            border: 1px solid var(--sage-200);
         }
-        .form-group {
-            margin-bottom: 1rem;
+        
+        .card-hover {
+            transition: all 0.3s ease;
         }
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
+        
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
-        .form-group input[type="text"], 
-        .form-group input[type="number"], 
-        .form-group input[type="url"],
-        .form-group input[type="datetime-local"],
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
-        }
-        .form-group textarea {
-            min-height: 100px;
-        }
+        
         .btn-primary {
-            background-color: #2563eb;
+            background-color: var(--terracotta-600);
             color: white;
             padding: 0.75rem 1.5rem;
-            border-radius: 0.375rem;
-            font-weight: 600;
-            transition: background-color 0.3s;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
         }
+        
         .btn-primary:hover {
-            background-color: #1e40af;
+            background-color: var(--terracotta-700);
+            transform: translateY(-1px);
         }
-        .btn-danger {
-            background-color: #ef4444;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 0.375rem;
-            font-weight: 600;
-            transition: background-color 0.3s;
-        }
-        .btn-danger:hover {
-            background-color: #dc2626;
-        }
+        
         .btn-secondary {
-            background-color: #6b7280;
+            background-color: var(--sage-100);
+            color: var(--sage-700);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--sage-200);
+            color: var(--sage-800);
+        }
+        
+        .btn-danger {
+            background-color: #dc2626;
             color: white;
             padding: 0.5rem 1rem;
-            border-radius: 0.375rem;
-            font-weight: 600;
-            transition: background-color 0.3s;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
         }
-        .btn-secondary:hover {
-            background-color: #4b5563;
+        
+        .btn-danger:hover {
+            background-color: #b91c1c;
         }
-        .list-item {
-            padding: 1rem;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--sage-200);
+            border-radius: 0.5rem;
+            background-color: var(--warm-white);
+            color: var(--charcoal);
+            transition: border-color 0.2s ease;
         }
+        
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--terracotta-600);
+        }
+        
         .modal {
             position: fixed;
             z-index: 1000;
@@ -103,256 +155,363 @@
             visibility: hidden;
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
+        
         .modal.active {
             opacity: 1;
             visibility: visible;
         }
+        
         .modal-content {
-            background-color: #fefefe;
-            padding: 20px;
-            border: 1px solid #888;
-            border-radius: 0.75rem;
-            width: 80%;
+            background-color: var(--warm-white);
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 90%;
             max-width: 500px;
-            text-align: center;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
         }
+        
+        .modal-close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+            font-weight: 300;
+            cursor: pointer;
+            color: var(--sage-600);
+            transition: color 0.2s ease;
+        }
+        
+        .modal-close-btn:hover {
+            color: var(--sage-800);
+        }
+        
         .postcard-thumbnail {
             width: 60px;
             height: 60px;
             object-fit: cover;
-            border-radius: 0.25rem;
-            margin-right: 1rem;
+            border-radius: 0.5rem;
+            border: 2px solid var(--sage-200);
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-new { background-color: #dbeafe; color: #1e40af; }
+        .status-waiting { background-color: #fef3c7; color: #d97706; }
+        .status-payment-pending { background-color: #fed7aa; color: #c2410c; }
+        .status-paid { background-color: #d1fae5; color: #059669; }
+        .status-shipped { background-color: #cffafe; color: #0891b2; }
+        .status-completed { background-color: #f3f4f6; color: #374151; }
+        
+        .admin-indicator {
+            background-color: var(--terracotta-600);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+        }
+        
+        .section-header {
+            border-bottom: 2px solid var(--sage-200);
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .list-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--sage-100);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s ease;
+        }
+        
+        .list-item:hover {
+            background-color: var(--sage-50);
+        }
+        
+        .list-item:last-child {
+            border-bottom: none;
+        }
+        
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 95%;
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <header class="bg-gray-800 text-white shadow-lg">
-        <div class="container py-4 flex flex-col sm:flex-row justify-between items-center">
-            <div class="flex items-center space-x-4">
-                <div class="flex flex-col items-start">
-                    <div class="flex items-center space-x-2">
-                        <span class="text-3xl font-bold tracking-tight">Adminpanel</span>
-                        <span id="admin-indicator" class="hidden bg-green-500 text-white text-xs font-bold rounded-full px-2 py-1">ADMIN</span>
-                    </div>
+    <header class="bg-white shadow-sm sticky top-0 z-50 border-b border-sage-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <h1 class="font-display text-2xl font-bold text-sage-800">Adminpanel</h1>
+                    <span id="admin-indicator" class="admin-indicator hidden">ADMIN</span>
+                    <span class="text-xs text-sage-600 bg-sage-100 px-2 py-1 rounded-full">v1.42</span>
                 </div>
+                
+                <nav class="flex items-center space-x-6">
+                    <div id="order-status-summary" class="hidden flex flex-wrap justify-center sm:justify-start gap-2 text-xs">
+                        <span id="status-Ny" class="status-badge status-new">Ny: 0</span>
+                        <span id="status-Väntar" class="status-badge status-waiting">Väntar: 0</span>
+                        <span id="status-Avakta-Betalning" class="status-badge status-payment-pending">Avvakta: 0</span>
+                        <span id="status-Betald" class="status-badge status-paid">Betald: 0</span>
+                        <span id="status-Skickad" class="status-badge status-shipped">Skickad: 0</span>
+                        <span id="status-Klar" class="status-badge status-completed">Klar: 0</span>
+                    </div>
+                    
+                    <a href="index.html" class="text-sage-600 hover:text-terracotta-600 transition-colors text-sm font-medium">Till Butik</a>
+                    <a href="orders.html" id="orders-link" class="text-sage-600 hover:text-terracotta-600 transition-colors text-sm font-medium hidden">Beställningar</a>
+                </nav>
             </div>
-            <nav class="mt-4 sm:mt-0">
-                <ul class="flex space-x-4 font-medium items-center">
-                    <li>
-                        <div id="order-status-summary" class="hidden flex flex-wrap justify-center sm:justify-start gap-2 text-xs">
-                            <span id="status-Ny" class="bg-blue-500 text-white px-2 py-1 rounded-full">Ny: 0</span>
-                            <span id="status-Väntar" class="bg-yellow-500 text-white px-2 py-1 rounded-full">Väntar: 0</span>
-                            <span id="status-Avakta-Betalning" class="bg-orange-500 text-white px-2 py-1 rounded-full">Avvakta: 0</span>
-                            <span id="status-Betald" class="bg-green-500 text-white px-2 py-1 rounded-full">Betald: 0</span>
-                            <span id="status-Skickad" class="bg-cyan-500 text-white px-2 py-1 rounded-full">Skickad: 0</span>
-                            <span id="status-Klar" class="bg-gray-500 text-white px-2 py-1 rounded-full">Klar: 0</span>
-                        </div>
-                    </li>
-                    <li><a href="index.html" class="hover:text-gray-300 transition duration-300">Till Butik</a></li>
-                    <li id="orders-link-container" class="hidden"><a href="orders.html" class="hover:text-gray-300 transition duration-300">Beställningar</a></li>
-                </ul>
-            </nav>
         </div>
     </header>
-    
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 1.42</div>
 
-    <main class="container">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <section id="admin-login-panel" class="card max-w-md mx-auto">
-            <h1 class="text-2xl font-bold mb-4">Admininloggning</h1>
-            <input type="text" id="admin-username" placeholder="Användarnamn" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
-            <input type="password" id="admin-password" placeholder="Lösenord" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
-            <button id="login-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300">Logga in</button>
+            <h1 class="font-display text-2xl font-bold mb-6 text-center">Admininloggning</h1>
+            <div class="space-y-4">
+                <input type="text" id="admin-username" placeholder="Användarnamn" 
+                       class="form-group input">
+                <input type="password" id="admin-password" placeholder="Lösenord" 
+                       class="form-group input" onkeypress="if(event.key === 'Enter') document.getElementById('login-btn').click()">
+                <button id="login-btn" class="btn-primary w-full">Logga in</button>
+            </div>
         </section>
 
         <section id="admin-panel" class="hidden">
-            <div class="flex justify-between items-center mb-6">
-                <h1 class="text-4xl font-bold">Administrationspanel</h1>
-                <button id="logout-btn" class="px-4 py-2 bg-gray-500 text-white font-bold rounded-lg hover:bg-gray-600 transition duration-300">Logga ut</button>
-            </div>
-            <div id="admin-user-info" class="mb-4 text-sm text-gray-500"></div>
-            <div class="card">
-                <h2 class="text-2xl font-bold mb-4">Butiksinställningar</h2>
-                <form id="settings-form" class="space-y-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium">Swish-nummer</label>
-                            <input type="text" id="setting-swish-number" placeholder="t.ex. 1234567890" class="w-full p-2 border rounded-md">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium">Mottagarnamn (Swish)</label>
-                            <input type="text" id="setting-swish-name" placeholder="t.ex. Mats Jonsson" class="w-full p-2 border rounded-md">
-                        </div>
-                    </div>
-                    <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">Spara inställningar</button>
-                </form>
-            </div>
-            <div class="card">
-                <h2 class="text-2xl font-bold mb-4">Prisgrupper</h2>
-                <div id="price-groups-list" class="space-y-4 mb-4"></div>
-                <form id="add-price-group-form" class="space-y-4">
-                    <input type="text" id="new-price-group-name" placeholder="Namn på prisgrupp" required class="w-full p-2 border rounded-md">
-                    <div class="flex gap-4">
-                        <input type="number" id="price-liten" placeholder="Pris Liten" required class="w-1/3 p-2 border rounded-md">
-                        <input type="number" id="price-mellan" placeholder="Pris Mellan" required class="w-1/3 p-2 border rounded-md">
-                        <input type="number" id="price-stor" placeholder="Pris Stor" required class="w-1/3 p-2 border rounded-md">
-                    </div>
-                    <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700">Lägg till prisgrupp</button>
-                </form>
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                <h1 class="font-display text-3xl font-bold">Administrationspanel</h1>
+                <div class="flex items-center gap-4">
+                    <div id="admin-user-info" class="text-sm text-sage-600"></div>
+                    <button id="logout-btn" class="btn-secondary">Logga ut</button>
+                </div>
             </div>
 
-            <div class="card">
-                <h2 class="text-2xl font-bold mb-4">Vykortsgrupper</h2>
-                <div id="groups-list" class="space-y-4 mb-4"></div>
-                <form id="add-group-form" class="space-y-4">
-                    <input type="text" id="new-group-name" placeholder="Namn på grupp" required class="w-full p-2 border rounded-md">
-                    <input type="number" id="new-group-order" placeholder="Ordning (lägre nummer först)" value="0" class="w-full p-2 border rounded-md">
-                    <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700">Lägg till grupp</button>
-                </form>
-            </div>
-            
-            <div class="card" id="postcard-section">
-                <h2 class="text-2xl font-bold mb-4">Vykort</h2>
-                <form id="add-postcard-form" class="space-y-4">
-                    <input type="text" id="postcard-title" placeholder="Titel på vykort" required class="w-full p-2 border rounded-md">
-                    <input type="url" id="postcard-image-url" placeholder="URL till bild" required class="w-full p-2 border rounded-md">
-                    <select id="postcard-group" required class="w-full p-2 border rounded-md"></select>
-                    <select id="postcard-price-group" required class="w-full p-2 border rounded-md"></select>
-                    <button type="submit" id="add-postcard-btn" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">Lägg till vykort</button>
-                </form>
-                <div id="postcards-list" class="mt-8 space-y-4"></div>
-            </div>
-            
-            <div class="card">
-                <h2 class="text-2xl font-bold mb-4">Rea</h2>
-                <div id="sales-list" class="space-y-4 mb-4"></div>
-                <form id="add-sale-form" class="space-y-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <input type="text" id="sale-name" placeholder="Namn på rea" required class="w-full p-2 border rounded-md">
-                        <input type="number" id="sale-value" placeholder="Värde (t.ex. 10)" required class="w-full p-2 border rounded-md">
-                        <select id="sale-type" class="w-full p-2 border rounded-md">
-                            <option value="percent">Procent (%)</option>
-                            <option value="summa">Fast summa (kr)</option>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="card">
+                    <h2 class="font-display text-xl font-semibold section-header">Butiksinställningar</h2>
+                    <form id="settings-form" class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-sage-700 mb-2">Swish-nummer</label>
+                                <input type="text" id="setting-swish-number" placeholder="t.ex. 070-123 45 67">
+                            </div>
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-sage-700 mb-2">Mottagarnamn (Swish)</label>
+                                <input type="text" id="setting-swish-name" placeholder="t.ex. Mats Jonsson">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary w-full">Spara inställningar</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2 class="font-display text-xl font-semibold section-header">Prisgrupper</h2>
+                    <div id="price-groups-list" class="space-y-2 mb-4 max-h-48 overflow-y-auto">
+                        </div>
+                    <form id="add-price-group-form" class="space-y-4">
+                        <input type="text" id="new-price-group-name" placeholder="Namn på prisgrupp" required 
+                               class="form-group input">
+                        <div class="grid grid-cols-3 gap-3">
+                            <input type="number" id="price-liten" placeholder="Liten" required 
+                                   class="form-group input">
+                            <input type="number" id="price-mellan" placeholder="Mellan" required 
+                                   class="form-group input">
+                            <input type="number" id="price-stor" placeholder="Stor" required 
+                                   class="form-group input">
+                        </div>
+                        <button type="submit" class="btn-primary w-full">Lägg till prisgrupp</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2 class="font-display text-xl font-semibold section-header">Vykortsgrupper</h2>
+                    <div id="groups-list" class="space-y-2 mb-4 max-h-48 overflow-y-auto">
+                        </div>
+                    <form id="add-group-form" class="space-y-4">
+                        <input type="text" id="new-group-name" placeholder="Namn på grupp" required 
+                               class="form-group input">
+                        <input type="number" id="new-group-order" placeholder="Ordning (lägre nummer först)" value="0" 
+                               class="form-group input">
+                        <button type="submit" class="btn-primary w-full">Lägg till grupp</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2 class="font-display text-xl font-semibold section-header">Vykort</h2>
+                    <form id="add-postcard-form" class="space-y-4 mb-6">
+                        <input type="text" id="postcard-title" placeholder="Titel på vykort" required 
+                               class="form-group input">
+                        <input type="url" id="postcard-image-url" placeholder="URL till bild" required 
+                               class="form-group input">
+                        <div class="grid grid-cols-2 gap-3">
+                            <select id="postcard-group" required class="form-group input">
+                                <option value="">Välj grupp...</option>
+                            </select>
+                            <select id="postcard-price-group" required class="form-group input">
+                                <option value="">Välj prisgrupp...</option>
+                            </select>
+                        </div>
+                        <button type="submit" id="add-postcard-btn" class="btn-primary w-full">Lägg till vykort</button>
+                    </form>
+                    <div id="postcards-list" class="max-h-64 overflow-y-auto space-y-2">
+                        </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="font-display text-xl font-semibold section-header">Rea</h2>
+                    <div id="sales-list" class="space-y-2 mb-4 max-h-48 overflow-y-auto">
+                        </div>
+                    <form id="add-sale-form" class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <input type="text" id="sale-name" placeholder="Namn på rea" required 
+                                   class="form-group input">
+                            <input type="number" id="sale-value" placeholder="Värde" required step="0.01" 
+                                   class="form-group input">
+                            <select id="sale-type" class="form-group input">
+                                <option value="percent">Procent (%)</option>
+                                <option value="summa">Fast summa (kr)</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" id="no-time-limit" checked>
+                            <label for="no-time-limit" class="text-sm text-sage-700">Ingen tidsbegränsning</label>
+                        </div>
+                        <div id="sale-date-fields" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <input type="datetime-local" id="sale-start-date" class="form-group input">
+                            <input type="datetime-local" id="sale-end-date" class="form-group input">
+                        </div>
+                        <select id="sale-target-type" class="form-group input">
+                            <option value="all">Hela varukorgen</option>
+                            <option value="group">Specifik grupp</option>
+                            <option value="product">Specifik produkt</option>
                         </select>
-                    </div>
-                    <div class="flex items-center space-x-2 mb-2">
-                        <input type="checkbox" id="no-time-limit" checked>
-                        <label for="no-time-limit" class="text-sm">Ingen tidsbegränsning</label>
-                    </div>
-                    <div id="sale-date-fields" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <input type="datetime-local" id="sale-start-date" class="w-full p-2 border rounded-md">
-                        <input type="datetime-local" id="sale-end-date" class="w-full p-2 border rounded-md">
-                    </div>
-                    <select id="sale-timezone" class="w-full p-2 border rounded-md">
-                        <option value="UTC">UTC</option>
-                        <option value="Europe/Stockholm" selected>Europe/Stockholm</option>
-                    </select>
-                    <select id="sale-target-type" class="w-full p-2 border rounded-md">
-                        <option value="all">Hela varukorgen</option>
-                        <option value="group">Specifik grupp</option>
-                        <option value="product">Specifik produkt</option>
-                    </select>
-                    <div id="sale-target-select-container" class="hidden">
-                        <select id="sale-target-id" class="w-full p-2 border rounded-md"></select>
-                    </div>
-                    <button type="submit" class="w-full bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700">Lägg till rea</button>
-                </form>
+                        <div id="sale-target-select-container" class="hidden">
+                            <select id="sale-target-id" class="form-group input">
+                                <option value="">Välj mål...</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-primary w-full">Lägg till rea</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2 class="font-display text-xl font-semibold section-header">Nyheter</h2>
+                    <div id="news-list" class="space-y-2 mb-4 max-h-48 overflow-y-auto">
+                        </div>
+                    <form id="add-news-form" class="space-y-4">
+                        <input type="text" id="news-title" placeholder="Titel på nyhet" required 
+                               class="form-group input">
+                        <textarea id="news-text" placeholder="Nyhetstext" required rows="3" 
+                                  class="form-group input resize-none"></textarea>
+                        <input type="number" id="news-order" placeholder="Ordning (0 för senast)" value="0" 
+                               class="form-group input">
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" id="news-no-time-limit" checked>
+                            <label for="news-no-time-limit" class="text-sm text-sage-700">Ingen tidsbegränsning</label>
+                        </div>
+                        <div id="news-date-fields" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <input type="datetime-local" id="news-start-date" class="form-group input">
+                            <input type="datetime-local" id="news-end-date" class="form-group input">
+                        </div>
+                        <button type="submit" class="btn-primary w-full">Lägg till nyhet</button>
+                    </form>
+                </div>
             </div>
-            
-            <div class="card">
-                <h2 class="text-2xl font-bold mb-4">Nyheter</h2>
-                <div id="news-list" class="space-y-4 mb-4"></div>
-                <form id="add-news-form" class="space-y-4">
-                    <input type="text" id="news-title" placeholder="Titel på nyhet" required class="w-full p-2 border rounded-md">
-                    <textarea id="news-text" placeholder="Nyhetstext" required class="w-full p-2 border rounded-md"></textarea>
-                    <input type="number" id="news-order" placeholder="Ordning (0 för senast)" value="0" class="w-full p-2 border rounded-md">
-                    <div class="flex items-center space-x-2 mb-2">
-                        <input type="checkbox" id="news-no-time-limit" checked>
-                        <label for="news-no-time-limit" class="text-sm">Ingen tidsbegränsning</label>
+
+            <div class="card mt-8 hidden" id="admin-management-section">
+                <h2 class="font-display text-xl font-semibold section-header">Adminhantering</h2>
+                <form id="add-admin-form" class="space-y-4 mb-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input type="text" id="new-admin-username" placeholder="Nytt Admin-användarnamn" required 
+                               class="form-group input">
+                        <input type="password" id="new-admin-password" placeholder="Nytt Admin-lösenord" required 
+                               class="form-group input">
                     </div>
-                    <div id="news-date-fields" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <input type="datetime-local" id="news-start-date" class="w-full p-2 border rounded-md">
-                        <input type="datetime-local" id="news-end-date" class="w-full p-2 border rounded-md">
-                    </div>
-                    <button type="submit" class="w-full bg-orange-600 text-white py-2 rounded-md hover:bg-orange-700">Lägg till nyhet</button>
+                    <button type="submit" class="btn-primary">Lägg till Admin</button>
                 </form>
+                <div>
+                    <h3 class="font-display text-lg font-semibold mb-3">Befintliga administratörer</h3>
+                    <div id="admin-list" class="space-y-2 max-h-32 overflow-y-auto">
+                        </div>
+                </div>
             </div>
         </section>
-        
-        <div class="card mt-6 hidden" id="admin-management-section">
-            <h2 class="text-2xl font-bold mb-4">Adminhantering</h2>
-            <form id="add-admin-form">
-                <input type="text" id="new-admin-username" placeholder="Nytt Admin-användarnamn" required class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
-                <input type="password" id="new-admin-password" placeholder="Nytt Admin-lösenord" required class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
-                <button type="submit" id="add-admin-btn" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300">Lägg till Admin</button>
-            </form>
-            <div class="mt-8">
-                <h3 class="text-xl font-bold mb-2">Befintliga administratörer</h3>
-                <div id="admin-list" class="space-y-2">
-                    </div>
-            </div>
-        </div>
 
         <div id="messageModal" class="modal">
-            <div class="modal-content">
-                <p id="modal-message"></p>
-                <button onclick="document.getElementById('messageModal').classList.remove('active')" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md">OK</button>
+            <div class="modal-content text-center">
+                <p id="modal-message" class="mb-4"></p>
+                <button onclick="document.getElementById('messageModal').classList.remove('active')" 
+                        class="btn-primary">OK</button>
             </div>
         </div>
+        
         <div id="confirmationModal" class="modal">
-            <div class="modal-content">
-                <p id="confirm-message"></p>
-                <div class="flex justify-center space-x-4 mt-4">
-                    <button id="confirm-yes-btn" class="px-4 py-2 bg-green-600 text-white rounded-md">Ja</button>
-                    <button id="confirm-no-btn" class="px-4 py-2 bg-gray-600 text-white rounded-md">Nej</button>
+            <div class="modal-content text-center">
+                <p id="confirm-message" class="mb-6"></p>
+                <div class="flex justify-center space-x-4">
+                    <button id="confirm-yes-btn" class="btn-primary">Ja</button>
+                    <button id="confirm-no-btn" class="btn-secondary">Nej</button>
                 </div>
             </div>
         </div>
         
         <div id="editNewsModal" class="modal">
             <div class="modal-content text-left">
-                <h2 class="text-2xl font-bold mb-4">Redigera nyhet</h2>
+                <h2 class="font-display text-xl font-semibold mb-4">Redigera nyhet</h2>
                 <form id="edit-news-form" class="space-y-4">
                     <input type="hidden" id="edit-news-id">
                     <div class="form-group">
-                        <label for="edit-news-title">Titel på nyhet:</label>
-                        <input type="text" id="edit-news-title" required class="w-full p-2 border rounded-md">
+                        <label for="edit-news-title">Titel:</label>
+                        <input type="text" id="edit-news-title" required class="form-group input">
                     </div>
                     <div class="form-group">
-                        <label for="edit-news-text">Nyhetstext:</label>
-                        <textarea id="edit-news-text" required class="w-full p-2 border rounded-md"></textarea>
+                        <label for="edit-news-text">Text:</label>
+                        <textarea id="edit-news-text" required rows="3" class="form-group input resize-none"></textarea>
                     </div>
                     <div class="form-group">
                         <label for="edit-news-order">Ordning:</label>
-                        <input type="number" id="edit-news-order" class="w-full p-2 border rounded-md">
+                        <input type="number" id="edit-news-order" class="form-group input">
                     </div>
-                    <div class="flex items-center space-x-2 mb-2">
+                    <div class="flex items-center space-x-2">
                         <input type="checkbox" id="edit-news-no-time-limit">
-                        <label for="edit-news-no-time-limit" class="text-sm">Ingen tidsbegränsning</label>
+                        <label for="edit-news-no-time-limit" class="text-sm text-sage-700">Ingen tidsbegränsning</label>
                     </div>
-                    <div id="edit-news-date-fields" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div id="edit-news-date-fields" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="form-group">
                             <label for="edit-news-start-date">Startdatum:</label>
-                            <input type="datetime-local" id="edit-news-start-date" class="w-full p-2 border rounded-md">
+                            <input type="datetime-local" id="edit-news-start-date" class="form-group input">
                         </div>
                         <div class="form-group">
                             <label for="edit-news-end-date">Slutdatum:</label>
-                            <input type="datetime-local" id="edit-news-end-date" class="w-full p-2 border rounded-md">
+                            <input type="datetime-local" id="edit-news-end-date" class="form-group input">
                         </div>
                     </div>
-                    <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">Spara ändringar</button>
+                    <button type="submit" class="btn-primary w-full">Spara ändringar</button>
                 </form>
             </div>
         </div>
     </main>
 
-    <footer class="bg-gray-800 text-white text-center py-4 mt-8">
-        <div class="container text-sm">
-            <p>&copy; 2025 Bultens.net</p>
+    <footer class="bg-sage-100 border-t border-sage-200 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="text-center">
+                <p class="text-sage-600 text-sm">&copy; 2025 Vykortsbutik Adminpanel</p>
+            </div>
         </div>
     </footer>
 
-    <script type="module" src="./admin-functions.js"></script>
+    <script type="module" src="admin-functions.js"></script>
     <script type="module">
     import { 
         initializeApp 
@@ -361,7 +520,7 @@
         getAuth, onAuthStateChanged, signOut 
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { 
-        getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc, serverTimestamp 
+        getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc, serverTimestamp, setDoc 
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { firebaseConfig } from "./firebase-config.js";
     import { 
@@ -395,11 +554,10 @@
         unsubscribeOrders: null,
         firebase: {
             initializeApp, getAuth, onAuthStateChanged, signOut,
-            getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc, serverTimestamp
+            getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc, serverTimestamp, setDoc
         }
     };
     
-    // Expose functions to global scope (window) for inline HTML event handlers
     window.editPriceGroup = (id) => editPriceGroup(window.globalState, id);
     window.deletePriceGroup = (id) => deletePriceGroup(window.globalState, id);
     window.editGroup = (id) => editGroup(window.globalState, id);
@@ -427,7 +585,7 @@
                     document.getElementById('admin-user-info').textContent = `Du är inloggad som ${localStorage.getItem('adminUsername')}.`;
                     startAdminListeners();
                     document.getElementById('order-status-summary').classList.remove('hidden');
-                    document.getElementById('orders-link-container').classList.remove('hidden');
+                    document.getElementById('orders-link').classList.remove('hidden');
                 } else {
                     document.getElementById('admin-login-panel').classList.remove('hidden');
                 }
@@ -440,11 +598,6 @@
         }
 
         document.getElementById('login-btn').addEventListener('click', () => handleLogin(window.globalState.db, window.globalState.appId));
-        document.getElementById('admin-password').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                handleLogin(window.globalState.db, window.globalState.appId);
-            }
-        });
         document.getElementById('logout-btn').addEventListener('click', () => handleLogout(window.globalState));
         
         document.getElementById('add-price-group-form').addEventListener('submit', async (e) => {
@@ -458,6 +611,7 @@
             await addPriceGroup(window.globalState, name, prices);
             e.target.reset();
         });
+        
         document.getElementById('add-group-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('new-group-name').value;
@@ -465,11 +619,13 @@
             await addGroup(window.globalState, name, order);
             e.target.reset();
         });
+        
         document.getElementById('add-postcard-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             await addOrUpdatePostcard(window.globalState);
             e.target.reset();
         });
+        
         document.getElementById('add-admin-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('new-admin-username').value;
@@ -502,12 +658,11 @@
             const type = document.getElementById('sale-type').value;
             const targetType = document.getElementById('sale-target-type').value;
             const noTimeLimit = document.getElementById('no-time-limit').checked;
-            let startDate = null, endDate = null, timezone = null;
+            let startDate = null, endDate = null, timezone = 'Europe/Stockholm';
 
             if (!noTimeLimit) {
                 startDate = document.getElementById('sale-start-date').value;
                 endDate = document.getElementById('sale-end-date').value;
-                timezone = document.getElementById('sale-timezone').value;
             }
             let targetId = (targetType === 'group' || targetType === 'product') ? document.getElementById('sale-target-id').value : '';
             

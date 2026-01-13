@@ -3,27 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vykortsbutik</title>
+    <title>Vykortsbutik - Konstverk som vykort</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        :root {
+            --sage-50: #f6f7f6;
+            --sage-100: #e3e7e3;
+            --sage-200: #c7d0c7;
+            --sage-300: #a1b2a1;
+            --sage-400: #7a917a;
+            --sage-500: #5d755d;
+            --sage-600: #495d49;
+            --sage-700: #3c4c3c;
+            --sage-800: #323f32;
+            --sage-900: #2b352b;
+            
+            --terracotta-50: #fdf6f3;
+            --terracotta-100: #fae9e1;
+            --terracotta-200: #f4d5c4;
+            --terracotta-300: #ecb892;
+            --terracotta-400: #e19658;
+            --terracotta-500: #d4722a;
+            --terracotta-600: #c05621;
+            --terracotta-700: #9f4219;
+            --terracotta-800: #823618;
+            --terracotta-900: #6b3017;
+            
+            --charcoal: #2c2c2c;
+            --warm-white: #fefefe;
+            --soft-gray: #f8f9fa;
+        }
+        
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            color: #1f2937;
+            background-color: var(--warm-white);
+            color: var(--charcoal);
+            line-height: 1.6;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
+        
+        .font-display {
+            font-family: 'Playfair Display', serif;
         }
-        .card {
-            background-color: #ffffff;
+        
+        .bg-sage-50 { background-color: var(--sage-50); }
+        .bg-sage-100 { background-color: var(--sage-100); }
+        .bg-terracotta-600 { background-color: var(--terracotta-600); }
+        .bg-terracotta-700 { background-color: var(--terracotta-700); }
+        .text-sage-600 { color: var(--sage-600); }
+        .text-sage-700 { color: var(--sage-700); }
+        .text-sage-800 { color: var(--sage-800); }
+        .text-terracotta-600 { color: var(--terracotta-600); }
+        .text-terracotta-700 { color: var(--terracotta-700); }
+        .border-sage-200 { border-color: var(--sage-200); }
+        .border-sage-300 { border-color: var(--sage-300); }
+        
+        .hero-gradient {
+            background: linear-gradient(135deg, var(--sage-50) 0%, var(--terracotta-50) 100%);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .postcard-image-wrapper {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
             border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            padding: 2rem;
-            margin-bottom: 1.5rem;
         }
+        
+        .postcard-image-wrapper.portrait {
+            padding-top: 141.42%;
+        }
+        
+        .postcard-image-wrapper.landscape {
+            padding-top: 70.71%;
+        }
+        
+        .postcard-image-wrapper img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .postcard-card:hover .postcard-image-wrapper img {
+            transform: scale(1.05);
+        }
+        
+        .btn-primary {
+            background-color: var(--terracotta-600);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--terracotta-700);
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background-color: var(--sage-100);
+            color: var(--sage-700);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--sage-200);
+            color: var(--sage-800);
+        }
+        
         .modal {
             position: fixed;
             z-index: 1000;
@@ -40,214 +149,468 @@
             visibility: hidden;
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
+        
         .modal.active {
             opacity: 1;
             visibility: visible;
         }
+        
         .modal-content {
-            background-color: #fefefe;
-            padding: 20px;
-            border: 1px solid #888;
-            border-radius: 0.75rem;
-            width: 80%;
+            background-color: var(--warm-white);
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 90%;
             max-width: 600px;
-            text-align: left;
             max-height: 90vh;
             overflow-y: auto;
+            position: relative;
         }
+        
         .modal-close-btn {
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+            font-weight: 300;
             cursor: pointer;
+            color: var(--sage-600);
+            transition: color 0.2s ease;
         }
-        .modal-close-btn:hover,
-        .modal-close-btn:focus {
-            color: #000;
-            text-decoration: none;
-            cursor: pointer;
+        
+        .modal-close-btn:hover {
+            color: var(--sage-800);
         }
+        
         .confirmation-message {
             position: fixed;
             bottom: 2rem;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #10B981; /* Tailwind green-500 */
+            background-color: var(--terracotta-600);
             color: white;
             padding: 0.75rem 1.5rem;
-            border-radius: 9999px; /* Tailwind rounded-full */
+            border-radius: 9999px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             z-index: 1001;
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
         }
+        
         .confirmation-message.active {
             opacity: 1;
         }
+        
         .news-item {
-            border-left: 4px solid #3b82f6;
-            background-color: #eff6ff;
-            padding: 1rem;
-            border-radius: 0.5rem;
+            border-left: 4px solid var(--terracotta-600);
+            background-color: var(--terracotta-50);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
             margin-bottom: 1rem;
         }
-        .postcard-image-wrapper {
-            position: relative;
-            width: 100%;
-            overflow: hidden;
+        
+        .filter-select {
+            background-color: var(--warm-white);
+            border: 2px solid var(--sage-200);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            color: var(--charcoal);
+            transition: border-color 0.2s ease;
         }
-        .postcard-image-wrapper.portrait {
-            padding-top: 141.42%; /* A4 portrait ratio: 1/sqrt(2) */
+        
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--terracotta-600);
         }
-        .postcard-image-wrapper.landscape {
-            padding-top: 70.71%; /* A4 landscape ratio: 1/sqrt(2) */
+        
+        .price-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background-color: var(--sage-100);
+            color: var(--sage-700);
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
         }
-        .postcard-image-wrapper img {
+        
+        .sale-badge {
+            background-color: var(--terracotta-600);
+            color: white;
+        }
+        
+        .cart-count {
+            background-color: var(--terracotta-600);
+            color: white;
+            font-size: 0.75rem;
+            border-radius: 9999px;
+            min-width: 1.25rem;
+            height: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
+            top: -0.5rem;
+            right: -0.5rem;
         }
-        .cart-item-details {
-            display: grid;
-            grid-template-columns: auto 1fr;
-            gap: 0.5rem 1rem;
+        
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--sage-200), transparent);
+            margin: 3rem 0;
         }
-        .cart-item-details strong {
-            justify-self: start;
-        }
-        .cart-item-details span {
-            justify-self: end;
-            text-align: right;
-        }
-        .sticky-header {
-            position: sticky;
-            top: 0;
-            z-index: 50; /* Adjust z-index as needed to ensure it's on top of other content */
+        
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 95%;
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <header class="bg-gray-800 text-white shadow-lg sticky-header">
-        <div class="container py-4 flex justify-between items-center">
-            <span class="text-3xl font-bold tracking-tight">Vykortsbutik</span>
-            <div class="flex space-x-4 items-center">
-                <button id="cart-btn" class="relative hover:text-gray-300 transition duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                    <span id="cart-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">0</span>
-                </button>
-                <div id="user-status" class="text-sm font-medium">
-                    <a href="#" id="login-link" class="hover:text-gray-300 transition duration-300">Logga in</a>
+    <header class="bg-white shadow-sm sticky top-0 z-50 border-b border-sage-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <h1 class="font-display text-2xl font-bold text-sage-800">Vykortsbutik</h1>
+                    <span class="text-xs text-sage-600 bg-sage-100 px-2 py-1 rounded-full">v2.09</span>
                 </div>
-                <a href="admin.html" class="hover:text-gray-300 transition duration-300">Adminpanel</a>
+                
+                <nav class="flex items-center space-x-6">
+                    <button id="cart-btn" class="relative p-2 text-sage-600 hover:text-terracotta-600 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <span id="cart-count" class="cart-count">0</span>
+                    </button>
+                    
+                    <div id="user-status" class="text-sm">
+                        <a href="#" id="login-link" class="text-sage-600 hover:text-terracotta-600 transition-colors font-medium">Logga in</a>
+                    </div>
+                    
+                    <a href="admin.html" class="text-sage-600 hover:text-terracotta-600 transition-colors text-sm font-medium">Admin</a>
+                </nav>
             </div>
         </div>
     </header>
 
-    <div class="text-center mt-2 text-gray-500 text-sm">Version 2.09</div>
-
-    <div class="container text-center py-4 text-gray-700 leading-relaxed">
-        <p>Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.</p>
-        <br>
-        <p class="font-bold">Storlekar:</p>
-        <ul class="list-disc list-inside mx-auto max-w-lg text-left">
-            <li>Liten (A6, 105 × 148 mm, 4.1 × 5.8 tum)</li>
-            <li>Mellan (A5, 148 × 210 mm, 5.8 × 8.3 tum)</li>
-            <li>Stor (A4, 210 × 297 mm, 8.3 × 11.7 tum)</li>
-        </ul>
-        <br>
-        <p class="font-bold">Leveranstid:</p>
-        <p>Leverans tar 3 till 15 dagar, beroende på destination. Vänligen kontakta mig för en mer exakt uppskattning.</p>
-    </div>
-
-    <div id="news-section" class="container py-4 hidden">
-        <hr class="my-6">
-        <h2 class="text-3xl font-bold mb-4 text-center">Nyheter</h2>
-        <div id="news-list">
+    <main>
+        <section class="hero-gradient py-16">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto">
+                    <h2 class="font-display text-5xl font-bold text-charcoal mb-6">
+                        Konstverk som vykort
+                    </h2>
+                    <p class="text-lg text-sage-700 mb-8 leading-relaxed">
+                        Du kan beställa vilket som helst av mina konstverk som vykort till vem som helst i världen! 
+                        Alla vykort trycks och skickas från ett professionellt tryckeri i Sverige.
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                        <div class="bg-white/60 backdrop-blur-sm p-6 rounded-xl">
+                            <h3 class="font-display text-xl font-semibold text-charcoal mb-3">Storlekar</h3>
+                            <ul class="space-y-2 text-sm text-sage-700">
+                                <li><strong>Liten:</strong> A6 (105 × 148 mm)</li>
+                                <li><strong>Mellan:</strong> A5 (148 × 210 mm)</li>
+                                <li><strong>Stor:</strong> A4 (210 × 297 mm)</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white/60 backdrop-blur-sm p-6 rounded-xl">
+                            <h3 class="font-display text-xl font-semibold text-charcoal mb-3">Leveranstid</h3>
+                            <p class="text-sm text-sage-700">
+                                3 till 15 dagar, beroende på destination. 
+                                <a href="#contact" class="text-terracotta-600 hover:underline">Kontakta mig</a> 
+                                för en mer exakt uppskattning.
+                            </p>
+                        </div>
+                        
+                        <div class="bg-white/60 backdrop-blur-sm p-6 rounded-xl">
+                            <h3 class="font-display text-xl font-semibold text-charcoal mb-3">Betalning</h3>
+                            <p class="text-sm text-sage-700">
+                                Betala enkelt med Swish när du lagt din beställning. 
+                                Du får all information i kassan.
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
-        <hr class="my-6">
-    </div>
+        </section>
 
-    <main id="main-content" class="container">
-        <h1 class="text-4xl font-bold mb-6 text-center">Vykort</h1>
-        <div id="filter-section" class="mb-6 flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-            <div>
-                <label for="group-filter" class="block text-sm font-medium text-gray-700">Filtrera efter grupp:</label>
-                <select id="group-filter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"></select>
-            </div>
+        <div id="news-section" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 hidden">
+            <div class="section-divider"></div>
+            <h2 class="font-display text-3xl font-bold text-center mb-8">Nyheter</h2>
+            <div id="news-list" class="max-w-4xl mx-auto">
+                </div>
+            <div class="section-divider"></div>
         </div>
-        <div id="postcards-list">
+
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                <h2 class="font-display text-4xl font-bold">Vykort</h2>
+                <div class="min-w-[200px]">
+                    <label for="group-filter" class="block text-sm font-medium text-sage-700 mb-2">Filtrera efter grupp</label>
+                    <select id="group-filter" class="filter-select w-full">
+                        <option value="all">Alla grupper</option>
+                    </select>
+                </div>
             </div>
+            
+            <div id="postcards-list">
+                <div class="text-center py-12">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-terracotta-600"></div>
+                    <p class="text-sage-600 mt-4">Laddar vykort...</p>
+                </div>
+            </div>
+        </section>
     </main>
     
     <div id="cartModal" class="modal">
         <div class="modal-content">
             <span id="close-cart-modal" class="modal-close-btn">&times;</span>
-            <h2 class="text-2xl font-bold mb-4">Varukorg</h2>
-            <div id="cart-items" class="space-y-4 mb-4"></div>
-            <div id="cart-summary" class="text-right font-bold text-lg border-t pt-4">
-                <div class="flex justify-between items-center mb-2">
+            <h2 class="font-display text-2xl font-bold mb-6">Varukorg</h2>
+            <div id="cart-items" class="space-y-4 mb-6">
+                <p class="text-sage-600 text-center py-8">Varukorgen är tom</p>
+            </div>
+            <div id="cart-summary" class="border-t border-sage-200 pt-4">
+                <div class="flex justify-between items-center mb-2 text-sm">
                     <span>Totalt (exkl. rea):</span>
-                    <span id="cart-subtotal">0 kr</span>
+                    <span id="cart-subtotal" class="font-medium">0 kr</span>
                 </div>
-                <div id="cart-total-discount-container" class="flex justify-between items-center mb-2 hidden">
+                <div id="cart-total-discount-container" class="flex justify-between items-center mb-2 text-sm text-green-600 hidden">
                     <span>Rabatt på hela korgen:</span>
                     <span id="cart-total-discount">-0 kr</span>
                 </div>
-                <div id="cart-rounding-container" class="flex justify-between items-center mb-2 hidden">
+                <div id="cart-rounding-container" class="flex justify-between items-center mb-2 text-sm text-sage-600 hidden">
                     <span>Öresutjämning:</span>
                     <span id="cart-rounding">0 kr</span>
                 </div>
-                <div class="flex justify-between items-center mb-2">
+                <div class="flex justify-between items-center mb-4 text-lg font-semibold">
                     <span>Att betala:</span>
-                    <span id="cart-total">0 kr</span>
+                    <span id="cart-total" class="text-terracotta-600">0 kr</span>
                 </div>
-                <button id="clear-cart-btn" class="px-4 py-2 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 transition duration-300">Töm varukorg</button>
+                <div class="flex gap-3">
+                    <button id="clear-cart-btn" class="btn-secondary flex-1">Töm varukorg</button>
+                    <button id="checkout-btn" class="btn-primary flex-1">Gå till kassan</button>
+                </div>
             </div>
-            <button id="checkout-btn" class="mt-4 w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300">Gå till kassan</button>
         </div>
     </div>
     
     <div id="postcardModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content max-w-4xl">
             <span id="close-postcard-modal" class="modal-close-btn">&times;</span>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="flex flex-col items-center text-center">
-                    <div id="modal-image-wrapper" class="w-full mb-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="flex flex-col">
+                    <div id="modal-image-wrapper" class="w-full mb-4 postcard-image-wrapper">
                         <img id="modal-image" src="" alt="" class="w-full h-auto rounded-lg">
                     </div>
-                    <h3 id="modal-title" class="text-xl font-bold mb-2"></h3>
+                    <h3 id="modal-title" class="font-display text-2xl font-bold text-center"></h3>
                 </div>
-                <div id="modal-form-section" class="space-y-4">
-                    <form id="add-to-cart-form">
+                <div id="modal-form-section">
+                    <form id="add-to-cart-form" class="space-y-6">
                         <input type="hidden" id="modal-postcard-id">
-                        <input type="hidden" id="modal-cart-item-index"> 
-                        <div class="form-group">
-                            <label class="block font-bold">Välj storlek:</label>
-                            <div id="modal-size-options" class="flex flex-col space-y-2"></div>
+                        <input type="hidden" id="modal-cart-item-index">
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-sage-700 mb-3">Välj storlek:</label>
+                            <div id="modal-size-options" class="space-y-2"></div>
                         </div>
-                        <div class="form-group">
-                            <label for="modal-recipient-name" class="block font-bold">Skickas till:</label>
-                            <input type="text" id="modal-recipient-name" name="recipientName" placeholder="Namn" class="w-full p-2 border rounded-md" required>
-                            <input type="text" id="modal-recipient-address" name="recipientAddress" placeholder="Adress" class="w-full p-2 mt-2 border rounded-md" required>
-                            <input type="text" id="modal-recipient-address2" name="recipientAddress2" placeholder="Adress 2 (valfritt)" class="w-full p-2 mt-2 border rounded-md">
-                            <input type="text" id="modal-recipient-zip" name="recipientZip" placeholder="Postadress" class="w-full p-2 mt-2 border rounded-md" required>
-                            <input type="text" id="modal-recipient-city" name="recipientCity" placeholder="Ort" class="w-full p-2 mt-2 border rounded-md" required>
-                            <input type="text" id="modal-recipient-country" name="recipientCountry" placeholder="Land" class="w-full p-2 mt-2 border rounded-md" required>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-sage-700 mb-3">Skickas till:</label>
+                            <div class="space-y-3">
+                                <input type="text" id="modal-recipient-name" name="recipientName" placeholder="Namn" required 
+                                       class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
+                                <input type="text" id="modal-recipient-address" name="recipientAddress" placeholder="Adress" required 
+                                       class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
+                                <input type="text" id="modal-recipient-address2" name="recipientAddress2" placeholder="Adress 2 (valfritt)" 
+                                       class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <input type="text" id="modal-recipient-zip" name="recipientZip" placeholder="Postadress" required 
+                                           class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
+                                    <input type="text" id="modal-recipient-city" name="recipientCity" placeholder="Ort" required 
+                                           class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
+                                </div>
+                                <input type="text" id="modal-recipient-country" name="recipientCountry" placeholder="Land" required 
+                                       class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="modal-message-text" class="block font-bold">Text på kort:</label>
-                            <textarea id="modal-message-text" name="messageText" rows="4" placeholder="Skriv din text här..." class="w-full p-2 border rounded-md"></textarea>
+                        
+                        <div>
+                            <label for="modal-message-text" class="block text-sm font-medium text-sage-700 mb-3">Text på kort:</label>
+                            <textarea id="modal-message-text" name="messageText" rows="4" placeholder="Skriv din personliga hälsning här..." 
+                                      class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent resize-none"></textarea>
                         </div>
-                        <button type="submit" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300">Lägg i varukorgen</button>
+                        
+                        <button type="submit" class="btn-primary w-full">Lägg i varukorgen</button>
                     </form>
                 </div>
             </div>
+        </div>
+    </div>
+    
+    <div id="userModal" class="modal">
+        <div class="modal-content max-w-md">
+            <span id="close-user-modal" class="modal-close-btn">&times;</span>
+            <h2 class="font-display text-2xl font-bold mb-6 text-center" id="user-modal-title">Logga in</h2>
+            <div id="user-form-container">
+                <form id="login-form" class="space-y-4">
+                    <input type="email" id="login-email" placeholder="E-postadress" required 
+                           class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
+                    <input type="password" id="login-password" placeholder="Lösenord" required 
+                           class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
+                    <button type="submit" class="btn-primary w-full">Logga in</button>
+                </form>
+                
+                <button id="register-switch" class="w-full text-terracotta-600 hover:underline text-sm font-medium mt-4">
+                    Har du inget konto? Skapa ett här!
+                </button>
+                
+                <form id="register-form" class="space-y-4 hidden">
+                    <input type="text" id="register-username" placeholder="Användarnamn" required 
+                           class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
+                    <input type="email" id="register-email" placeholder="E-postadress" required 
+                           class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
+                    <input type="password" id="register-password" placeholder="Lösenord" required 
+                           class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
+                    <button type="submit" class="btn-primary w-full">Skapa konto</button>
+                </form>
+                
+                <button id="login-switch" class="w-full text-terracotta-600 hover:underline text-sm font-medium mt-4 hidden">
+                    Har du redan ett konto? Logga in här!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="checkoutModal" class="modal">
+        <div class="modal-content max-w-3xl">
+            <span id="close-checkout-modal" class="modal-close-btn">&times;</span>
+            <h2 class="font-display text-2xl font-bold mb-6">Kassa</h2>
+            <div id="checkout-content">
+                <div id="checkout-start-section" class="card-hover bg-sage-50 p-8 rounded-xl text-center">
+                    <h3 class="font-display text-xl font-semibold mb-4">Fortsätt till kassan</h3>
+                    <p class="text-sage-700 mb-6">Vill du logga in för att spara din orderhistorik, eller fortsätta som gäst?</p>
+                    <div class="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+                        <button id="guest-checkout-btn" class="btn-secondary flex-1">Fortsätt som gäst</button>
+                        <button id="login-checkout-btn" class="btn-primary flex-1">Logga in / Skapa konto</button>
+                    </div>
+                </div>
+
+                <div id="checkout-login-section" class="hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="card-hover bg-sage-50 p-6 rounded-xl">
+                            <h4 class="font-display text-lg font-semibold mb-4">Logga in</h4>
+                            <form id="checkout-login-form" class="space-y-4">
+                                <input type="email" id="checkout-login-email" placeholder="E-postadress" 
+                                       class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
+                                <input type="password" id="checkout-login-password" placeholder="Lösenord" 
+                                       class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
+                                <button type="submit" class="btn-primary w-full">Logga in</button>
+                            </form>
+                        </div>
+                        
+                        <div class="card-hover bg-sage-50 p-6 rounded-xl">
+                            <h4 class="font-display text-lg font-semibold mb-4">Skapa konto</h4>
+                            <form id="checkout-register-form" class="space-y-4">
+                                <input type="text" id="checkout-register-username" placeholder="Användarnamn" 
+                                       class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
+                                <input type="email" id="checkout-register-email" placeholder="E-postadress" 
+                                       class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
+                                <input type="password" id="checkout-register-password" placeholder="Lösenord" 
+                                       class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
+                                <button type="submit" class="btn-primary w-full">Skapa konto</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="order-history-section" class="hidden">
+                    <h3 class="font-display text-xl font-semibold mb-4">Tidigare ordrar</h3>
+                    <div id="order-history-list">
+                        <p class="text-sage-600 text-center py-8">Inga tidigare ordrar hittades.</p>
+                    </div>
+                </div>
+
+                <div id="billing-info-section" class="hidden">
+                    <h3 class="font-display text-xl font-semibold mb-6">Dina uppgifter</h3>
+                    <form id="billing-info-form" class="space-y-4 max-w-2xl">
+                        <div>
+                            <label for="billing-name" class="block text-sm font-medium text-sage-700 mb-2">Namn</label>
+                            <input type="text" id="billing-name" required 
+                                   class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label for="billing-address" class="block text-sm font-medium text-sage-700 mb-2">Adress</label>
+                            <input type="text" id="billing-address" required 
+                                   class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="billing-zip" class="block text-sm font-medium text-sage-700 mb-2">Postnummer</label>
+                                <input type="text" id="billing-zip" required 
+                                       class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label for="billing-city" class="block text-sm font-medium text-sage-700 mb-2">Ort</label>
+                                <input type="text" id="billing-city" required 
+                                       class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="billing-mobile" class="block text-sm font-medium text-sage-700 mb-2">Mobilnummer</label>
+                            <input type="tel" id="billing-mobile" required 
+                                   class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label for="billing-email" class="block text-sm font-medium text-sage-700 mb-2">E-postadress</label>
+                            <input type="email" id="billing-email" required 
+                                   class="w-full p-3 border border-sage-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 focus:border-transparent">
+                        </div>
+                        <button type="submit" class="btn-primary w-full">Slutför beställning</button>
+                    </form>
+                </div>
+                
+                <div id="order-confirmation-section" class="hidden text-center">
+                    <div class="bg-green-50 p-8 rounded-xl">
+                        <h3 class="font-display text-2xl font-bold text-green-700 mb-4">Din beställning är mottagen!</h3>
+                        <p class="text-sage-700 mb-4">Din beställning är nu mottagen och avvaktar betalning innan den skickas.</p>
+                        
+                        <div class="bg-white p-6 rounded-lg mb-6 max-w-md mx-auto">
+                            <p class="text-sm text-sage-600 mb-2">Betalning kan ske via Swish till:</p>
+                            <p class="font-bold text-lg text-charcoal">
+                                <span id="swish-number-display">070-224 90 15</span> 
+                                (<span id="swish-name-display">Mats Jonsson</span>)
+                            </p>
+                            <div class="mt-4 space-y-2 text-sm">
+                                <p>Ordernummer: <strong class="font-mono" id="order-id-display"></strong></p>
+                                <p>Summa att betala: <strong id="order-total-display"></strong> kr</p>
+                            </div>
+                        </div>
+                        
+                        <div id="swish-qr-container" class="flex flex-col items-center">
+                            <p class="text-sm font-medium text-sage-700 mb-3">Skanna QR-koden för att betala direkt:</p>
+                            <div id="swish-qr-code" class="w-48 h-48 bg-white border-2 border-sage-200 rounded-lg flex items-center justify-center">
+                                <span class="text-sage-400 text-sm">QR-kod genereras...</span>
+                            </div>
+                        </div>
+                        
+                        <p class="text-sm text-sage-600 mt-6 max-w-md mx-auto">
+                            Ett mail med betalningsinformation kommer skickas, och vi uppdaterar dig med statusändringar. 
+                            Om du skapade ett konto kommer statusen även uppdateras där.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="errorModal" class="modal">
+        <div class="modal-content max-w-sm">
+            <h3 id="error-modal-title" class="font-display text-xl font-bold text-red-600 mb-4">Ett fel uppstod</h3>
+            <p id="error-modal-message" class="text-sage-700 mb-6"></p>
+            <button id="close-error-modal" class="btn-primary w-full">OK</button>
         </div>
     </div>
     
@@ -255,125 +618,12 @@
         Vara tillagd i varukorgen!
     </div>
 
-    <div id="userModal" class="modal">
-        <div class="modal-content max-w-md mx-auto">
-            <span id="close-user-modal" class="modal-close-btn">&times;</span>
-            <h2 class="text-2xl font-bold mb-4 text-center" id="user-modal-title">Logga in</h2>
-            <div id="user-form-container">
-                <form id="login-form" class="space-y-4">
-                    <input type="email" id="login-email" placeholder="E-postadress" class="w-full p-3 rounded-lg border border-gray-300">
-                    <input type="password" id="login-password" placeholder="Lösenord" class="w-full p-3 rounded-lg border border-gray-300">
-                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700">Logga in</button>
-                </form>
-                <button id="register-switch" class="mt-4 w-full text-blue-600 font-bold hover:underline">Har du inget konto? Skapa ett här!</button>
-                <form id="register-form" class="space-y-4 hidden">
-                    <input type="text" id="register-username" placeholder="Användarnamn" class="w-full p-3 rounded-lg border border-gray-300">
-                    <input type="email" id="register-email" placeholder="E-postadress" class="w-full p-3 rounded-lg border border-gray-300">
-                    <input type="password" id="register-password" placeholder="Lösenord" class="w-full p-3 rounded-lg border border-gray-300">
-                    <button type="submit" class="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-md hover:bg-green-700">Skapa konto</button>
-                </form>
-                <button id="login-switch" class="mt-4 w-full text-blue-600 font-bold hover:underline hidden">Har du redan ett konto? Logga in här!</button>
+    <footer class="bg-sage-50 border-t border-sage-200 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="text-center">
+                <p class="text-sage-600 text-sm">&copy; 2025 Vykortsbutik. Alla rättigheter förbehållna.</p>
+                <p class="text-sage-500 text-xs mt-2">Konstverk trycks och skickas från professionellt tryckeri i Sverige</p>
             </div>
-        </div>
-    </div>
-
-    <div id="checkoutModal" class="modal">
-        <div class="modal-content max-w-3xl mx-auto">
-            <span id="close-checkout-modal" class="modal-close-btn">&times;</span>
-            <h2 class="text-2xl font-bold mb-4">Kassa</h2>
-            <div id="checkout-content">
-                <div id="checkout-start-section" class="mb-6 card text-center">
-                    <h3 class="text-xl font-bold mb-4">Fortsätt till kassan</h3>
-                    <p class="mb-4">Vill du logga in för att spara din orderhistorik, eller fortsätta som gäst?</p>
-                    <div class="space-y-4">
-                        <button id="guest-checkout-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300">Fortsätt som gäst</button>
-                        <button id="login-checkout-btn" class="w-full bg-gray-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-700 transition duration-300">Logga in / Skapa konto</button>
-                    </div>
-                </div>
-
-                <div id="checkout-login-section" class="mb-6 card hidden">
-                    <h3 class="text-xl font-bold mb-4">Steg 1: Logga in / Skapa konto</h3>
-                    <form id="checkout-login-form" class="space-y-2">
-                        <h4 class="font-semibold">Logga in</h4>
-                        <input type="email" id="checkout-login-email" placeholder="E-postadress" class="w-full p-2 border rounded-md">
-                        <input type="password" id="checkout-login-password" placeholder="Lösenord" class="w-full p-2 border rounded-md">
-                        <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700">Logga in</button>
-                    </form>
-                    <hr class="my-4">
-                    <form id="checkout-register-form" class="space-y-2">
-                        <h4 class="font-semibold">Skapa konto</h4>
-                        <input type="text" id="checkout-register-username" placeholder="Användarnamn" class="w-full p-2 border rounded-md">
-                        <input type="email" id="checkout-register-email" placeholder="E-postadress" class="w-full p-2 border rounded-md">
-                        <input type="password" id="checkout-register-password" placeholder="Lösenord" class="w-full p-2 border rounded-md">
-                        <button type="submit" class="bg-green-600 text-white font-bold py-2 px-4 rounded-md hover:bg-green-700">Skapa konto</button>
-                    </form>
-                </div>
-
-                <div id="order-history-section" class="mb-6 card hidden">
-                    <h3 class="text-xl font-bold mb-4">Tidigare ordrar</h3>
-                    <div id="order-history-list" class="space-y-4">
-                        <p class="text-gray-500">Inga tidigare ordrar hittades.</p>
-                    </div>
-                </div>
-
-                <div id="billing-info-section" class="mb-6 card hidden">
-                    <h3 class="text-xl font-bold mb-4">Steg 2: Dina uppgifter</h3>
-                    <form id="billing-info-form" class="space-y-4">
-                        <div>
-                            <label for="billing-name" class="block text-sm font-medium text-gray-700">Namn</label>
-                            <input type="text" id="billing-name" required class="mt-1 block w-full p-2 border rounded-md">
-                        </div>
-                        <div>
-                            <label for="billing-address" class="block text-sm font-medium text-gray-700">Adress</label>
-                            <input type="text" id="billing-address" required class="mt-1 block w-full p-2 border rounded-md">
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label for="billing-zip" class="block text-sm font-medium text-gray-700">Postnummer</label>
-                                <input type="text" id="billing-zip" required class="mt-1 block w-full p-2 border rounded-md">
-                            </div>
-                            <div>
-                                <label for="billing-city" class="block text-sm font-medium text-gray-700">Ort</label>
-                                <input type="text" id="billing-city" required class="mt-1 block w-full p-2 border rounded-md">
-                            </div>
-                        </div>
-                        <div>
-                            <label for="billing-mobile" class="block text-sm font-medium text-gray-700">Mobilnummer</label>
-                            <input type="tel" id="billing-mobile" required class="mt-1 block w-full p-2 border rounded-md">
-                        </div>
-                        <div>
-                            <label for="billing-email" class="block text-sm font-medium text-gray-700">E-postadress</label>
-                            <input type="email" id="billing-email" required class="mt-1 block w-full p-2 border rounded-md">
-                        </div>
-                        <button type="submit" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300">Slutför beställning</button>
-                    </form>
-                </div>
-                <div id="order-confirmation-section" class="mb-6 card hidden">
-                    <h3 class="text-xl font-bold mb-4 text-center text-green-600">Din beställning är emottagen!</h3>
-                    <p class="text-center mb-2">Din beställning är nu emottagen och avvaktar betalning innan den skickas.</p>
-                    <p class="text-center mb-2">Betalning kan ske via Swish till <strong>070-224 90 15 (Mats Jonsson)</strong>. Ange Ordernummer <strong><span id="order-id-display"></span></strong> som meddelande. Summa att betala är <strong><span id="order-total-display"></span></strong> kronor.</p>
-                    <div id="swish-qr-container" class="mt-4 flex flex-col items-center">
-                        <p class="mb-2 font-bold">Skanna QR-koden för att betala direkt:</p>
-                        <div id="swish-qr-code" class="w-48 h-48 border rounded-lg"></div>
-                    </div>
-                    <p class="text-center mt-4">Ett mail med betalningsinformation kommer skickas, och vi uppdaterar dig med statusändringar. Om du skapade ett konto kommer statusen även uppdateras där.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="errorModal" class="modal">
-        <div class="modal-content max-w-sm mx-auto p-6 bg-white rounded-lg shadow-xl text-center">
-            <h3 id="error-modal-title" class="text-xl font-bold text-red-600 mb-4">Ett fel uppstod</h3>
-            <p id="error-modal-message" class="text-gray-700 mb-6"></p>
-            <button id="close-error-modal" class="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition duration-300">OK</button>
-        </div>
-    </div>
-    
-
-    <footer class="bg-gray-800 text-white text-center py-4 mt-8">
-        <div class="container text-sm">
-            <p>&copy; 2025 Vykortsbutik</p>
         </div>
     </footer>
 
