@@ -1,6 +1,6 @@
 import { 
     getFirestore, onSnapshot, collection, query, orderBy, getDocs, updateDoc, doc, deleteDoc, where 
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
 export function showMessage(message) {
     document.getElementById('modal-message').textContent = message;
