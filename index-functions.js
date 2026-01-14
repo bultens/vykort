@@ -1262,20 +1262,28 @@ function renderCarousel() {
         // Layout: Bild till vänster (eller topp), Text till höger (eller botten)
         // Notera: Vi använder object-contain för att visa hela bilden snyggt
         slide.innerHTML = `
-            <div class="w-full md:w-1/2 h-64 md:h-full flex items-center justify-center p-4 cursor-pointer" onclick="window.openPostcardModal('${postcard.id}')">
+            <div class="w-full md:w-1/2 h-56 md:h-full flex items-center justify-center p-4 cursor-pointer" onclick="window.openPostcardModal('${postcard.id}')">
                 <img src="${postcard.imageURL}" alt="${postcard.title}" class="max-h-full max-w-full object-contain drop-shadow-xl hover:scale-105 transition-transform duration-300">
             </div>
-            <div class="w-full md:w-1/2 text-center md:text-left p-6">
-                <span class="bg-terracotta-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2 inline-block">Utvalt verk</span>
-                <h2 class="text-4xl md:text-5xl font-display font-bold text-charcoal mb-4 cursor-pointer hover:text-terracotta-600 transition-colors" onclick="window.openPostcardModal('${postcard.id}')">${postcard.title}</h2>
-                <p class="text-sage-600 text-lg mb-6 max-w-md mx-auto md:mx-0">
-                    Ett fantastiskt motiv som gör sig perfekt som vykort. Finns i storlekar A6, A5 och A4.
-                </p>
-                <div class="flex flex-col md:flex-row gap-4 justify-center md:justify-start items-center">
-                    <p class="text-2xl font-bold text-terracotta-700">Från ${minPrice} kr</p>
-                    <button onclick="window.openPostcardModal('${postcard.id}')" class="btn-primary px-8 py-3 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                        Köp nu
-                    </button>
+            
+            <div class="w-full md:w-1/2 text-center md:text-left px-4 pb-8 md:p-6 flex flex-col justify-center h-full">
+                <div>
+                    <span class="bg-terracotta-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2 inline-block">Utvalt verk</span>
+                    
+                    <h2 class="text-3xl md:text-5xl font-display font-bold text-charcoal mb-2 md:mb-4 cursor-pointer hover:text-terracotta-600 transition-colors" onclick="window.openPostcardModal('${postcard.id}')">
+                        ${postcard.title}
+                    </h2>
+                    
+                    <p class="text-sage-600 text-base md:text-lg mb-4 md:mb-6 max-w-md mx-auto md:mx-0 leading-snug">
+                        Ett fantastiskt motiv som gör sig perfekt som vykort. Finns i storlekar A6, A5 och A4.
+                    </p>
+                    
+                    <div class="flex flex-col md:flex-row gap-3 md:gap-4 justify-center md:justify-start items-center">
+                        <p class="text-2xl font-bold text-terracotta-700">Från ${minPrice} kr</p>
+                        <button onclick="window.openPostcardModal('${postcard.id}')" class="btn-primary px-6 py-2 md:px-8 md:py-3 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                            Köp nu
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
