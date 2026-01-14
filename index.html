@@ -265,6 +265,30 @@
                 padding: 1.5rem;
             }
         }
+        .tag-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            background-color: var(--sage-100);
+            color: var(--sage-700);
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-right: 4px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tag-badge:hover {
+            background-color: var(--terracotta-600);
+            color: white;
+        }
+        .active-tag-filter {
+            background-color: var(--terracotta-600) !important;
+            color: white !important;
+        }
+        #active-filters-container {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>

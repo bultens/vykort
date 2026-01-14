@@ -130,6 +130,8 @@ export async function addOrUpdatePostcard(globalState) {
     if (!globalState.isAdminLoggedIn) return showMessage('Du måste vara inloggad.');
     
     const title = document.getElementById('postcard-title').value;
+    const tagsInput = document.getElementById('postcard-tags').value;
+    const tags = tagsInput.split(',').map(tag => tag.trim().toLowerCase()).filter(tag => tag.length > 0);
     const group = document.getElementById('postcard-group').value;
     const priceGroup = document.getElementById('postcard-price-group').value;
     const fileInput = document.getElementById('postcard-image-file');
@@ -165,7 +167,7 @@ export async function addOrUpdatePostcard(globalState) {
         return showMessage("Du måste välja en bild.");
     }
 
-    const postcardData = { title, imageURL, group, priceGroup };
+    const postcardData = { title, tags, imageURL, group, priceGroup };
 
     try {
         const colRef = collection(globalState.db, `artifacts/${globalState.appId}/public/data/postcards`);
@@ -421,6 +423,7 @@ export async function editPostcard(globalState, id) {
     const p = globalState.postcardsData.find(x => x.id === id);
     if(!p) return;
     document.getElementById('postcard-title').value = p.title;
+    document.getElementById('postcard-tags').value = p.tags ? p.tags.join(', ') : '';
     document.getElementById('postcard-group').value = p.group;
     document.getElementById('postcard-price-group').value = p.priceGroup;
     document.getElementById('existing-image-url').value = p.imageURL;
