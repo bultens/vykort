@@ -407,16 +407,39 @@
                 try {
                     const app = window.globalState.firebase.initializeApp(firebaseConfig);
                     window.globalState.db = window.globalState.firebase.getFirestore(app);
-                    
-                    const adminLoggedIn = localStorage.getItem('adminLoggedIn');
-                    if (!adminLoggedIn) {
-                        window.location.href = 'admin.html';
-                        return;
-                    }
+                    const auth = window.globalState.firebase.getAuth(app);
 
-                    startListeners(window.globalState);
-                    document.getElementById('loading-message').classList.add('hidden');
-                    document.getElementById('order-status-summary').classList.remove('hidden');
+                    // --- HÄR ÄR DEN NYA KODEN: SÄKERHETSKONTROLL ---
+                    window.globalState.firebase.onAuthStateChanged(auth, async (user) => {
+                        if (user) {
+                            // 1. Någon är inloggad, kolla om det är en Admin
+                            try {
+                                const db = window.globalState.db;
+                                const adminsRef = collection(db, `artifacts/${appId}/public/data/admins`);
+                                const q = query(adminsRef, where("email", "==", user.email));
+                                const snapshot = await getDocs(q);
+
+                                if (!snapshot.empty) {
+                                    // 2. JA! Det är en admin -> Ladda ordersidan
+                                    console.log("Admin verifierad på ordersidan:", user.email);
+                                    startListeners(window.globalState);
+                                    document.getElementById('loading-message').classList.add('hidden');
+                                    document.getElementById('order-status-summary').classList.remove('hidden');
+                                } else {
+                                    // 3. NEJ! Inloggad men inte admin -> Kasta ut till startsidan
+                                    console.warn("Obehörig på ordersidan:", user.email);
+                                    window.location.href = 'index.html';
+                                }
+                            } catch (error) {
+                                console.error("Kunde inte verifiera admin:", error);
+                                document.getElementById('loading-message').textContent = 'Ett fel uppstod vid verifiering.';
+                            }
+                        } else {
+                            // 4. Inte inloggad alls -> Skicka till inloggningen
+                            window.location.href = 'admin.html';
+                        }
+                    });
+                    // ------------------------------------------------
 
                 } catch (e) {
                     console.error("Firebase initieringsfel:", e);
