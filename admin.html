@@ -592,27 +592,56 @@
                 window.globalState.db = window.globalState.firebase.getFirestore(app);
                 window.globalState.storage = window.globalState.firebase.getStorage(app);
                 
-                // 2. Lyssna på inloggningsstatus
+                // 2. Lyssna på inloggningsstatus med SÄKERHETSKONTROLL
                 const auth = window.globalState.firebase.getAuth(app);
 
-                window.globalState.firebase.onAuthStateChanged(auth, (user) => {
+                window.globalState.firebase.onAuthStateChanged(auth, async (user) => {
                     if (user) {
-                        console.log("Admin inloggad:", user.email);
-                        window.globalState.isAdminLoggedIn = true;
-                        
-                        // Visa admin-gränssnitt
-                        document.getElementById('admin-login-panel').classList.add('hidden');
-                        document.getElementById('admin-panel').classList.remove('hidden');
-                        document.getElementById('admin-management-section').classList.remove('hidden');
-                        document.getElementById('admin-indicator').classList.remove('hidden');
-                        document.getElementById('admin-user-info').textContent = `Inloggad som ${user.email}`;
-                        document.getElementById('order-status-summary').classList.remove('hidden');
-                        document.getElementById('orders-link').classList.remove('hidden');
-                        
-                        // Ladda data
-                        startAdminListeners();
+                        // Någon är inloggad (kan vara admin ELLER kund)
+                        // Vi måste kolla om denna person finns i admin-listan
+                        try {
+                            const db = window.globalState.db;
+                            const adminsRef = collection(db, `artifacts/${firebaseConfig.projectId}/public/data/admins`);
+                            const q = query(adminsRef, where("email", "==", user.email));
+                            const querySnapshot = await getDocs(q);
+
+                            if (!querySnapshot.empty) {
+                                // JA! Användaren finns i admin-listan -> Visa panelen
+                                console.log("Admin verifierad och inloggad:", user.email);
+                                window.globalState.isAdminLoggedIn = true;
+                                
+                                document.getElementById('admin-login-panel').classList.add('hidden');
+                                document.getElementById('admin-panel').classList.remove('hidden');
+                                document.getElementById('admin-management-section').classList.remove('hidden');
+                                document.getElementById('admin-indicator').classList.remove('hidden');
+                                document.getElementById('admin-user-info').textContent = `Inloggad som ${user.email}`;
+                                document.getElementById('order-status-summary').classList.remove('hidden');
+                                document.getElementById('orders-link').classList.remove('hidden');
+                                
+                                startAdminListeners();
+                            } else {
+                                // NEJ! Användaren är inloggad (som kund) men saknar admin-rättigheter.
+                                // Vi visar INTE adminpanelen. Vi låter dem vara på inloggningssidan.
+                                console.log("Inloggad användare är ej admin:", user.email);
+                                window.globalState.isAdminLoggedIn = false;
+                                
+                                // Se till att adminpanelen är dold
+                                document.getElementById('admin-login-panel').classList.remove('hidden');
+                                document.getElementById('admin-panel').classList.add('hidden');
+                                document.getElementById('admin-indicator').classList.add('hidden');
+                                document.getElementById('order-status-summary').classList.add('hidden');
+                                document.getElementById('orders-link').classList.add('hidden');
+                                
+                                stopAdminListeners();
+                                
+                                // Valfritt: Logga ut kunden automatiskt från adminsidan för att undvika förvirring
+                                // await signOut(auth); 
+                            }
+                        } catch (error) {
+                            console.error("Fel vid behörighetskontroll:", error);
+                        }
                     } else {
-                        // Visa inloggnings-gränssnitt
+                        // Ingen är inloggad
                         window.globalState.isAdminLoggedIn = false;
                         document.getElementById('admin-login-panel').classList.remove('hidden');
                         document.getElementById('admin-panel').classList.add('hidden');
