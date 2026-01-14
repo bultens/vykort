@@ -9,6 +9,7 @@ import { createSwishQrCode } from "./qr.js";
 const appId = firebaseConfig.projectId;
 //const swishNumber = '0702249015';
 
+let currentTagFilter = null;
 let db;
 let auth;
 let postcardsData = [];
@@ -823,13 +824,21 @@ async function renderPostcards() {
     const groupFilter = document.getElementById('group-filter');
     const selectedGroup = groupFilter ? groupFilter.value : 'all';
     
+    // Hämta vilka grupper som ska visas
     const groupsToRender = selectedGroup === 'all'
         ? groupsData
         : groupsData.filter(g => g.id === selectedGroup);
     
     for (const group of groupsToRender) {
-        const groupPostcards = postcardsData.filter(p => p.group === group.id);
-        if (groupPostcards.length === 0 && selectedGroup !== 'all') continue;
+        // Filtrera vykort för denna grupp
+        let groupPostcards = postcardsData.filter(p => p.group === group.id);
+        
+        // Om en tagg är vald, filtrera ÄVEN på den
+        if (currentTagFilter) {
+            groupPostcards = groupPostcards.filter(p => p.tags && p.tags.includes(currentTagFilter));
+        }
+
+        if (groupPostcards.length === 0) continue; // Hoppa över tomma grupper eller om filtrering tömde gruppen
         
         const groupSection = document.createElement('div');
         groupSection.innerHTML = `<h2 class="text-3xl font-bold mt-8 mb-4">${group.name}</h2>`;
@@ -837,6 +846,7 @@ async function renderPostcards() {
         const postcardsGrid = document.createElement('div');
         postcardsGrid.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start";
         
+        // Skapa HTML för vykorten
         if (groupPostcards.length > 0) {
             for (const postcard of groupPostcards) {
                 const postcardHtml = await createPostcardHtml(postcard);
@@ -864,6 +874,7 @@ async function createPostcardHtml(p) {
     let priceHtml = '';
     let hasSale = false;
     
+    // Kontrollera om det finns några aktiva reor för denna produkt
     const applicableSales = salesData.filter(s => {
         const now = new Date();
         const isTimeValid = s.noTimeLimit || (s.startDate && s.endDate && now >= new Date(s.startDate) && now <= new Date(s.endDate));
@@ -876,6 +887,7 @@ async function createPostcardHtml(p) {
     
     if(applicableSales.length > 0) hasSale = true;
 
+    // Skapa prislistan (HTML)
     if (priceGroup) {
         const sizes = ['liten', 'mellan', 'stor'];
         sizes.forEach((size) => {
@@ -904,6 +916,19 @@ async function createPostcardHtml(p) {
     
     const saleBadge = hasSale ? '<span class="ml-2 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full">REA!</span>' : '';
 
+    // --- NYTT: Skapa HTML för taggar ---
+    let tagsHtml = '';
+    if (p.tags && p.tags.length > 0) {
+        tagsHtml = '<div class="mt-3 flex flex-wrap justify-center gap-1">';
+        p.tags.forEach(tag => {
+            // "event.stopPropagation()" är viktigt här för att inte öppna vykortet (modalen) när man klickar på taggen
+            tagsHtml += `<span onclick="event.stopPropagation(); window.filterByTag('${tag}')" class="tag-badge">#${tag}</span>`;
+        });
+        tagsHtml += '</div>';
+    }
+    // ------------------------------------
+
+    // Returnera ett Promise som väntar på att bilden laddas för att bestämma orientering
     return new Promise(resolve => {
         const image = new Image();
         image.src = p.imageURL;
@@ -916,11 +941,11 @@ async function createPostcardHtml(p) {
                     </div>
                     <h2 class="text-xl font-bold mb-2">${p.title}${saleBadge}</h2>
                     ${priceHtml}
-                </div>
+                    ${tagsHtml} </div>
             `;
             resolve(html);
         };
-        image.onerror = () => { // Handle broken images gracefully
+        image.onerror = () => { // Hantera trasiga bilder snyggt
              const html = `
                 <div class="card flex flex-col items-center text-center cursor-pointer postcard-card" data-id="${p.id}">
                     <div class="postcard-image-wrapper portrait rounded-lg mb-4 bg-gray-200 flex items-center justify-center">
@@ -928,6 +953,7 @@ async function createPostcardHtml(p) {
                     </div>
                     <h2 class="text-xl font-bold mb-2">${p.title}${saleBadge}</h2>
                     ${priceHtml}
+                    ${tagsHtml}
                 </div>
             `;
             resolve(html);
@@ -1179,6 +1205,28 @@ function clearCart() {
     saveCart();
     renderCart();
 }
+
+window.filterByTag = function(tag) {
+    currentTagFilter = tag;
+    document.getElementById('active-filters-container').classList.remove('hidden');
+    document.getElementById('current-tag-name').textContent = tag;
+    
+    // Nollställ gruppfiltret om man vill söka i hela butiken, 
+    // eller behåll det om man vill söka taggar INOM en grupp. 
+    // Här väljer vi att nollställa gruppfiltret för att hitta allt med taggen:
+    const groupFilter = document.getElementById('group-filter');
+    if(groupFilter) groupFilter.value = 'all';
+    
+    renderPostcards();
+    // Scrolla upp lite så man ser resultatet
+    document.getElementById('postcards-list').scrollIntoView({ behavior: 'smooth' });
+};
+
+window.clearTagFilter = function() {
+    currentTagFilter = null;
+    document.getElementById('active-filters-container').classList.add('hidden');
+    renderPostcards();
+};
 
 // Expose functions to the window object for legacy or debugging purposes, but prefer addEventListener
 window.openPostcardModal = openPostcardModal;
