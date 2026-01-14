@@ -89,7 +89,72 @@ document.addEventListener('DOMContentLoaded', () => {
             postcardsList.innerHTML = '<p class="text-center text-red-500">Firebase-konfiguration saknas.</p>';
         }
     }
+    const contactModal = document.getElementById('contactModal');
+    const openContactLink = document.getElementById('open-contact-link');
+    const closeContactBtn = document.getElementById('close-contact-modal');
+    const contactForm = document.getElementById('contact-form');
 
+    if (openContactLink) {
+        openContactLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            contactModal.classList.add('active');
+            
+            // Om användaren är inloggad, förifyll namn och e-post
+            if (currentUser) {
+                document.getElementById('contact-email').value = currentUser.email || '';
+                // Försök hitta namn om det finns sparat, annars tomt
+            }
+        });
+    }
+
+    if (closeContactBtn) {
+        closeContactBtn.addEventListener('click', () => {
+            contactModal.classList.remove('active');
+        });
+    }
+    
+    // Stäng om man klickar utanför
+    window.addEventListener('click', (event) => {
+        if (event.target === contactModal) {
+            contactModal.classList.remove('active');
+        }
+    });
+
+    // Skicka meddelandet
+    if (contactForm) {
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('contact-name').value;
+            const email = document.getElementById('contact-email').value;
+            const message = document.getElementById('contact-message').value;
+            const submitBtn = contactForm.querySelector('button[type="submit"]');
+            
+            submitBtn.textContent = "Skickar...";
+            submitBtn.disabled = true;
+
+            try {
+                await addDoc(collection(db, `artifacts/${appId}/public/data/messages`), {
+                    name,
+                    email,
+                    message,
+                    timestamp: serverTimestamp(),
+                    read: false // Markeras som oläst från början
+                });
+                
+                contactModal.classList.remove('active');
+                contactForm.reset();
+                showConfirmationToast("Tack! Ditt meddelande har skickats.");
+            } catch (error) {
+                console.error("Fel vid skickande av meddelande:", error);
+                showErrorModal("Fel", "Kunde inte skicka meddelandet just nu.");
+            } finally {
+                submitBtn.textContent = "Skicka meddelande";
+                submitBtn.disabled = false;
+            }
+        });
+    }
+    
     loadCart();
     
     // Setup all event listeners

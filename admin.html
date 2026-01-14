@@ -295,6 +295,17 @@
                 </div>
             </div>
 
+            <div class="card">
+                <div class="flex justify-between items-center section-header">
+                    <h2 class="font-display text-xl font-semibold">Meddelanden</h2>
+                    <span id="unread-count" class="bg-terracotta-600 text-white text-xs font-bold px-2 py-1 rounded-full hidden">0 nya</span>
+                </div>
+                
+                <div id="messages-list" class="space-y-3 mb-4 max-h-64 overflow-y-auto">
+                    <p class="text-sage-600 text-sm italic">Inga meddelanden än.</p>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div class="card">
                     <h2 class="font-display text-xl font-semibold section-header">Butiksinställningar</h2>
@@ -544,7 +555,7 @@
         addAdmin, handleLogin, handleLogout, startAdminListeners, stopAdminListeners,
         showMessage, showConfirmation, editPriceGroup, deletePriceGroup, editGroup,
         deleteGroup, editPostcard, deletePostcard, deleteAdmin, deleteSale,
-        editNews, deleteNews, updateNews, updateSettings
+        editNews, deleteNews, updateNews, updateSettings, deleteMessage, markMessageRead
     } from "./admin-functions.js";
 
     // Skapa globalt state
@@ -562,6 +573,7 @@
         adminsData: [],
         salesData: [],
         newsData: [],
+        messagesData: [],
         unsubscribePriceGroups: null,
         unsubscribeGroups: null,
         unsubscribePostcards: null,
@@ -589,6 +601,8 @@
     window.editNews = (id) => editNews(window.globalState, id);
     window.deleteNews = (id) => deleteNews(window.globalState, id);
     window.updateNews = () => updateNews(window.globalState);
+    window.deleteMessage = (id) => deleteMessage(window.globalState, id);
+    window.markMessageRead = (id) => markMessageRead(window.globalState, id);
 
     document.addEventListener('DOMContentLoaded', () => {
         if (firebaseConfig.projectId) {

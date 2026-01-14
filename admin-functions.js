@@ -1,4 +1,4 @@
-// Version 1.6 - Säker inloggning med VIP-lista (Admin Check)
+// admin-functions.js - Version 2.0 (Highlight & Messages added)
 import { 
     getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc, setDoc
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
@@ -43,7 +43,7 @@ export function showConfirmation(message, onConfirm) {
     };
 }
 
-// --- SÄKER INLOGGNING (HÄR ÄR NYCKELN) ---
+// --- SÄKER INLOGGNING ---
 
 export async function handleLogin(globalState) {
     const email = document.getElementById('admin-email').value.trim();
@@ -54,12 +54,11 @@ export async function handleLogin(globalState) {
     try {
         const auth = getAuth(); 
         
-        // 1. Logga in användaren (Portvakten släpper in)
+        // 1. Logga in användaren
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
         // 2. KONTROLLERA OM ADMIN (VIP-listan)
-        // Vi söker i 'admins'-samlingen efter ett dokument där 'email' matchar inloggad användare
         const db = globalState.db || getFirestore();
         const adminsRef = collection(db, `artifacts/${globalState.appId}/public/data/admins`);
         const q = query(adminsRef, where("email", "==", user.email));
@@ -67,17 +66,14 @@ export async function handleLogin(globalState) {
         const querySnapshot = await getDocs(q);
 
         if (querySnapshot.empty) {
-            // AJA BAJA! Användaren är inloggad men är INTE admin.
             console.warn("Obehörig inloggning stoppad:", user.email);
-            await signOut(auth); // Kasta ut dem direkt
+            await signOut(auth);
             showMessage("Behörighet saknas. Ditt konto har inte administratörsrättigheter.");
             return;
         }
 
-        // 3. Om vi kommer hit är man både inloggad OCH admin
         console.log("Admin identifierad och inloggad:", user.email);
         globalState.isAdminLoggedIn = true;
-        // UI uppdateras automatiskt av onAuthStateChanged i admin.html
         
     } catch (e) {
         console.error("Inloggningsfel:", e);
@@ -131,8 +127,11 @@ export async function addOrUpdatePostcard(globalState) {
     
     const title = document.getElementById('postcard-title').value;
     const tagsInput = document.getElementById('postcard-tags').value;
-    const isHighlight = document.getElementById('postcard-highlight').checked;
     const tags = tagsInput.split(',').map(tag => tag.trim().toLowerCase()).filter(tag => tag.length > 0);
+    
+    // NYTT: Hämta highlight-status
+    const isHighlight = document.getElementById('postcard-highlight').checked;
+
     const group = document.getElementById('postcard-group').value;
     const priceGroup = document.getElementById('postcard-price-group').value;
     const fileInput = document.getElementById('postcard-image-file');
@@ -168,6 +167,7 @@ export async function addOrUpdatePostcard(globalState) {
         return showMessage("Du måste välja en bild.");
     }
 
+    // NYTT: Vi sparar isHighlight i objektet
     const postcardData = { title, tags, isHighlight, imageURL, group, priceGroup };
 
     try {
@@ -212,15 +212,12 @@ export async function addNews(globalState, title, text, order, noTimeLimit, star
 }
 
 export async function addAdmin(globalState, email, password) {
-    // OBS: Password används inte här, Auth sköter det. Vi sparar bara email i listan.
     if (!globalState.isAdminLoggedIn) return showMessage('Du måste vara inloggad.');
-    
-    // Vi lägger till e-posten i vår VIP-lista
     await addDoc(collection(globalState.db, `artifacts/${globalState.appId}/public/data/admins`), { 
         email: email, 
         addedAt: new Date() 
     });
-    showMessage('Admin tillagd i VIP-listan! (Användaren måste själv skapa konto via "Bli kund" eller via Firebase Console)');
+    showMessage('Admin tillagd i VIP-listan!');
 }
 
 // --- RENDERING & LISTENERS ---
@@ -269,10 +266,16 @@ export async function updateSettings(globalState, swishNumber, swishName) {
 }
 
 export function renderAdminLists(globalState) {
-    const createItem = (html) => {
+    // NYTT: Helper för att skapa list-items med olika utseende
+    const createItem = (itemData) => {
         const div = document.createElement('div');
-        div.className = "flex justify-between items-center p-2 bg-gray-100 rounded-md mb-1";
-        div.innerHTML = html;
+        // Om det är ett meddelande, använd lite annan styling (box), annars default (rad)
+        if (itemData.html.includes('whitespace-pre-wrap')) {
+            div.className = "p-3 rounded-md mb-2 " + (itemData.html.includes('border-terracotta') ? "bg-white border border-gray-200 border-l-4 border-terracotta-600" : "bg-gray-100");
+        } else {
+            div.className = "flex justify-between items-center p-2 bg-gray-100 rounded-md mb-1";
+        }
+        div.innerHTML = itemData.html;
         return div;
     };
 
@@ -299,12 +302,44 @@ export function renderAdminLists(globalState) {
             html: `<span>${n.title}</span><div class="space-x-2">
                    <button onclick="window.editNews('${n.id}')" class="text-blue-500 text-sm">Ändra</button>
                    <button onclick="window.deleteNews('${n.id}')" class="text-red-500 text-sm">Ta bort</button></div>`
-        }))
+        })),
+        // NYTT: Lista för meddelanden
+        'messages-list': globalState.messagesData.map(m => {
+            const date = m.timestamp?.toDate ? m.timestamp.toDate().toLocaleString('sv-SE').slice(0, 16) : 'Nyss';
+            const bgClass = m.read ? 'bg-gray-50' : 'bg-white border-l-4 border-terracotta-600 shadow-sm';
+            const fontClass = m.read ? 'text-gray-500' : 'text-charcoal font-medium';
+            const borderMarker = !m.read ? 'border-terracotta' : '';
+            
+            return {
+                html: `
+                <div class="flex flex-col gap-1 w-full ${borderMarker}">
+                    <div class="flex justify-between items-start">
+                        <span class="text-xs text-sage-600">${date}</span>
+                        <div class="space-x-2">
+                            <a href="mailto:${m.email}" class="text-blue-500 text-xs hover:underline">Svara</a>
+                            <button onclick="window.deleteMessage('${m.id}')" class="text-red-500 text-xs hover:text-red-700">Ta bort</button>
+                        </div>
+                    </div>
+                    <div class="${fontClass}">${m.name} <span class="text-xs font-normal text-gray-500">&lt;${m.email}&gt;</span></div>
+                    <p class="text-sm mt-1 whitespace-pre-wrap">${m.message}</p>
+                    ${!m.read ? `<button onclick="window.markMessageRead('${m.id}')" class="text-xs text-terracotta-600 hover:underline mt-2 text-left">Markera som läst</button>` : ''}
+                </div>`
+            };
+        })
     };
 
     for (const [id, items] of Object.entries(lists)) {
         const el = document.getElementById(id);
-        if (el) { el.innerHTML = ''; items.forEach(item => el.appendChild(createItem(item.html))); }
+        if (el) { el.innerHTML = ''; items.forEach(item => el.appendChild(createItem(item))); }
+    }
+
+    // NYTT: Uppdatera badge för olästa meddelanden
+    const unreadCount = globalState.messagesData.filter(m => !m.read).length;
+    const badge = document.getElementById('unread-count');
+    if (badge) {
+        badge.textContent = `${unreadCount} nya`;
+        if (unreadCount > 0) badge.classList.remove('hidden');
+        else badge.classList.add('hidden');
     }
 
     const postcardsList = document.getElementById('postcards-list');
@@ -334,18 +369,22 @@ export function startAdminListeners() {
     if (!window.globalState.db) return;
     const { db, appId } = window.globalState;
 
+    // NYTT: Lade till 'messages' i listan
     const collections = [
         { name: 'priceGroups', col: 'priceGroups', state: 'priceGroupsData' },
         { name: 'groups', col: 'groups', state: 'groupsData', order: 'order' },
         { name: 'postcards', col: 'postcards', state: 'postcardsData' },
         { name: 'admins', col: 'admins', state: 'adminsData' },
         { name: 'sales', col: 'sales', state: 'salesData' },
-        { name: 'orders', col: 'orders', state: 'ordersData', custom: true }
+        { name: 'orders', col: 'orders', state: 'ordersData', custom: true },
+        { name: 'messages', col: 'messages', state: 'messagesData', order: 'timestamp', desc: true }
     ];
 
     collections.forEach(c => {
         let q = collection(db, `artifacts/${appId}/public/data/${c.col}`);
-        if (c.order) q = query(q, orderBy(c.order));
+        
+        // Uppdaterad logik för sortering (stigande eller fallande)
+        if (c.order) q = query(q, orderBy(c.order, c.desc ? 'desc' : 'asc'));
         
         window.globalState[`unsubscribe${c.name}`] = onSnapshot(q, (s) => {
             if (c.custom && c.name === 'orders') {
@@ -377,7 +416,8 @@ export function startAdminListeners() {
 }
 
 export function stopAdminListeners() {
-    ['priceGroups', 'groups', 'postcards', 'admins', 'sales', 'news', 'orders'].forEach(k => {
+    // NYTT: Lade till 'messages' i listan för att stoppa lyssnaren
+    ['priceGroups', 'groups', 'postcards', 'admins', 'sales', 'news', 'orders', 'messages'].forEach(k => {
         const func = window.globalState[`unsubscribe${k}`];
         if (func) func();
     });
@@ -425,7 +465,10 @@ export async function editPostcard(globalState, id) {
     if(!p) return;
     document.getElementById('postcard-title').value = p.title;
     document.getElementById('postcard-tags').value = p.tags ? p.tags.join(', ') : '';
+    
+    // NYTT: Läs in checkbox för highlight
     document.getElementById('postcard-highlight').checked = p.isHighlight || false;
+    
     document.getElementById('postcard-group').value = p.group;
     document.getElementById('postcard-price-group').value = p.priceGroup;
     document.getElementById('existing-image-url').value = p.imageURL;
@@ -472,4 +515,15 @@ export async function updateNews(globalState) {
     await updateDoc(doc(globalState.db, `artifacts/${globalState.appId}/public/data/news`, id), d);
     showMessage('Uppdaterad!');
     document.getElementById('editNewsModal').classList.remove('active');
+}
+
+// NYTT: Funktioner för meddelanden
+export async function deleteMessage(globalState, id) {
+    showConfirmation("Ta bort meddelandet permanent?", async () => {
+        await deleteDoc(doc(globalState.db, `artifacts/${globalState.appId}/public/data/messages`, id));
+    });
+}
+
+export async function markMessageRead(globalState, id) {
+    await updateDoc(doc(globalState.db, `artifacts/${globalState.appId}/public/data/messages`, id), { read: true });
 }
