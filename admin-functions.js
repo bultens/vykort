@@ -1,4 +1,4 @@
-// admin-functions.js - Version 2.0 (Highlight & Messages added)
+// admin-functions.js - Version 2.1
 import { 
     getFirestore, onSnapshot, collection, query, orderBy, where, getDocs, writeBatch, updateDoc, doc, deleteDoc, addDoc, setDoc
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
@@ -517,7 +517,7 @@ export async function updateNews(globalState) {
     document.getElementById('editNewsModal').classList.remove('active');
 }
 
-// NYTT: Funktioner för meddelanden
+// NYTT: Funktioner för meddelanden (Detta var det som saknades)
 export async function deleteMessage(globalState, id) {
     showConfirmation("Ta bort meddelandet permanent?", async () => {
         await deleteDoc(doc(globalState.db, `artifacts/${globalState.appId}/public/data/messages`, id));
