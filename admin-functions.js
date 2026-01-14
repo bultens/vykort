@@ -131,6 +131,7 @@ export async function addOrUpdatePostcard(globalState) {
     
     const title = document.getElementById('postcard-title').value;
     const tagsInput = document.getElementById('postcard-tags').value;
+    const isHighlight = document.getElementById('postcard-highlight').checked;
     const tags = tagsInput.split(',').map(tag => tag.trim().toLowerCase()).filter(tag => tag.length > 0);
     const group = document.getElementById('postcard-group').value;
     const priceGroup = document.getElementById('postcard-price-group').value;
@@ -167,7 +168,7 @@ export async function addOrUpdatePostcard(globalState) {
         return showMessage("Du måste välja en bild.");
     }
 
-    const postcardData = { title, tags, imageURL, group, priceGroup };
+    const postcardData = { title, tags, isHighlight, imageURL, group, priceGroup };
 
     try {
         const colRef = collection(globalState.db, `artifacts/${globalState.appId}/public/data/postcards`);
@@ -424,6 +425,7 @@ export async function editPostcard(globalState, id) {
     if(!p) return;
     document.getElementById('postcard-title').value = p.title;
     document.getElementById('postcard-tags').value = p.tags ? p.tags.join(', ') : '';
+    document.getElementById('postcard-highlight').checked = p.isHighlight || false;
     document.getElementById('postcard-group').value = p.group;
     document.getElementById('postcard-price-group').value = p.priceGroup;
     document.getElementById('existing-image-url').value = p.imageURL;

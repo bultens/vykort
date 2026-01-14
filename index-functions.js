@@ -19,6 +19,9 @@ let salesData = [];
 let cart = [];
 let currentUser = null;
 let swishSettings = { number: '0722283154', name: 'Mats Jonsson' }; // Standardvärden ifall inget finns i DB
+let carouselInterval;
+let currentSlide = 0;
+let highlightPostcards = [];
 
 let initialDataLoaded = {
     postcards: false,
@@ -673,10 +676,10 @@ function loadCart() {
 }
 
 function checkAndRender() {
-    // Rendera sidan så fort de kritiska delarna (vykort, priser, grupper) har laddats
     if (initialDataLoaded.postcards && initialDataLoaded.priceGroups && initialDataLoaded.groups) {
         if (!allDataLoaded) {
             renderPostcards();
+            renderCarousel(); // NYTT: Initiera karusellen
             renderCart();
             allDataLoaded = true;
             console.log("Data laddad - Butiken visas");
@@ -1227,6 +1230,128 @@ window.clearTagFilter = function() {
     document.getElementById('active-filters-container').classList.add('hidden');
     renderPostcards();
 };
+
+function renderCarousel() {
+    // 1. Filtrera fram highlight-kort
+    highlightPostcards = postcardsData.filter(p => p.isHighlight === true);
+    
+    const section = document.getElementById('highlight-section');
+    const container = document.getElementById('carousel-container');
+    const dotsContainer = document.getElementById('carousel-dots');
+    
+    // Om inga highlights finns, dölj sektionen
+    if (highlightPostcards.length === 0) {
+        if(section) section.classList.add('hidden');
+        return;
+    }
+    
+    if(section) section.classList.remove('hidden');
+    container.innerHTML = '';
+    dotsContainer.innerHTML = '';
+    
+    // 2. Skapa slides
+    highlightPostcards.forEach((postcard, index) => {
+        // Hitta lägsta pris för att visa "Från X kr"
+        const priceGroup = priceGroupsData.find(pg => pg.id === postcard.priceGroup);
+        const minPrice = priceGroup ? Math.min(priceGroup.prices.liten, priceGroup.prices.mellan, priceGroup.prices.stor) : 0;
+        
+        const slide = document.createElement('div');
+        slide.className = `absolute inset-0 transition-opacity duration-700 ease-in-out flex flex-col md:flex-row items-center justify-center p-8 ${index === 0 ? 'opacity-100 z-1' : 'opacity-0 z-0'}`;
+        slide.dataset.index = index;
+        
+        // Layout: Bild till vänster (eller topp), Text till höger (eller botten)
+        // Notera: Vi använder object-contain för att visa hela bilden snyggt
+        slide.innerHTML = `
+            <div class="w-full md:w-1/2 h-64 md:h-full flex items-center justify-center p-4 cursor-pointer" onclick="window.openPostcardModal('${postcard.id}')">
+                <img src="${postcard.imageURL}" alt="${postcard.title}" class="max-h-full max-w-full object-contain drop-shadow-xl hover:scale-105 transition-transform duration-300">
+            </div>
+            <div class="w-full md:w-1/2 text-center md:text-left p-6">
+                <span class="bg-terracotta-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2 inline-block">Utvalt verk</span>
+                <h2 class="text-4xl md:text-5xl font-display font-bold text-charcoal mb-4 cursor-pointer hover:text-terracotta-600 transition-colors" onclick="window.openPostcardModal('${postcard.id}')">${postcard.title}</h2>
+                <p class="text-sage-600 text-lg mb-6 max-w-md mx-auto md:mx-0">
+                    Ett fantastiskt motiv som gör sig perfekt som vykort. Finns i storlekar A6, A5 och A4.
+                </p>
+                <div class="flex flex-col md:flex-row gap-4 justify-center md:justify-start items-center">
+                    <p class="text-2xl font-bold text-terracotta-700">Från ${minPrice} kr</p>
+                    <button onclick="window.openPostcardModal('${postcard.id}')" class="btn-primary px-8 py-3 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                        Köp nu
+                    </button>
+                </div>
+            </div>
+        `;
+        container.appendChild(slide);
+        
+        // Skapa dots
+        const dot = document.createElement('button');
+        dot.className = `w-3 h-3 rounded-full transition-all duration-300 ${index === 0 ? 'bg-terracotta-600 w-8' : 'bg-sage-300 hover:bg-sage-400'}`;
+        dot.onclick = () => goToSlide(index);
+        dotsContainer.appendChild(dot);
+    });
+    
+    // 3. Starta event listeners för knappar
+    document.getElementById('carousel-prev').onclick = prevSlide;
+    document.getElementById('carousel-next').onclick = nextSlide;
+    
+    // 4. Starta auto-play
+    startCarouselTimer();
+    
+    // Pausa vid hover
+    container.addEventListener('mouseenter', stopCarouselTimer);
+    container.addEventListener('mouseleave', startCarouselTimer);
+}
+
+function showSlide(index) {
+    const slides = document.querySelectorAll('#carousel-container > div');
+    const dots = document.querySelectorAll('#carousel-dots > button');
+    
+    if (index >= slides.length) index = 0;
+    if (index < 0) index = slides.length - 1;
+    
+    currentSlide = index;
+    
+    slides.forEach((slide, i) => {
+        if (i === currentSlide) {
+            slide.classList.remove('opacity-0', 'z-0');
+            slide.classList.add('opacity-100', 'z-1');
+        } else {
+            slide.classList.remove('opacity-100', 'z-1');
+            slide.classList.add('opacity-0', 'z-0');
+        }
+    });
+    
+    dots.forEach((dot, i) => {
+        if (i === currentSlide) {
+            dot.classList.remove('bg-sage-300', 'w-3');
+            dot.classList.add('bg-terracotta-600', 'w-8');
+        } else {
+            dot.classList.remove('bg-terracotta-600', 'w-8');
+            dot.classList.add('bg-sage-300', 'w-3');
+        }
+    });
+}
+
+function nextSlide() {
+    showSlide(currentSlide + 1);
+}
+
+function prevSlide() {
+    showSlide(currentSlide - 1);
+}
+
+function goToSlide(index) {
+    showSlide(index);
+}
+
+function startCarouselTimer() {
+    stopCarouselTimer();
+    if (highlightPostcards.length > 1) {
+        carouselInterval = setInterval(nextSlide, 5000); // Byt var 5:e sekund
+    }
+}
+
+function stopCarouselTimer() {
+    if (carouselInterval) clearInterval(carouselInterval);
+}
 
 // Expose functions to the window object for legacy or debugging purposes, but prefer addEventListener
 window.openPostcardModal = openPostcardModal;
