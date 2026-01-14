@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
             db = getFirestore(app);
             auth = getAuth(app);
             
-            onAuthStateChanged(auth, async (user) => { // OBS: lade till 'async' här
+            onAuthStateChanged(auth, async (user) => {
                 currentUser = user;
                 const adminLink = document.getElementById('nav-admin-link');
                 
@@ -44,15 +44,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     updateUserStatus(true);
                     renderOrderHistory();
 
-                    // --- NY KOD: Kolla om admin ---
+                    // --- NY KOD: Visa Admin-länk om behörighet finns ---
                     try {
-                        // Vi kollar i admins-tabellen
                         const adminsRef = collection(db, `artifacts/${appId}/public/data/admins`);
                         const q = query(adminsRef, where("email", "==", user.email));
                         const snapshot = await getDocs(q);
 
                         if (!snapshot.empty) {
                             // Det ÄR en admin -> Visa länken
+                            console.log("Admin identifierad - visar menyval.");
                             if(adminLink) adminLink.classList.remove('hidden');
                         } else {
                             // Inte admin -> Se till att den är dold
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     } catch (e) {
                         console.error("Kunde inte kontrollera admin-status:", e);
                     }
-                    // -----------------------------
+                    // ---------------------------------------------------
 
                 } else {
                     console.log("Användare utloggad.");
