@@ -1384,11 +1384,11 @@ function showSlide(index) {
     
     slides.forEach((slide, i) => {
         if (i === currentSlide) {
-            slide.classList.remove('opacity-0', 'z-0');
-            slide.classList.add('opacity-100', 'z-1');
+            slide.classList.remove('opacity-0', 'z-0', 'pointer-events-none');
+            slide.classList.add('opacity-100', 'z-10', 'pointer-events-auto');
         } else {
-            slide.classList.remove('opacity-100', 'z-1');
-            slide.classList.add('opacity-0', 'z-0');
+            slide.classList.remove('opacity-100', 'z-10', 'pointer-events-auto');
+            slide.classList.add('opacity-0', 'z-0', 'pointer-events-none');
         }
     });
     
