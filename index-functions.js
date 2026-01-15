@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    
+
     loadCart();
     
     // Setup all event listeners
@@ -1321,7 +1321,7 @@ function renderCarousel() {
         const minPrice = priceGroup ? Math.min(priceGroup.prices.liten, priceGroup.prices.mellan, priceGroup.prices.stor) : 0;
         
         const slide = document.createElement('div');
-        slide.className = `absolute inset-0 transition-opacity duration-700 ease-in-out flex flex-col md:flex-row items-center justify-center p-8 ${index === 0 ? 'opacity-100 z-1' : 'opacity-0 z-0'}`;
+        slide.className = `absolute inset-0 transition-opacity duration-700 ease-in-out flex flex-col md:flex-row items-center justify-center p-8 ${index === 0 ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'}`;
         slide.dataset.index = index;
         
         // Layout: Bild till vänster (eller topp), Text till höger (eller botten)
